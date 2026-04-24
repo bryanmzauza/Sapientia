@@ -1,0 +1,46 @@
+[versions]
+paper        = "26.1.2.build.20-alpha"
+java         = "25"
+
+hikari       = "5.1.0"
+sqlite       = "3.45.0.0"
+cloud        = "2.0.0"
+cloudPaper   = "2.0.0-beta.10"
+snakeyaml    = "2.3"
+minimessage  = "4.17.0"
+kryo         = "5.6.0"
+
+floodgate    = "2.2.2-SNAPSHOT"
+
+junit        = "5.10.2"
+assertj      = "3.26.0"
+mockbukkit   = "3.133.2"
+jmh          = "1.37"
+
+shadow       = "8.3.5"
+runpaper     = "2.3.1"
+
+[libraries]
+paper-api         = { module = "io.papermc.paper:paper-api",                      version.ref = "paper" }
+adventure-minimsg = { module = "net.kyori:adventure-text-minimessage",            version.ref = "minimessage" }
+
+hikari            = { module = "com.zaxxer:HikariCP",                             version.ref = "hikari" }
+sqlite-jdbc       = { module = "org.xerial:sqlite-jdbc",                          version.ref = "sqlite" }
+cloud-paper       = { module = "org.incendo:cloud-paper",                         version.ref = "cloudPaper" }
+cloud-annotations = { module = "org.incendo:cloud-annotations",                   version.ref = "cloud" }
+snakeyaml         = { module = "org.yaml:snakeyaml",                              version.ref = "snakeyaml" }
+kryo              = { module = "com.esotericsoftware:kryo",                       version.ref = "kryo" }
+
+floodgate-api     = { module = "org.geysermc.floodgate:api",                      version.ref = "floodgate" }
+
+junit-bom         = { module = "org.junit:junit-bom",                             version.ref = "junit" }
+junit-jupiter     = { module = "org.junit.jupiter:junit-jupiter" }
+assertj           = { module = "org.assertj:assertj-core",                        version.ref = "assertj" }
+mockbukkit        = { module = "com.github.seeseemelk:MockBukkit-v26.1",          version.ref = "mockbukkit" }
+
+jmh-core          = { module = "org.openjdk.jmh:jmh-core",                        version.ref = "jmh" }
+jmh-ap            = { module = "org.openjdk.jmh:jmh-generator-annprocess",        version.ref = "jmh" }
+
+[plugins]
+shadow   = { id = "com.gradleup.shadow",    version.ref = "shadow" }
+runpaper = { id = "xyz.jpenilla.run-paper", version.ref = "runpaper" }

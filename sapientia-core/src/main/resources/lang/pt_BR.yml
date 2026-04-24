@@ -1,0 +1,29 @@
+# Catálogo pt-BR — localização oficial do Sapientia.
+# Chaves em notação pontuada: <área>.<assunto>.<variante>. Veja docs/i18n-strategy.md.
+plugin:
+  enabled: "<green>Sapientia v<white><version></white> ativado.</green>"
+  disabled: "<yellow>Sapientia desativado.</yellow>"
+  reload:
+    success: "<green>Configuração recarregada em <white><ms>ms</white>.</green>"
+    failure: "<red>Falha ao recarregar: <white><error></white></red>"
+
+command:
+  unknown: "<red>Comando desconhecido. Tente <white>/sapientia help</white>.</red>"
+  no-permission: "<red>Você não tem permissão para fazer isso.</red>"
+  players-only: "<red>Este comando só pode ser executado por jogadores.</red>"
+  help:
+    header: "<gold>=== Ajuda do Sapientia ===</gold>"
+    entry: "<yellow><usage></yellow> <gray>-</gray> <white><description></white>"
+    desc:
+      help: "Mostra esta mensagem de ajuda."
+      reload: "Recarrega configuração e catálogos."
+      give: "Dá um item do Sapientia a um jogador."
+  give:
+    usage: "<red>Uso: /sapientia give <jogador> <id> [quantidade]</red>"
+    success: "<green>Entregue <white><amount></white> x <white><id></white> para <white><player></white>.</green>"
+    unknown-item: "<red>Item desconhecido: <white><id></white></red>"
+    invalid-amount: "<red>Quantidade inválida: <white><value></white></red>"
+    player-not-found: "<red>Jogador não encontrado: <white><name></white></red>"
+
+error:
+  internal: "<red>Ocorreu um erro interno. Consulte o log do servidor.</red>"

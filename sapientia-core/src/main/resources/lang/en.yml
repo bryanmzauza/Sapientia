@@ -1,0 +1,29 @@
+# English catalog — Sapientia default locale.
+# Keys use dotted notation: <area>.<subject>.<variant>. See docs/i18n-strategy.md.
+plugin:
+  enabled: "<green>Sapientia v<white><version></white> enabled.</green>"
+  disabled: "<yellow>Sapientia disabled.</yellow>"
+  reload:
+    success: "<green>Configuration reloaded in <white><ms>ms</white>.</green>"
+    failure: "<red>Reload failed: <white><error></white></red>"
+
+command:
+  unknown: "<red>Unknown command. Try <white>/sapientia help</white>.</red>"
+  no-permission: "<red>You do not have permission to do that.</red>"
+  players-only: "<red>This command can only be run by players.</red>"
+  help:
+    header: "<gold>=== Sapientia Help ===</gold>"
+    entry: "<yellow><usage></yellow> <gray>-</gray> <white><description></white>"
+    desc:
+      help: "Show this help message."
+      reload: "Reload configuration and catalogs."
+      give: "Give a Sapientia item to a player."
+  give:
+    usage: "<red>Usage: /sapientia give <player> <id> [amount]</red>"
+    success: "<green>Gave <white><amount></white> x <white><id></white> to <white><player></white>.</green>"
+    unknown-item: "<red>Unknown item id: <white><id></white></red>"
+    invalid-amount: "<red>Invalid amount: <white><value></white></red>"
+    player-not-found: "<red>Player not found: <white><name></white></red>"
+
+error:
+  internal: "<red>An internal error occurred. Check the server log.</red>"

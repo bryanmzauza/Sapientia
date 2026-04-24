@@ -1,0 +1,54 @@
+name: Bug report
+description: Report incorrect behavior
+labels: [bug]
+body:
+  - type: input
+    id: sapientia-version
+    attributes:
+      label: Sapientia version
+      placeholder: 0.1.0-SNAPSHOT
+    validations:
+      required: true
+
+  - type: input
+    id: paper-version
+    attributes:
+      label: Paper version
+      placeholder: 26.1.2-132
+    validations:
+      required: true
+
+  - type: input
+    id: bedrock-stack
+    attributes:
+      label: Floodgate / Geyser (if applicable)
+      placeholder: Floodgate 2.2.2, Geyser 2.4.0
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      render: shell

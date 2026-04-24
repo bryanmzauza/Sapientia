@@ -1,0 +1,7 @@
+# Active locale for plugin messages. Bundled locales: en, pt_BR.
+# Any unknown value falls back to 'en'.
+locale: en
+
+persistence:
+  # Hikari pool size for SQLite. Writes serialise regardless; more only helps reads.
+  pool-size: 4

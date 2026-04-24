@@ -1,0 +1,24 @@
+name: Sapientia
+version: ${version}
+main: dev.brmz.sapientia.core.SapientiaPlugin
+api-version: "26.1"
+author: BRMZ.dev
+description: Modular tech/automation platform for Paper with Bedrock parity. Created by BRMZ.dev.
+website: https://brmz.dev
+softdepend:
+  - floodgate
+
+commands:
+  sapientia:
+    description: Sapientia root command.
+    usage: /sapientia help
+    aliases:
+      - sap
+
+permissions:
+  sapientia.command.reload:
+    description: Allows reloading the Sapientia configuration and catalogs.
+    default: op
+  sapientia.command.give:
+    description: Allows spawning Sapientia items via /sapientia give.
+    default: op
