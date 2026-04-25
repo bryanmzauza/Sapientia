@@ -304,6 +304,37 @@ block:
     name: "<aqua>Marcador GPS</aqua>"
     desc: "Ponto de referencia passivo dentro da cobertura do transmissor. Aparece no mapa portatil (ativo em 1.7.1)."
 
+  item_buffer:
+    name: "<aqua>Buffer de Itens</aqua>"
+    desc: "Dreno de alta prioridade que suaviza picos de producao. Puxa itens da rede para um container adjacente."
+  item_splitter:
+    name: "<gold>Divisor de Itens</gold>"
+    desc: "Distribui itens entre vizinhos de saida. A tabela de proporcoes chega com a refatoracao de roteamento em 1.8.1."
+  filter_chamber:
+    name: "<gold>Camara de Filtros</gold>"
+    desc: "Filtro de multiplas passadas com ate quatro conjuntos de regras encadeados. Em 1.8.0 funciona em paridade com item_filter."
+  overflow_module:
+    name: "<yellow>Modulo de Transbordo</yellow>"
+    desc: "Valvula de seguranca do roteamento. Ultimo recurso que so e preenchido quando todos os outros consumidores estao saturados."
+  comparator_sensor:
+    name: "<gray>Sensor Comparador</gray>"
+    desc: "Le o nivel de um container adjacente para o runtime de logica. Ativo em 1.8.1."
+  packager:
+    name: "<aqua>Empacotador</aqua>"
+    desc: "Empacota o conteudo de um container adjacente em uma unica stack packaged_bundle. Ativo em 1.8.1."
+  unpackager:
+    name: "<aqua>Desempacotador</aqua>"
+    desc: "Inverso do empacotador: explode um packaged_bundle de volta em suas stacks. Ativo em 1.8.1."
+  conveyor_belt:
+    name: "<gray>Esteira Transportadora</gray>"
+    desc: "Junction que roteia itens ao longo da linha. Renderizacao visivel do item sobre a esteira chega em 1.8.1."
+  fluid_valve:
+    name: "<gray>Valvula de Fluido</gray>"
+    desc: "Junction que controla fluxo entre suas duas extremidades. Toggle manual e via logica chegam em 1.8.1."
+  fluid_level_sensor:
+    name: "<gray>Sensor de Nivel de Fluido</gray>"
+    desc: "Le a proporcao de preenchimento de um fluid_tank adjacente para o runtime de logica. Ativo em 1.8.1."
+
 fluid:
   water:
     name: "<aqua>Agua</aqua>"

@@ -38,6 +38,16 @@ import dev.brmz.sapientia.content.logistics.SapientiaItemCable;
 import dev.brmz.sapientia.content.logistics.SapientiaItemConsumer;
 import dev.brmz.sapientia.content.logistics.SapientiaItemFilter;
 import dev.brmz.sapientia.content.logistics.SapientiaItemProducer;
+import dev.brmz.sapientia.content.logistics.SapientiaItemBuffer;
+import dev.brmz.sapientia.content.logistics.SapientiaItemSplitter;
+import dev.brmz.sapientia.content.logistics.SapientiaFilterChamber;
+import dev.brmz.sapientia.content.logistics.SapientiaOverflowModule;
+import dev.brmz.sapientia.content.logistics.SapientiaComparatorSensor;
+import dev.brmz.sapientia.content.logistics.SapientiaPackager;
+import dev.brmz.sapientia.content.logistics.SapientiaUnpackager;
+import dev.brmz.sapientia.content.logistics.SapientiaConveyorBelt;
+import dev.brmz.sapientia.content.fluids.SapientiaFluidValve;
+import dev.brmz.sapientia.content.fluids.SapientiaFluidLevelSensor;
 import dev.brmz.sapientia.content.machines.SapientiaBenchSaw;
 import dev.brmz.sapientia.content.machines.SapientiaChemicalReactor;
 import dev.brmz.sapientia.content.machines.SapientiaCompressor;
@@ -199,6 +209,21 @@ public final class ContentBootstrap {
 
         // 1.7.0 recipes.
         dev.brmz.sapientia.content.crafting.GeoRecipes.registerAll(plugin, api);
+
+        // Advanced logistics catalogue (T-441..T-443 / 1.8.0).
+        api.registerBlock(new SapientiaItemBuffer(plugin));
+        api.registerBlock(new SapientiaItemSplitter(plugin));
+        api.registerBlock(new SapientiaFilterChamber(plugin));
+        api.registerBlock(new SapientiaOverflowModule(plugin));
+        api.registerBlock(new SapientiaComparatorSensor(plugin));
+        api.registerBlock(new SapientiaPackager(plugin));
+        api.registerBlock(new SapientiaUnpackager(plugin));
+        api.registerBlock(new SapientiaConveyorBelt(plugin));
+        api.registerBlock(new SapientiaFluidValve(plugin));
+        api.registerBlock(new SapientiaFluidLevelSensor(plugin));
+
+        // 1.8.0 recipes.
+        dev.brmz.sapientia.content.crafting.LogisticsRecipes.registerAll(plugin, api);
 
         // Look-to-inspect loop for the wrench (action bar / boss bar)
         new EnergyInspector(plugin).start();

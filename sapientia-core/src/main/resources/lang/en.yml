@@ -304,6 +304,37 @@ block:
     name: "<aqua>GPS Marker</aqua>"
     desc: "A passive way-point inside transmitter coverage. Renders on the handheld map (active in 1.7.1)."
 
+  item_buffer:
+    name: "<aqua>Item Buffer</aqua>"
+    desc: "High-priority sink that smooths bursty producer chains. Pulls items from the network into an adjacent vanilla container."
+  item_splitter:
+    name: "<gold>Item Splitter</gold>"
+    desc: "Distributes items across outgoing neighbours. Ratio table arrives with the routing rework in 1.8.1."
+  filter_chamber:
+    name: "<gold>Filter Chamber</gold>"
+    desc: "Multi-pass filter that chains up to four rule sets. 1.8.0 ships single-pass parity with item_filter."
+  overflow_module:
+    name: "<yellow>Overflow Module</yellow>"
+    desc: "Routing safety valve. Last-resort sink the solver only fills when every other consumer is saturated."
+  comparator_sensor:
+    name: "<gray>Comparator Sensor</gray>"
+    desc: "Reads the fill level of an adjacent container into the logic runtime. Active in 1.8.1."
+  packager:
+    name: "<aqua>Packager</aqua>"
+    desc: "Bundles the contents of an adjacent container into a single packaged_bundle stack. Active in 1.8.1."
+  unpackager:
+    name: "<aqua>Unpackager</aqua>"
+    desc: "Inverse of the packager: explodes a packaged_bundle back into its component stacks. Active in 1.8.1."
+  conveyor_belt:
+    name: "<gray>Conveyor Belt</gray>"
+    desc: "Junction that routes items along its line. Visible item-on-belt rendering arrives in 1.8.1."
+  fluid_valve:
+    name: "<gray>Fluid Valve</gray>"
+    desc: "Junction that gates flow between its two ends. Manual + logic-driven toggle arrives in 1.8.1."
+  fluid_level_sensor:
+    name: "<gray>Fluid Level Sensor</gray>"
+    desc: "Reads the fill ratio of an adjacent fluid_tank into the logic runtime. Active in 1.8.1."
+
 fluid:
   water:
     name: "<aqua>Water</aqua>"

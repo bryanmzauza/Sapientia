@@ -2,6 +2,65 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and SemVer.
 
+## [1.8.0] — Advanced logistics 📦 ✅
+
+Catalogue release for industrial-grade item / fluid routing. Adds eight new
+item-logistics blocks (buffer, splitter, filter chamber, overflow module,
+comparator sensor, packager, unpackager, conveyor belt), two new fluid-logistics
+blocks (valve, level sensor) and the public `SapientiaItemPackagedEvent`
+event scaffolding. Mirrors the 1.4.0 → 1.4.1, 1.5.0 → 1.5.1, 1.6.0 → 1.6.1 and
+1.7.0 → 1.7.1 splits: this release ships items, blocks, recipes and i18n; the
+kinetic loop (Ford-Fulkerson swap, splitter ratio table, multi-pass filter
+chains, packager NBT, conveyor belt visible item rendering, comparator-sensor
+runtime hookup) lands in 1.8.1.
+
+### Added
+
+- `dev.brmz.sapientia.api.events.SapientiaItemPackagedEvent` — cancellable event
+  fired when a `packager` block bundles items into a `packaged_bundle` stack
+  (T-450). Ships in 1.8.0; the kinetic packaging tick that fires it lands in
+  1.8.1.
+- 8 item-logistics blocks under `sapientia-content/logistics/` (T-441 / T-442):
+  - `item_buffer` — high-priority CONSUMER (priority +5) — barrel-based smoothing sink.
+  - `item_splitter` — JUNCTION — observer-driven distributor; ratio table in 1.8.1.
+  - `filter_chamber` — FILTER — multi-pass filter; 1.8.0 ships single-pass parity with the 1.1.0 `item_filter`.
+  - `overflow_module` — low-priority CONSUMER (priority -10) — last-resort sink.
+  - `comparator_sensor` — placement-only stub; logic-runtime hookup in 1.8.1.
+  - `packager` / `unpackager` — placement-only stubs; NBT format locked by ADR-020 in 1.8.1.
+  - `conveyor_belt` — JUNCTION — visible item-on-belt rendering in 1.8.1.
+- 2 fluid-logistics blocks under `sapientia-content/fluids/` (T-443):
+  - `fluid_valve` — JUNCTION — manual + logic-driven toggle in 1.8.1.
+  - `fluid_level_sensor` — placement-only stub; logic-runtime hookup in 1.8.1.
+- 10 shaped recipes in `LogisticsRecipes` (T-448) — one per new block, gated
+  behind 1.6.0 HV components for the heavy items (packager / unpackager use
+  CIRCUIT_T3) and 1.4.0 brass / iron ingots for the lighter routing pieces.
+- `SapientiaItemPackagedEventTest` (sapientia-api) — verifies the event class
+  exposes a HandlerList and implements `Cancellable`.
+
+### Changed
+
+- `ContentBootstrap` — registers the 10 new blocks after the 1.7.0 geo
+  catalogue and calls `LogisticsRecipes.registerAll` before the
+  `EnergyInspector` start.
+
+### Deferred to 1.8.1
+
+- T-444 Ford-Fulkerson hardening (max-flow swap for HV+ networks).
+- T-445 Routing improvements — explicit priority lanes (P0..P3) per node.
+- T-446 Tests — splitter ratio integrity, packager NBT round-trip, max-flow
+  correctness vs reference.
+- T-447 Benchmark P-019 — Ford-Fulkerson on 1000-node item network.
+- T-449 ADR-020 — packager / unpackager NBT format.
+- Splitter ratio table.
+- Multi-pass filter rule chaining.
+- Comparator sensor + fluid level sensor logic-runtime read.
+- Conveyor belt visible item-on-belt rendering (display-entity API on Java;
+  static texture on Bedrock).
+
+### i18n
+
+- +20 keys (10 blocks × name + desc) in en/pt_BR; parity now at **422**.
+
 ## [1.7.1] — Geo & atmosphere kinetic loop ⛏️ ✅
 
 Activates the 1.7.0 catalogue. The four geo / atmosphere multiblocks plus the

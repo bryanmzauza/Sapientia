@@ -367,20 +367,38 @@ Cross-cutting rules for every milestone below:
 
 ---
 
-## 1.8.0 — Advanced logistics ⏳
+## 1.8.0 — Advanced logistics 📦 ✅
 
-**Goal.** Industrial-grade item/fluid routing — buffer/splitter/conveyor + Ford-Fulkerson upgrade carried over from 1.1.0.
+**Goal (achieved for catalogue scope).** Industrial-grade item/fluid routing — catalogue, blocks, recipes and event scaffolding. Kinetic loop (Ford-Fulkerson swap, splitter ratio table, multi-pass filter chains, packager NBT, conveyor visible item rendering, comparator/level-sensor logic-runtime read) ships in 1.8.1.
 
-- ⏳ T-441 Item logistics extras — `item_buffer`, `item_splitter`, `filter_chamber` (multi-pass), `overflow_module`, `comparator_sensor`, `packager`, `unpackager`
-- ⏳ T-442 `conveyor_belt` — visible item-on-belt rendering (display entity API on Java; static texture on Bedrock)
-- ⏳ T-443 Fluid logistics extras — `fluid_valve`, `fluid_level_sensor`, `phase_separator` (deeper recipes)
+- ✅ T-441 Item logistics extras — `item_buffer`, `item_splitter`, `filter_chamber` (single-pass parity in 1.8.0; multi-pass in 1.8.1), `overflow_module`, `comparator_sensor`, `packager`, `unpackager`
+- ✅ T-442 `conveyor_belt` — JUNCTION block placed and registered (visible item-on-belt rendering deferred to 1.8.1)
+- ✅ T-443 Fluid logistics extras — `fluid_valve`, `fluid_level_sensor` (`phase_separator` deferred)
+- ⏳ T-444 Ford-Fulkerson hardening — deferred to **1.8.1**
+- ⏳ T-445 Routing improvements — explicit priority lanes (P0..P3) — deferred to **1.8.1**
+- ⏳ T-446 Tests — splitter ratio integrity, packager NBT round-trip, max-flow correctness — deferred to **1.8.1**
+- ⏳ T-447 Benchmark P-019 — Ford-Fulkerson on 1000-node item network — deferred to **1.8.1**
+- ✅ T-448 Content spec + recipes (10 shaped recipes in `LogisticsRecipes`)
+- ⏳ T-449 ADR-020 — packager/unpackager NBT format — deferred to **1.8.1** (locks before kinetic tick lands)
+- ✅ T-450 `SapientiaItemPackagedEvent` (cancellable) for addon hooks — class shipped with HandlerList; emitted by packager tick in 1.8.1
+
+**Exit gate (achieved for shipped scope):** 10 new logistics blocks place, register through `Sapientia.get().logistics()` / `.fluids()`, craft from `sapientia_workbench` recipes; en/pt_BR i18n parity holds at 422 keys; `SapientiaItemPackagedEventTest` green; build succeeds.
+
+---
+
+## 1.8.1 — Advanced logistics kinetic loop ⏳
+
+**Goal.** Wire the 1.8.0 catalogue into the live solver tick — the same split pattern as 1.4.0→1.4.1, 1.5.0→1.5.1, 1.6.0→1.6.1 and 1.7.0→1.7.1.
+
 - ⏳ T-444 Ford-Fulkerson hardening — replaces greedy solver in `ItemSolver` and `EnergySolver` for HV+ networks (carry-over from 1.1.0 deferred item)
 - ⏳ T-445 Routing improvements — explicit priority lanes per node (P0..P3), exposed via `/sapientia logistics policy`
 - ⏳ T-446 Tests — splitter ratio integrity, packager NBT round-trip, max-flow correctness vs reference
 - ⏳ T-447 Benchmark P-019 — Ford-Fulkerson on 1000-node item network (regression gate; must beat greedy or stay within +20 %)
-- ⏳ T-448 Content spec + recipes
-- ⏳ T-449 ADR — packager/unpackager NBT format (permanent contract; serialised in SQLite)
-- ⏳ T-450 `SapientiaItemPackagedEvent` (cancellable) for addon hooks
+- ⏳ T-449 ADR-020 — packager/unpackager NBT format (permanent contract; serialised in SQLite)
+- ⏳ Splitter ratio table — per-output weights with deterministic round-robin fallback
+- ⏳ Multi-pass filter rule chaining (up to 4 chained rule sets per `filter_chamber`)
+- ⏳ Comparator sensor + fluid level sensor — read fill ratio into the logic runtime
+- ⏳ Packager / unpackager kinetic tick — fires `SapientiaItemPackagedEvent` per bundle
 
 **Exit gate:** complex routing (3 producers → splitter → 2 filtered consumers) survives restart; Ford-Fulkerson swap is opt-in via `network.solver: legacy|maxflow` config; benchmark P-019 within budget.
 
