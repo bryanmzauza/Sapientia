@@ -79,6 +79,7 @@ public final class MachineRecipeData {
         }
 
         registerChemistry(plugin, registry);
+        registerHvMachines(plugin, registry, api);
     }
 
     private static void registerAlloy(MachineRecipeRegistry registry, NamespacedKey machine,
@@ -117,6 +118,33 @@ public final class MachineRecipeData {
         NamespacedKey cracker = new NamespacedKey(plugin, "cracker");
         registry.register(new MachineRecipe(cracker,
                 new ItemStack(Material.COAL, 1), new ItemStack(Material.GUNPOWDER, 1), 96L, 25));
+    }
+
+    /**
+     * 1.6.1 HV-machine item recipes (T-423 kinetic loop).
+     *
+     * <ul>
+     *   <li>{@code rolling_mill}: every {@code metal_ingot} &rarr; 2&times; {@code metal_wire}
+     *       (HV-tier alternative to the 1.4.x extractor recipe).</li>
+     *   <li>{@code laser_cutter}: {@code silicon_ingot} &rarr; 4&times; {@code silicon_wafer}
+     *       (no-quartz alternative to the workbench wafer recipe).</li>
+     * </ul>
+     */
+    private static void registerHvMachines(@NotNull Plugin plugin,
+                                           @NotNull MachineRecipeRegistry registry,
+                                           @NotNull SapientiaAPI api) {
+        NamespacedKey rollingMill = new NamespacedKey(plugin, "rolling_mill");
+        NamespacedKey laserCutter = new NamespacedKey(plugin, "laser_cutter");
+
+        for (Metal metal : Metal.values()) {
+            ItemStack ingot = stack(api, MetalCatalog.idOf(plugin, metal, MetalForm.INGOT), 1);
+            ItemStack wire2 = stack(api, MetalCatalog.idOf(plugin, metal, MetalForm.WIRE),  2);
+            registry.register(new MachineRecipe(rollingMill, ingot, wire2, 256L, 20));
+        }
+
+        ItemStack siliconIngot = stack(api, MetalCatalog.idOf(plugin, Metal.SILICON, MetalForm.INGOT), 1);
+        ItemStack wafer4       = stack(api, new NamespacedKey(plugin, "silicon_wafer"), 4);
+        registry.register(new MachineRecipe(laserCutter, siliconIngot, wafer4, 256L, 20));
     }
 
     private static ItemStack stack(SapientiaAPI api, NamespacedKey itemId, int amount) {

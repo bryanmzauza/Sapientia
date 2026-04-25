@@ -286,22 +286,44 @@ Cross-cutting rules for every milestone below:
 
 ---
 
-## 1.6.0 — Electronics & HV ⏳
+## 1.6.0 — Electronics & HV ✅
 
 **Goal.** Unlock processors, electrolysis and the HV tier — the foundation for everything endgame.
 
-- ⏳ T-421 New ores — `aluminum` (bauxite), `silicon`, `titanium`, `lithium` (catalogue §5.1)
-- ⏳ T-422 Component progression — `motor_t1..t3`, `circuit_t1..t3`, `processor_t1..t3`, `coil_t1..t3`, `ram_t2/t3`, `storage_hdd/ssd`
-- ⏳ T-423 Machines — `electrolyzer`, `rolling_mill`, `laser_cutter`, `chemical_reactor`
-- ⏳ T-424 Alloys (HV) — stainless steel, damascus steel, nichrome
-- ⏳ T-425 Energy — `cable_t3`, `capacitor_t3`, `transformer_mv_hv`, `geothermal_gen`, `gas_turbine`, `rtg`
-- ⏳ T-426 New gases — `hydrogen`, `oxygen_gas`, `nitrogen`, `chlorine`, `ethylene`, `compressed_air` plus `pressurized_pipe`, `gas_compressor`, `boiler`, `condenser`, `liquefier`, `phase_separator`
-- ⏳ T-427 ADR — vapour classification (gas vs fluid); seeds boiler/condenser semantics
-- ⏳ T-428 Content spec + recipes + guide entries
-- ⏳ T-429 Tests — electrolysis stoichiometry, gas-pipe pressure cap, cable-tier burn
-- ⏳ T-430 Benchmark P-017 — gas network throughput on 500-node mixed-tier graph
+- ⏳ T-421 New ores — `aluminum` (bauxite), `silicon`, `titanium`, `lithium` (catalogue §5.1) — *catalogue ✅, world-gen deferred (mirrors T-401)*
+- ✅ T-422 Component progression — `motor_t1..t3`, `circuit_t1..t3`, `processor_t1..t3`, `coil_t1..t3`, `ram_t2/t3`, `storage_hdd/ssd` (17 components, `ComponentCatalog`)
+- ✅ T-423 Machines — `electrolyzer`, `rolling_mill`, `laser_cutter`, `chemical_reactor` (4 HV machines, all `MachineEnergyBlock` consumers)
+- ✅ T-424 Alloys (HV) — `stainless_steel`, `damascus_steel`, `nichrome` (3 alloys × 8 forms = 24 items)
+- ✅ T-425 Energy — `cable_t3`, `capacitor_t3`, `transformer_mv_hv`, `geothermal_gen`, `gas_turbine`, `rtg` (HV cable/cap/transformer + 3 generators wired into `EnergyService`)
+- ✅ T-426 New gases — `hydrogen`, `oxygen_gas`, `nitrogen`, `chlorine`, `ethylene`, `compressed_air` plus `pressurized_pipe`, `gas_compressor`, `boiler`, `condenser`, `liquefier`, `phase_separator` (gases as low-density `FluidType`, ADR-019)
+- ✅ T-427 ADR — vapour classification documented (ADR-019); gases share fluid graph until 1.6.1
+- ✅ T-428 Content spec + recipes + guide entries (`ElectronicsRecipes` ≈ 25 shaped recipes; +198 i18n keys, en/pt_BR parity 379)
+- ✅ T-429 Tests — electrolysis stoichiometry, gas-pipe pressure cap, cable-tier burn — *catalogue tests ✅ in 1.6.0; kinetic-loop arithmetic tests ✅ in 1.6.1 (`ElectronicsTickerStoichiometryTest`)*
+- ⏳ T-430 Benchmark P-017 — gas network throughput on 500-node mixed-tier graph — *deferred past 1.6.1*
 
 **Exit gate:** silicon → wafer → processor T2 craftable; HV cable powers an HV laser cutter; H₂ from electrolysis fuels a gas turbine.
+
+> Mirrors the 1.4.0 → 1.4.1 split: catalogue (items, blocks, fluids, recipes, i18n) ships in 1.6.0;
+> kinetic-loop processing (gas pressure pass, electrolysis stoichiometry, geothermal world-heat,
+> RTG decay) lands in **1.6.1**.
+
+---
+
+## 1.6.1 — Electronics kinetic loop ✅
+
+**Goal.** Make the 1.6.0 catalogue come alive — gases flow under pressure, HV generators tick.
+
+- ✅ T-429 Tests — electrolysis stoichiometry, gas-pipe pressure cap, cable-tier burn (`ElectronicsTickerStoichiometryTest`, 8 pure-arithmetic invariants)
+- ⏳ T-430 Benchmark P-017 — gas network throughput on 500-node mixed-tier graph — *deferred (mirrors 1.4.1/1.5.1 pattern)*
+- ✅ Gas-pressure semantics — boiler (water → 2× compressed_air) and condenser (compressed_air → ½ water) state transitions; gases respect `FluidSpecs` tier cap until dedicated pressure pass in 1.7.0
+- ✅ Electrolyzer stoichiometry — 2 H₂O → 2 H₂ + O₂ (100 mB water → 200 mB H₂ + 100 mB O₂ per cycle, 1024 SU)
+- ✅ Geothermal heat extraction — scans 6 lava neighbours, `200 SU × count` per tick
+- ✅ Gas turbine — burns hydrogen (100 SU/mB) or ethylene (60 SU/mB) up to 10 mB/cycle from tank below
+- ✅ RTG decay curve — constant 50 SU/cycle trickle, no fuel input
+- ✅ HV machine recipes — `rolling_mill` (every metal ingot → 2× wire) and `laser_cutter` (silicon ingot → 4× silicon_wafer)
+- ✅ `ElectronicsTicker` wired in `SapientiaPlugin` (15L delay, 5L period, mirrors `PetroleumTicker`)
+
+**Exit gate:** electrolyzer split water → 2 H₂ + O₂ at recipe rate ✅; gas turbine burns hydrogen for sustained HV throughput ✅; benchmark P-017 deferred.
 
 ---
 

@@ -24,11 +24,11 @@ class MetalCatalogTest {
     }
 
     @Test
-    void totalCatalogSizeIs78() {
-        // T-402 + T-403: 6 raw × 9 forms + 3 alloys × 8 forms = 54 + 24 = 78.
+    void totalCatalogSizeIs138() {
+        // T-402 + T-403 + T-421 + T-424: 10 raw × 9 forms + 6 alloys × 8 forms = 90 + 48 = 138.
         int total = 0;
         for (Metal metal : Metal.values()) total += metal.forms().size();
-        assertThat(total).isEqualTo(78);
+        assertThat(total).isEqualTo(138);
     }
 
     @Test
@@ -52,7 +52,7 @@ class MetalCatalogTest {
         for (Metal m : Metal.values()) {
             if (m.isAlloy()) alloy++; else raw++;
         }
-        assertThat(raw).isEqualTo(6);
-        assertThat(alloy).isEqualTo(3);
+        assertThat(raw).isEqualTo(10);
+        assertThat(alloy).isEqualTo(6);
     }
 }

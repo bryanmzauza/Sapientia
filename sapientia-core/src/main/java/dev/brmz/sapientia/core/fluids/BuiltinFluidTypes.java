@@ -40,5 +40,34 @@ public final class BuiltinFluidTypes {
     public static final FluidType NUTRIENT_BROTH = new FluidType(
             new NamespacedKey("sapientia", "nutrient_broth"), "fluid.nutrient_broth.name", 0x6E8B3D, 1050, false);
 
+    // --- Gases (T-426 / 1.6.0) ---------------------------------------------------------------
+    // Per ADR-019, gases are FluidTypes with a density < 100 kg/m³. The fluid graph
+    // currently treats them as low-density fluids; the dedicated gas-pressure pass
+    // arrives with the 1.6.1 kinetic loop.
+
+    /** Hydrogen — output of the electrolyzer. Fuel for the gas turbine. */
+    public static final FluidType HYDROGEN = new FluidType(
+            new NamespacedKey("sapientia", "hydrogen"), "fluid.hydrogen.name", 0xCCEEFF, 1, false);
+
+    /** Oxygen gas — paired output of the electrolyzer. Required for combustion boost. */
+    public static final FluidType OXYGEN_GAS = new FluidType(
+            new NamespacedKey("sapientia", "oxygen_gas"), "fluid.oxygen_gas.name", 0x99CCFF, 1, false);
+
+    /** Nitrogen — atmospheric collector output. Inert reagent in the chemical reactor. */
+    public static final FluidType NITROGEN = new FluidType(
+            new NamespacedKey("sapientia", "nitrogen"), "fluid.nitrogen.name", 0xAFCCDD, 1, false);
+
+    /** Chlorine — chemical reactor output. Reagent in PVC + HCl chains. */
+    public static final FluidType CHLORINE = new FluidType(
+            new NamespacedKey("sapientia", "chlorine"), "fluid.chlorine.name", 0xC0E060, 3, false);
+
+    /** Ethylene — cracker output. Polymerises into plastics in the chemical reactor. */
+    public static final FluidType ETHYLENE = new FluidType(
+            new NamespacedKey("sapientia", "ethylene"), "fluid.ethylene.name", 0xE0E0E0, 1, false);
+
+    /** Compressed air — gas compressor output. Generic working gas for pneumatics. */
+    public static final FluidType COMPRESSED_AIR = new FluidType(
+            new NamespacedKey("sapientia", "compressed_air"), "fluid.compressed_air.name", 0xDDEEFF, 12, false);
+
     private BuiltinFluidTypes() {}
 }

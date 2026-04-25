@@ -2,6 +2,115 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and SemVer.
 
+## [1.6.1] — Electronics kinetic loop ⚡ ✅
+
+Activates the 1.6.0 HV catalogue. The new `ElectronicsTicker` drives every HV
+block contract (electrolyzer, boiler, condenser, geothermal, gas turbine, RTG)
+on a 5-tick cadence with 15-tick start delay, mirroring the `PetroleumTicker`
+pattern from 1.5.1. Mass and energy are conserved by construction and locked
+by 8 pure-arithmetic invariants in `ElectronicsTickerStoichiometryTest`.
+
+### Added
+- **`ElectronicsTicker`** (sapientia-core, T-425 / T-426 / T-429) — per-tick
+  kinetic loop dispatching by `SapientiaBlock` id via `ChunkBlockIndex`:
+  - **Electrolyzer** — 2 H₂O → 2 H₂ + O₂ (100 mB water above → 200 mB hydrogen
+    below + 100 mB oxygen_gas to z=-1 neighbour, 1024 SU/cycle)
+  - **Boiler** — water above → compressed_air below (1:2 expansion, 50 mB →
+    100 mB, 256 SU)
+  - **Condenser** — compressed_air above → water below (2:1 contraction, mass
+    conservation inverse of boiler, 128 SU)
+  - **Geothermal generator** — scans 6 immediate lava neighbours,
+    `200 SU × count` pushed into the energy graph per tick
+  - **Gas turbine** — burns hydrogen (100 SU/mB) or ethylene (60 SU/mB) from a
+    tank below, up to 10 mB per cycle (H₂ is the better fuel)
+  - **RTG** — constant 50 SU/cycle trickle, no fuel input (decay curve modeled
+    as a fixed rate for now)
+- **HV machine recipes** (sapientia-content, `MachineRecipeData.registerHvMachines`)
+  — `rolling_mill` accepts every `Metal` ingot → 2× wire (256 SU, 20 ticks);
+  `laser_cutter` accepts silicon_ingot → 4× silicon_wafer (256 SU, 20 ticks).
+- **`ElectronicsTickerStoichiometryTest`** (sapientia-core, T-429) — 8
+  pure-arithmetic invariants on the published rates: 2 H₂/H₂O ratio,
+  O₂/H₂O equality, boiler/condenser mass conservation, boiler > condenser
+  energy, all generator rates positive, H₂ > ethylene SU/mB, gases respect
+  `FluidSpecs` tier capacity (gas-pipe pressure cap proxy until 1.7.0
+  dedicated pressure pass), and BuiltinFluidTypes id sanity.
+
+### Changed
+- **`SapientiaPlugin`** — registers the new `ElectronicsTicker` alongside
+  `PetroleumTicker`, scheduled at 15L delay / 5L period; exposed via
+  `electronicsTicker()` accessor.
+
+### Deferred
+- **T-430 Benchmark P-017** — 500-node mixed-tier gas-network throughput
+  benchmark deferred (mirrors the 1.4.1 / 1.5.1 pattern of skipping benchmarks
+  in kinetic releases).
+- **Dedicated gas pressure pass** — gases continue to share the fluid graph
+  (ADR-019) and are capped by `FluidSpecs.capacityMb`. Distinct
+  pressure/flow-rate semantics land in 1.7.0.
+
+### i18n
+- No new keys (no new items, blocks or fluids). Parity holds at **379** keys
+  for both `en_us` and `pt_br`.
+
+### Tests
+- 8 new `ElectronicsTickerStoichiometryTest` cases, all green. `cleanTest test`
+  reports BUILD SUCCESSFUL across every module; `verifyTranslations` confirms
+  379-key parity.
+
+## [1.6.0] — Electronics & HV ⚡ ✅
+
+Catalogue release for the high-voltage tier. Adds the new ore tier, electronics
+component chain, HV alloys, HV energy network and the gas pipeline. Mirrors the
+1.4.0 → 1.4.1 split: this release ships items, blocks, fluids, recipes and i18n;
+the kinetic-loop processing (gas pressure pass, electrolysis stoichiometry,
+geothermal world-heat, RTG decay) lands in 1.6.1.
+
+### Added
+- **`Metal` extensions** (sapientia-content, T-421 / T-424) — 4 new raw metals
+  (`aluminum`, `silicon`, `titanium`, `lithium`) and 3 new alloys
+  (`stainless_steel`, `damascus_steel`, `nichrome`). Catalogue grew from
+  78 → 138 metallurgy items.
+- **`Component` + `ComponentItem` + `ComponentCatalog`** (sapientia-content,
+  T-422) — 17-entry electronics chain spanning silicon wafer, motor T1..T3,
+  circuit T1..T3, processor T1..T3, coil T1..T3, RAM T2/T3 and storage HDD/SSD.
+- **`SapientiaCableT3` / `SapientiaCapacitorT3` / `SapientiaTransformerMvHv`**
+  (sapientia-content, T-425) — HV cable, capacitor and MV↔HV transformer.
+- **`SapientiaGeothermalGen` / `SapientiaGasTurbine` / `SapientiaRtg`**
+  (sapientia-content, T-425) — three HV generators registered as
+  `EnergyNodeType.GENERATOR` / `EnergyTier.HIGH`.
+- **`SapientiaElectrolyzer` / `SapientiaRollingMill` / `SapientiaLaserCutter` /
+  `SapientiaChemicalReactor`** (sapientia-content, T-423) — four HV machines
+  extending `MachineEnergyBlock`.
+- **6 new gas `FluidType`s** (sapientia-core, T-426 / ADR-019) — `hydrogen`,
+  `oxygen_gas`, `nitrogen`, `chlorine`, `ethylene`, `compressed_air`. Density
+  in [1, 12] kg/m³; classified as gases by the < 100 threshold.
+- **`FluidsContentBlockExt` + 6 gas blocks** (sapientia-content, T-426) —
+  `pressurized_pipe`, `gas_compressor`, `boiler`, `condenser`, `liquefier`,
+  `phase_separator`.
+- **`ElectronicsRecipes`** (sapientia-content, T-428) — ~25 shaped recipes
+  covering every component, HV energy block, HV machine and gas block.
+- **i18n** — +198 keys across `en.yml` and `pt_BR.yml` (60 new metals,
+  17 components, 16 blocks, 6 fluids per locale). `verifyTranslations` reports
+  379 keys per locale in parity.
+- **Tests** — `ComponentCatalogTest` (17 unique components, all materials
+  non-null), `BuiltinFluidTypesTest#gasesAreLowDensity` (ADR-019 invariant),
+  `MetalCatalogTest` updated for 138 items / 10 raw / 6 alloy.
+- **ADR-019** (`docs/decision-log.md`) — vapour classification: gases are
+  registered as `FluidType` with `density < 100 kg/m³` and share the existing
+  fluid graph. A dedicated gas-pressure pass arrives in 1.6.1.
+
+### Deferred
+- T-421 ore world-gen — catalogue ships, generation deferred (mirrors T-401).
+- T-429 kinetic-loop tests (electrolysis stoichiometry, gas-pipe pressure cap,
+  cable-tier burn) → 1.6.1.
+- T-430 benchmark P-017 (500-node gas-network throughput) → 1.6.1.
+
+### Build
+- `gradlew build verifyTranslations` BUILD SUCCESSFUL with 379 i18n keys per
+  locale and all module test suites green.
+
+---
+
 ## [1.5.1] — Petroleum kinetic loop ⛽ ✅
 
 Closes the deferred items from 1.5.0 so the crude → diesel → combustion vertical

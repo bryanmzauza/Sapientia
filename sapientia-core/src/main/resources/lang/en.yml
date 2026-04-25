@@ -225,6 +225,54 @@ block:
   oil_refinery_controller:
     name: "<gold>Oil Refinery Controller</gold>"
     desc: "Multiblock head of the 5x5x7 oil refinery. Splits crude oil into diesel, gasoline, lubricant and tar."
+  cable_t3:
+    name: "<aqua>HV Cable</aqua>"
+    desc: "High-voltage cable. Carries up to 4096 J/t between HV machines."
+  capacitor_t3:
+    name: "<aqua>HV Capacitor</aqua>"
+    desc: "High-voltage energy buffer. Stores massive amounts of energy."
+  transformer_mv_hv:
+    name: "<aqua>MV \u2194 HV Transformer</aqua>"
+    desc: "Steps voltage between the MV and HV grids."
+  geothermal_gen:
+    name: "<aqua>Geothermal Generator</aqua>"
+    desc: "HV generator. Extracts heat from nearby lava sources."
+  gas_turbine:
+    name: "<aqua>Gas Turbine</aqua>"
+    desc: "HV generator. Burns combustible gases for steady power."
+  rtg:
+    name: "<aqua>RTG</aqua>"
+    desc: "Radioisotope thermoelectric generator. Trickle HV power that never stops."
+  electrolyzer:
+    name: "<aqua>Electrolyzer</aqua>"
+    desc: "HV machine. Splits fluids into their component gases."
+  rolling_mill:
+    name: "<aqua>Rolling Mill</aqua>"
+    desc: "HV machine. Rolls ingots into plates and wires."
+  laser_cutter:
+    name: "<aqua>Laser Cutter</aqua>"
+    desc: "HV machine. Cuts silicon wafers and precision parts."
+  chemical_reactor:
+    name: "<aqua>Chemical Reactor</aqua>"
+    desc: "HV machine. Reacts gases and liquids under pressure."
+  pressurized_pipe:
+    name: "<aqua>Pressurized Pipe</aqua>"
+    desc: "HV pipe. Routes high-pressure gases between machines."
+  gas_compressor:
+    name: "<gold>Gas Compressor</gold>"
+    desc: "MV machine. Compresses atmospheric gases into stored mB."
+  boiler:
+    name: "<gold>Boiler</gold>"
+    desc: "MV machine. Boils liquids into gases."
+  condenser:
+    name: "<gold>Condenser</gold>"
+    desc: "MV machine. Condenses gases back into liquids."
+  liquefier:
+    name: "<aqua>Liquefier</aqua>"
+    desc: "HV machine. Liquefies cryogenic gases."
+  phase_separator:
+    name: "<aqua>Phase Separator</aqua>"
+    desc: "HV machine. Splits multi-phase fluid mixtures into pure outputs."
 
 fluid:
   water:
@@ -243,6 +291,18 @@ fluid:
     name: "<dark_red>Lubricant</dark_red>"
   nutrient_broth:
     name: "<green>Nutrient Broth</green>"
+  hydrogen:
+    name: "<aqua>Hydrogen</aqua>"
+  oxygen_gas:
+    name: "<blue>Oxygen</blue>"
+  nitrogen:
+    name: "<gray>Nitrogen</gray>"
+  chlorine:
+    name: "<green>Chlorine</green>"
+  ethylene:
+    name: "<white>Ethylene</white>"
+  compressed_air:
+    name: "<aqua>Compressed Air</aqua>"
 
 guide:
   title: "<gold>Sapientia Guide</gold>"
@@ -442,3 +502,160 @@ metal:
     name: "<aqua>Electrum Gear</aqua>"
   electrum_screw:
     name: "<aqua>Electrum Screw</aqua>"
+
+  aluminum_raw:
+    name: "<gray>Raw Aluminum</gray>"
+  aluminum_dust:
+    name: "<gray>Aluminum Dust</gray>"
+  aluminum_ingot:
+    name: "<gray>Aluminum Ingot</gray>"
+  aluminum_block:
+    name: "<gray>Block of Aluminum</gray>"
+  aluminum_plate:
+    name: "<gray>Aluminum Plate</gray>"
+  aluminum_wire:
+    name: "<gray>Aluminum Wire</gray>"
+  aluminum_rod:
+    name: "<gray>Aluminum Rod</gray>"
+  aluminum_gear:
+    name: "<gray>Aluminum Gear</gray>"
+  aluminum_screw:
+    name: "<gray>Aluminum Screw</gray>"
+  silicon_raw:
+    name: "<dark_gray>Raw Silicon</dark_gray>"
+  silicon_dust:
+    name: "<dark_gray>Silicon Dust</dark_gray>"
+  silicon_ingot:
+    name: "<dark_gray>Silicon Ingot</dark_gray>"
+  silicon_block:
+    name: "<dark_gray>Block of Silicon</dark_gray>"
+  silicon_plate:
+    name: "<dark_gray>Silicon Plate</dark_gray>"
+  silicon_wire:
+    name: "<dark_gray>Silicon Wire</dark_gray>"
+  silicon_rod:
+    name: "<dark_gray>Silicon Rod</dark_gray>"
+  silicon_gear:
+    name: "<dark_gray>Silicon Gear</dark_gray>"
+  silicon_screw:
+    name: "<dark_gray>Silicon Screw</dark_gray>"
+  titanium_raw:
+    name: "<white>Raw Titanium</white>"
+  titanium_dust:
+    name: "<white>Titanium Dust</white>"
+  titanium_ingot:
+    name: "<white>Titanium Ingot</white>"
+  titanium_block:
+    name: "<white>Block of Titanium</white>"
+  titanium_plate:
+    name: "<white>Titanium Plate</white>"
+  titanium_wire:
+    name: "<white>Titanium Wire</white>"
+  titanium_rod:
+    name: "<white>Titanium Rod</white>"
+  titanium_gear:
+    name: "<white>Titanium Gear</white>"
+  titanium_screw:
+    name: "<white>Titanium Screw</white>"
+  lithium_raw:
+    name: "<light_purple>Raw Lithium</light_purple>"
+  lithium_dust:
+    name: "<light_purple>Lithium Dust</light_purple>"
+  lithium_ingot:
+    name: "<light_purple>Lithium Ingot</light_purple>"
+  lithium_block:
+    name: "<light_purple>Block of Lithium</light_purple>"
+  lithium_plate:
+    name: "<light_purple>Lithium Plate</light_purple>"
+  lithium_wire:
+    name: "<light_purple>Lithium Wire</light_purple>"
+  lithium_rod:
+    name: "<light_purple>Lithium Rod</light_purple>"
+  lithium_gear:
+    name: "<light_purple>Lithium Gear</light_purple>"
+  lithium_screw:
+    name: "<light_purple>Lithium Screw</light_purple>"
+  stainless_steel_dust:
+    name: "<white>Stainless Steel Dust</white>"
+  stainless_steel_ingot:
+    name: "<white>Stainless Steel Ingot</white>"
+  stainless_steel_block:
+    name: "<white>Block of Stainless Steel</white>"
+  stainless_steel_plate:
+    name: "<white>Stainless Steel Plate</white>"
+  stainless_steel_wire:
+    name: "<white>Stainless Steel Wire</white>"
+  stainless_steel_rod:
+    name: "<white>Stainless Steel Rod</white>"
+  stainless_steel_gear:
+    name: "<white>Stainless Steel Gear</white>"
+  stainless_steel_screw:
+    name: "<white>Stainless Steel Screw</white>"
+  damascus_steel_dust:
+    name: "<dark_gray>Damascus Steel Dust</dark_gray>"
+  damascus_steel_ingot:
+    name: "<dark_gray>Damascus Steel Ingot</dark_gray>"
+  damascus_steel_block:
+    name: "<dark_gray>Block of Damascus Steel</dark_gray>"
+  damascus_steel_plate:
+    name: "<dark_gray>Damascus Steel Plate</dark_gray>"
+  damascus_steel_wire:
+    name: "<dark_gray>Damascus Steel Wire</dark_gray>"
+  damascus_steel_rod:
+    name: "<dark_gray>Damascus Steel Rod</dark_gray>"
+  damascus_steel_gear:
+    name: "<dark_gray>Damascus Steel Gear</dark_gray>"
+  damascus_steel_screw:
+    name: "<dark_gray>Damascus Steel Screw</dark_gray>"
+  nichrome_dust:
+    name: "<gold>Nichrome Dust</gold>"
+  nichrome_ingot:
+    name: "<gold>Nichrome Ingot</gold>"
+  nichrome_block:
+    name: "<gold>Block of Nichrome</gold>"
+  nichrome_plate:
+    name: "<gold>Nichrome Plate</gold>"
+  nichrome_wire:
+    name: "<gold>Nichrome Wire</gold>"
+  nichrome_rod:
+    name: "<gold>Nichrome Rod</gold>"
+  nichrome_gear:
+    name: "<gold>Nichrome Gear</gold>"
+  nichrome_screw:
+    name: "<gold>Nichrome Screw</gold>"
+
+component:
+  silicon_wafer:
+    name: "<aqua>Silicon Wafer</aqua>"
+  motor_t1:
+    name: "<gray>LV Motor</gray>"
+  motor_t2:
+    name: "<yellow>MV Motor</yellow>"
+  motor_t3:
+    name: "<aqua>HV Motor</aqua>"
+  circuit_t1:
+    name: "<gray>LV Circuit</gray>"
+  circuit_t2:
+    name: "<yellow>MV Circuit</yellow>"
+  circuit_t3:
+    name: "<aqua>HV Circuit</aqua>"
+  processor_t1:
+    name: "<gray>Processor T1</gray>"
+  processor_t2:
+    name: "<yellow>Processor T2</yellow>"
+  processor_t3:
+    name: "<aqua>Processor T3</aqua>"
+  coil_t1:
+    name: "<gray>LV Coil</gray>"
+  coil_t2:
+    name: "<yellow>MV Coil</yellow>"
+  coil_t3:
+    name: "<aqua>HV Coil</aqua>"
+  ram_t2:
+    name: "<yellow>RAM Module T2</yellow>"
+  ram_t3:
+    name: "<aqua>RAM Module T3</aqua>"
+  storage_hdd:
+    name: "<gray>Hard Disk Drive</gray>"
+  storage_ssd:
+    name: "<aqua>Solid State Drive</aqua>"

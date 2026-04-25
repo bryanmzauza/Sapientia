@@ -102,6 +102,7 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
     private dev.brmz.sapientia.core.machine.MachineProcessor machineProcessor;
     private dev.brmz.sapientia.core.petroleum.ReservoirService reservoirService;
     private dev.brmz.sapientia.core.petroleum.PetroleumTicker petroleumTicker;
+    private dev.brmz.sapientia.core.electronics.ElectronicsTicker electronicsTicker;
 
     @Override
     public void onEnable() {
@@ -157,6 +158,13 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         this.fluidsService.registerType(BuiltinFluidTypes.GASOLINE);
         this.fluidsService.registerType(BuiltinFluidTypes.LUBRICANT);
         this.fluidsService.registerType(BuiltinFluidTypes.NUTRIENT_BROTH);
+        // Gases (T-426 / 1.6.0).
+        this.fluidsService.registerType(BuiltinFluidTypes.HYDROGEN);
+        this.fluidsService.registerType(BuiltinFluidTypes.OXYGEN_GAS);
+        this.fluidsService.registerType(BuiltinFluidTypes.NITROGEN);
+        this.fluidsService.registerType(BuiltinFluidTypes.CHLORINE);
+        this.fluidsService.registerType(BuiltinFluidTypes.ETHYLENE);
+        this.fluidsService.registerType(BuiltinFluidTypes.COMPRESSED_AIR);
         this.fluidsSolver = new FluidSolver(fluidsGraph, fluidsService);
 
         // Machine recipe processor (T-404 / 1.4.1) + petroleum kinetic loop (T-412..T-415 / 1.5.1).
@@ -167,6 +175,10 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
                 getLogger(), database.dataSource());
         this.petroleumTicker = new dev.brmz.sapientia.core.petroleum.PetroleumTicker(
                 getLogger(), this, energyService, fluidsService, chunkBlockIndex, reservoirService);
+
+        // HV / electronics / gas kinetic loop (T-425 / T-426 / T-429 / 1.6.1).
+        this.electronicsTicker = new dev.brmz.sapientia.core.electronics.ElectronicsTicker(
+                getLogger(), this, energyService, fluidsService, chunkBlockIndex);
 
         // Programmable-logic DAG runtime (T-302 / 1.3.0).
         this.logicService = new LogicServiceImpl(
@@ -319,6 +331,9 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         // Petroleum / biochemistry kinetic loop — every 5 ticks (T-412..T-415 / 1.5.1).
         getServer().getScheduler().runTaskTimer(this, () -> petroleumTicker.tick(), 13L, 5L);
 
+        // HV / electronics / gas kinetic loop — every 5 ticks (T-425 / T-426 / T-429 / 1.6.1).
+        getServer().getScheduler().runTaskTimer(this, () -> electronicsTicker.tick(), 15L, 5L);
+
         getLogger().info(messages.plain("plugin.enabled",
                 Placeholder.parsed("version", getPluginMeta().getVersion())));
     }
@@ -395,6 +410,10 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
 
     public @NotNull dev.brmz.sapientia.core.petroleum.PetroleumTicker petroleumTicker() {
         return petroleumTicker;
+    }
+
+    public @NotNull dev.brmz.sapientia.core.electronics.ElectronicsTicker electronicsTicker() {
+        return electronicsTicker;
     }
 
     @Override

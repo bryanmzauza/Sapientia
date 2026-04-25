@@ -43,10 +43,32 @@ class BuiltinFluidTypesTest {
                 BuiltinFluidTypes.CRUDE_OIL, BuiltinFluidTypes.DIESEL,
                 BuiltinFluidTypes.GASOLINE, BuiltinFluidTypes.LUBRICANT,
                 BuiltinFluidTypes.NUTRIENT_BROTH,
+                BuiltinFluidTypes.HYDROGEN, BuiltinFluidTypes.OXYGEN_GAS,
+                BuiltinFluidTypes.NITROGEN, BuiltinFluidTypes.CHLORINE,
+                BuiltinFluidTypes.ETHYLENE, BuiltinFluidTypes.COMPRESSED_AIR,
         };
         java.util.Set<org.bukkit.NamespacedKey> ids = new java.util.HashSet<>();
         for (FluidType t : all) {
             assertThat(ids.add(t.id())).as("duplicate id %s", t.id()).isTrue();
+        }
+    }
+
+    /** T-426 / 1.6.0: gases are registered as low-density FluidType (ADR-019). */
+    @Test
+    void gasesAreLowDensity() {
+        FluidType[] gases = {
+                BuiltinFluidTypes.HYDROGEN, BuiltinFluidTypes.OXYGEN_GAS,
+                BuiltinFluidTypes.NITROGEN, BuiltinFluidTypes.CHLORINE,
+                BuiltinFluidTypes.ETHYLENE, BuiltinFluidTypes.COMPRESSED_AIR,
+        };
+        assertThat(gases).hasSize(6);
+        for (FluidType g : gases) {
+            assertThat(g.id().getNamespace()).isEqualTo("sapientia");
+            assertThat(g.displayKey()).startsWith("fluid.");
+            assertThat(g.density())
+                    .as("gas %s must follow ADR-019 density < 100", g.id())
+                    .isPositive()
+                    .isLessThan(100);
         }
     }
 }

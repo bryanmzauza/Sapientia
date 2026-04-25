@@ -225,6 +225,54 @@ block:
   oil_refinery_controller:
     name: "<gold>Controlador da Refinaria de Petroleo</gold>"
     desc: "Cabecalho multibloco da refinaria 5x5x7. Separa petroleo bruto em diesel, gasolina, lubrificante e alcatrao."
+  cable_t3:
+    name: "<aqua>Cabo HV</aqua>"
+    desc: "Cabo de alta tensao. Conduz ate 4096 J/t entre maquinas HV."
+  capacitor_t3:
+    name: "<aqua>Capacitor HV</aqua>"
+    desc: "Buffer de energia HV. Armazena grandes quantidades de energia."
+  transformer_mv_hv:
+    name: "<aqua>Transformador MV \u2194 HV</aqua>"
+    desc: "Converte tensao entre as redes MV e HV."
+  geothermal_gen:
+    name: "<aqua>Gerador Geotermico</aqua>"
+    desc: "Gerador HV. Extrai calor de fontes de lava proximas."
+  gas_turbine:
+    name: "<aqua>Turbina a Gas</aqua>"
+    desc: "Gerador HV. Queima gases combustiveis para producao continua."
+  rtg:
+    name: "<aqua>RTG</aqua>"
+    desc: "Gerador termoeletrico de radioisotopo. Energia HV constante e perpetua."
+  electrolyzer:
+    name: "<aqua>Eletrolisador</aqua>"
+    desc: "Maquina HV. Decompoe fluidos em seus gases componentes."
+  rolling_mill:
+    name: "<aqua>Laminador</aqua>"
+    desc: "Maquina HV. Lamina lingotes em chapas e fios."
+  laser_cutter:
+    name: "<aqua>Cortador a Laser</aqua>"
+    desc: "Maquina HV. Corta wafers de silicio e pecas de precisao."
+  chemical_reactor:
+    name: "<aqua>Reator Quimico</aqua>"
+    desc: "Maquina HV. Reage gases e liquidos sob pressao."
+  pressurized_pipe:
+    name: "<aqua>Tubo Pressurizado</aqua>"
+    desc: "Tubo HV. Conduz gases de alta pressao entre maquinas."
+  gas_compressor:
+    name: "<gold>Compressor de Gas</gold>"
+    desc: "Maquina MV. Comprime gases atmosfericos em mB armazenado."
+  boiler:
+    name: "<gold>Caldeira</gold>"
+    desc: "Maquina MV. Vaporiza liquidos em gases."
+  condenser:
+    name: "<gold>Condensador</gold>"
+    desc: "Maquina MV. Condensa gases de volta a liquidos."
+  liquefier:
+    name: "<aqua>Liquefator</aqua>"
+    desc: "Maquina HV. Liquefaz gases criogenicos."
+  phase_separator:
+    name: "<aqua>Separador de Fases</aqua>"
+    desc: "Maquina HV. Separa misturas multifasicas em saidas puras."
 
 fluid:
   water:
@@ -243,6 +291,18 @@ fluid:
     name: "<dark_red>Lubrificante</dark_red>"
   nutrient_broth:
     name: "<green>Caldo Nutritivo</green>"
+  hydrogen:
+    name: "<aqua>Hidrogenio</aqua>"
+  oxygen_gas:
+    name: "<blue>Oxigenio</blue>"
+  nitrogen:
+    name: "<gray>Nitrogenio</gray>"
+  chlorine:
+    name: "<green>Cloro</green>"
+  ethylene:
+    name: "<white>Etileno</white>"
+  compressed_air:
+    name: "<aqua>Ar Comprimido</aqua>"
 
 guide:
   title: "<gold>Guia Sapientia</gold>"
@@ -442,3 +502,160 @@ metal:
     name: "<aqua>Engrenagem de Eletro</aqua>"
   electrum_screw:
     name: "<aqua>Parafuso de Eletro</aqua>"
+
+  aluminum_raw:
+    name: "<gray>Aluminio Bruto</gray>"
+  aluminum_dust:
+    name: "<gray>Po de Aluminio</gray>"
+  aluminum_ingot:
+    name: "<gray>Lingote de Aluminio</gray>"
+  aluminum_block:
+    name: "<gray>Bloco de Aluminio</gray>"
+  aluminum_plate:
+    name: "<gray>Chapa de Aluminio</gray>"
+  aluminum_wire:
+    name: "<gray>Fio de Aluminio</gray>"
+  aluminum_rod:
+    name: "<gray>Haste de Aluminio</gray>"
+  aluminum_gear:
+    name: "<gray>Engrenagem de Aluminio</gray>"
+  aluminum_screw:
+    name: "<gray>Parafuso de Aluminio</gray>"
+  silicon_raw:
+    name: "<dark_gray>Silicio Bruto</dark_gray>"
+  silicon_dust:
+    name: "<dark_gray>Po de Silicio</dark_gray>"
+  silicon_ingot:
+    name: "<dark_gray>Lingote de Silicio</dark_gray>"
+  silicon_block:
+    name: "<dark_gray>Bloco de Silicio</dark_gray>"
+  silicon_plate:
+    name: "<dark_gray>Chapa de Silicio</dark_gray>"
+  silicon_wire:
+    name: "<dark_gray>Fio de Silicio</dark_gray>"
+  silicon_rod:
+    name: "<dark_gray>Haste de Silicio</dark_gray>"
+  silicon_gear:
+    name: "<dark_gray>Engrenagem de Silicio</dark_gray>"
+  silicon_screw:
+    name: "<dark_gray>Parafuso de Silicio</dark_gray>"
+  titanium_raw:
+    name: "<white>Titanio Bruto</white>"
+  titanium_dust:
+    name: "<white>Po de Titanio</white>"
+  titanium_ingot:
+    name: "<white>Lingote de Titanio</white>"
+  titanium_block:
+    name: "<white>Bloco de Titanio</white>"
+  titanium_plate:
+    name: "<white>Chapa de Titanio</white>"
+  titanium_wire:
+    name: "<white>Fio de Titanio</white>"
+  titanium_rod:
+    name: "<white>Haste de Titanio</white>"
+  titanium_gear:
+    name: "<white>Engrenagem de Titanio</white>"
+  titanium_screw:
+    name: "<white>Parafuso de Titanio</white>"
+  lithium_raw:
+    name: "<light_purple>Litio Bruto</light_purple>"
+  lithium_dust:
+    name: "<light_purple>Po de Litio</light_purple>"
+  lithium_ingot:
+    name: "<light_purple>Lingote de Litio</light_purple>"
+  lithium_block:
+    name: "<light_purple>Bloco de Litio</light_purple>"
+  lithium_plate:
+    name: "<light_purple>Chapa de Litio</light_purple>"
+  lithium_wire:
+    name: "<light_purple>Fio de Litio</light_purple>"
+  lithium_rod:
+    name: "<light_purple>Haste de Litio</light_purple>"
+  lithium_gear:
+    name: "<light_purple>Engrenagem de Litio</light_purple>"
+  lithium_screw:
+    name: "<light_purple>Parafuso de Litio</light_purple>"
+  stainless_steel_dust:
+    name: "<white>Po de Aco Inoxidavel</white>"
+  stainless_steel_ingot:
+    name: "<white>Lingote de Aco Inoxidavel</white>"
+  stainless_steel_block:
+    name: "<white>Bloco de Aco Inoxidavel</white>"
+  stainless_steel_plate:
+    name: "<white>Chapa de Aco Inoxidavel</white>"
+  stainless_steel_wire:
+    name: "<white>Fio de Aco Inoxidavel</white>"
+  stainless_steel_rod:
+    name: "<white>Haste de Aco Inoxidavel</white>"
+  stainless_steel_gear:
+    name: "<white>Engrenagem de Aco Inoxidavel</white>"
+  stainless_steel_screw:
+    name: "<white>Parafuso de Aco Inoxidavel</white>"
+  damascus_steel_dust:
+    name: "<dark_gray>Po de Aco Damasco</dark_gray>"
+  damascus_steel_ingot:
+    name: "<dark_gray>Lingote de Aco Damasco</dark_gray>"
+  damascus_steel_block:
+    name: "<dark_gray>Bloco de Aco Damasco</dark_gray>"
+  damascus_steel_plate:
+    name: "<dark_gray>Chapa de Aco Damasco</dark_gray>"
+  damascus_steel_wire:
+    name: "<dark_gray>Fio de Aco Damasco</dark_gray>"
+  damascus_steel_rod:
+    name: "<dark_gray>Haste de Aco Damasco</dark_gray>"
+  damascus_steel_gear:
+    name: "<dark_gray>Engrenagem de Aco Damasco</dark_gray>"
+  damascus_steel_screw:
+    name: "<dark_gray>Parafuso de Aco Damasco</dark_gray>"
+  nichrome_dust:
+    name: "<gold>Po de Nicromo</gold>"
+  nichrome_ingot:
+    name: "<gold>Lingote de Nicromo</gold>"
+  nichrome_block:
+    name: "<gold>Bloco de Nicromo</gold>"
+  nichrome_plate:
+    name: "<gold>Chapa de Nicromo</gold>"
+  nichrome_wire:
+    name: "<gold>Fio de Nicromo</gold>"
+  nichrome_rod:
+    name: "<gold>Haste de Nicromo</gold>"
+  nichrome_gear:
+    name: "<gold>Engrenagem de Nicromo</gold>"
+  nichrome_screw:
+    name: "<gold>Parafuso de Nicromo</gold>"
+
+component:
+  silicon_wafer:
+    name: "<aqua>Wafer de Silicio</aqua>"
+  motor_t1:
+    name: "<gray>Motor LV</gray>"
+  motor_t2:
+    name: "<yellow>Motor MV</yellow>"
+  motor_t3:
+    name: "<aqua>Motor HV</aqua>"
+  circuit_t1:
+    name: "<gray>Circuito LV</gray>"
+  circuit_t2:
+    name: "<yellow>Circuito MV</yellow>"
+  circuit_t3:
+    name: "<aqua>Circuito HV</aqua>"
+  processor_t1:
+    name: "<gray>Processador T1</gray>"
+  processor_t2:
+    name: "<yellow>Processador T2</yellow>"
+  processor_t3:
+    name: "<aqua>Processador T3</aqua>"
+  coil_t1:
+    name: "<gray>Bobina LV</gray>"
+  coil_t2:
+    name: "<yellow>Bobina MV</yellow>"
+  coil_t3:
+    name: "<aqua>Bobina HV</aqua>"
+  ram_t2:
+    name: "<yellow>Modulo RAM T2</yellow>"
+  ram_t3:
+    name: "<aqua>Modulo RAM T3</aqua>"
+  storage_hdd:
+    name: "<gray>HD</gray>"
+  storage_ssd:
+    name: "<aqua>SSD</aqua>"

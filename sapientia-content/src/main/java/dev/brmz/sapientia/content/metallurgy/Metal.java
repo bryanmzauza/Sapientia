@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
  * {@link MetalForm#RAW} form.
  */
 public enum Metal {
-    // --- Raw metals (T-402) ---
+    // --- Raw metals (T-402 / 1.4.0) ---
     COPPER  (false, "Copper",   "Cobre"),
     TIN     (false, "Tin",      "Estanho"),
     ZINC    (false, "Zinc",     "Zinco"),
@@ -23,10 +23,21 @@ public enum Metal {
     SILVER  (false, "Silver",   "Prata"),
     NICKEL  (false, "Nickel",   "Níquel"),
 
-    // --- Alloys (T-403) ---
+    // --- Raw metals (T-421 / 1.6.0) ---
+    ALUMINUM(false, "Aluminum", "Alumínio"),
+    SILICON (false, "Silicon",  "Silício"),
+    TITANIUM(false, "Titanium", "Titânio"),
+    LITHIUM (false, "Lithium",  "Lítio"),
+
+    // --- Alloys (T-403 / 1.4.0) ---
     BRONZE  (true,  "Bronze",   "Bronze"),
     BRASS   (true,  "Brass",    "Latão"),
-    ELECTRUM(true,  "Electrum", "Eletro");
+    ELECTRUM(true,  "Electrum", "Eletro"),
+
+    // --- Alloys (T-424 / 1.6.0 — HV tier) ---
+    STAINLESS_STEEL(true, "Stainless Steel", "Aço Inoxidável"),
+    DAMASCUS_STEEL (true, "Damascus Steel",  "Aço Damasco"),
+    NICHROME       (true, "Nichrome",        "Nicromo");
 
     private final boolean alloy;
     private final String displayEn;
