@@ -103,6 +103,7 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
     private dev.brmz.sapientia.core.petroleum.ReservoirService reservoirService;
     private dev.brmz.sapientia.core.petroleum.PetroleumTicker petroleumTicker;
     private dev.brmz.sapientia.core.electronics.ElectronicsTicker electronicsTicker;
+    private dev.brmz.sapientia.core.geo.GeoTicker geoTicker;
 
     @Override
     public void onEnable() {
@@ -182,6 +183,10 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
 
         // HV / electronics / gas kinetic loop (T-425 / T-426 / T-429 / 1.6.1).
         this.electronicsTicker = new dev.brmz.sapientia.core.electronics.ElectronicsTicker(
+                getLogger(), this, energyService, fluidsService, chunkBlockIndex);
+
+        // Geo & atmosphere kinetic loop (T-431..T-435 / 1.7.1).
+        this.geoTicker = new dev.brmz.sapientia.core.geo.GeoTicker(
                 getLogger(), this, energyService, fluidsService, chunkBlockIndex);
 
         // Programmable-logic DAG runtime (T-302 / 1.3.0).
@@ -338,6 +343,9 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         // HV / electronics / gas kinetic loop — every 5 ticks (T-425 / T-426 / T-429 / 1.6.1).
         getServer().getScheduler().runTaskTimer(this, () -> electronicsTicker.tick(), 15L, 5L);
 
+        // Geo & atmosphere kinetic loop — every 5 ticks (T-431..T-435 / 1.7.1).
+        getServer().getScheduler().runTaskTimer(this, () -> geoTicker.tick(), 17L, 5L);
+
         getLogger().info(messages.plain("plugin.enabled",
                 Placeholder.parsed("version", getPluginMeta().getVersion())));
     }
@@ -418,6 +426,10 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
 
     public @NotNull dev.brmz.sapientia.core.electronics.ElectronicsTicker electronicsTicker() {
         return electronicsTicker;
+    }
+
+    public @NotNull dev.brmz.sapientia.core.geo.GeoTicker geoTicker() {
+        return geoTicker;
     }
 
     @Override

@@ -2,6 +2,56 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and SemVer.
 
+## [1.7.1] — Geo & atmosphere kinetic loop ⛏️ ✅
+
+Activates the 1.7.0 catalogue. The four geo / atmosphere multiblocks plus the
+two MV machines now actually consume energy and move fluids per tick. Mirrors
+the 1.4.0 → 1.4.1, 1.5.0 → 1.5.1 and 1.6.0 → 1.6.1 pattern: 1.7.0 shipped the
+catalogue, 1.7.1 ships the loop.
+
+### Added
+
+- `dev.brmz.sapientia.core.geo.GeoTicker` — per-tick driver (T-431..T-435):
+  - `quarry_controller` (3×3×4 hollow shell) drains 512 SU and pushes 25 mB
+    of slurry (water proxy) into the tank above.
+  - `drill_rig_controller` (5×5×8 hollow shell) drains 1024 SU and rolls a
+    20% chance to deposit 10 mB `crude_oil` into the tank above
+    (sub-bedrock virtual mining; deepest reservoirs are oil-rich).
+  - `desalinator_controller` (5×3×3 hollow shell) consumes 100 mB water from
+    the input tank above, drains 256 SU, and emits 90 mB fresh water into
+    the tank below (the missing 10 mB models the rock-salt residue —
+    item-form deferred to 2.0.0).
+  - `gas_extractor` MV CONSUMER drains 256 SU and pulls 20 mB nitrogen from
+    the chunk atmosphere into the tank above.
+  - `atmospheric_collector` MV CONSUMER drains 256 SU and round-robins
+    nitrogen → argon → carbon_dioxide (15 mB per cycle) into the tank above.
+- Energy graph registration on the three controllers (`onPlace` / `onBreak`
+  in `SapientiaQuarryController`, `SapientiaDrillRigController`,
+  `SapientiaDesalinatorController`) — they now register as HV CONSUMER nodes
+  so cables can power them.
+- 8 pure-arithmetic invariants in `GeoTickerArithmeticTest` covering draw
+  positivity, drill-rig probability range, desalinator efficiency window
+  (80–100%), round-robin gas rotation, and HV buffer headroom.
+
+### Changed
+
+- `SapientiaPlugin` — owns the new `geoTicker` field, instantiates it after
+  `electronicsTicker`, schedules it at 17L delay / 5L period, and exposes a
+  public `geoTicker()` accessor.
+
+### Deferred
+
+- T-438 (P-018 quarry chunk-budget benchmark) → 1.8.0 alongside the
+  performance pass.
+- T-440 (Bedrock CustomForm AABB editor) → 2.0.0 with the rest of the
+  Bedrock-specific UX.
+- GPS coverage radius scan + handheld-map overlay (kinetic side of T-436)
+  → 1.8.0 with advanced logistics.
+
+### i18n
+
+- No new keys; en/pt_BR parity stays at **402**.
+
 ## [1.7.0] — Geo & atmosphere ⛏️ ✅
 
 Catalogue release for industrial-scale resource gathering. Adds three multiblock

@@ -350,20 +350,20 @@ Cross-cutting rules for every milestone below:
 
 ---
 
-## 1.7.1 — Geo & atmosphere kinetic loop ⏳
+## 1.7.1 — Geo & atmosphere kinetic loop ⛏️ ✅
 
 **Goal.** Activate the 1.7.0 catalogue — quarries chew, atmospheres feed gas tanks, GPS lights up.
 
-- ⏳ T-437 Tests — quarry AABB serialization, drill-rig probability tables, GPS coverage radius
-- ⏳ T-438 Benchmark P-018 — quarry tick budget on 32×32 footprint
-- ⏳ Quarry AABB-driven mining loop with wrench-driven AABB selector
-- ⏳ Drill-rig probability tables for sub-bedrock virtual yields
-- ⏳ Atmospheric collector biome-weighted nitrogen/argon/CO₂ sampling
-- ⏳ Desalinator sea-water → fresh-water + rock-salt cycle
-- ⏳ GPS coverage radius scan + handheld map overlay
-- ⏳ T-440 Bedrock parity — `CustomForm` numeric AABB editor
+- ✅ T-437 Tests — `GeoTickerArithmeticTest` covers drill-rig probability range, desalinator efficiency window, round-robin gas rotation, and HV buffer headroom *(quarry AABB serialization + GPS coverage-radius math deferred to 1.8.0 with the AABB persistence pass)*
+- ⏳ T-438 Benchmark P-018 — quarry tick budget on 32×32 footprint *(deferred to 1.8.0 alongside the performance pass)*
+- ✅ Quarry kinetic tick — controllers register as HV CONSUMER, drain 512 SU and push 25 mB slurry per cycle into the tank above *(wrench-driven AABB selector deferred to 1.8.0)*
+- ✅ Drill-rig probability tables — 20 % per-cycle hit chance produces 10 mB `crude_oil` (sub-bedrock virtual mining)
+- ✅ Atmospheric collector — round-robin nitrogen → argon → CO₂ at 15 mB / cycle *(biome weighting deferred to 2.0.0 with biome metadata)*
+- ✅ Desalinator — 100 mB water in / 90 mB water out + 256 SU drain (rock-salt residue modelled as the 10 mB loss; salt as item deferred to 2.0.0)
+- ⏳ GPS coverage radius scan + handheld map overlay *(deferred to 1.8.0 with advanced logistics)*
+- ⏳ T-440 Bedrock parity — `CustomForm` numeric AABB editor *(deferred to 2.0.0 with the rest of Bedrock UX)*
 
-**Exit gate:** quarry chews through a 16×16 zone within the bucket P-007 envelope; GPS handheld shows markers within transmitter coverage; benchmark P-018 within budget.
+**Exit gate (achieved for shipped scope):** all geo / atmosphere multiblocks consume energy and move fluids per tick; `GeoTickerArithmeticTest` green; en/pt_BR i18n parity holds at 402 keys; build succeeds.
 
 ---
 

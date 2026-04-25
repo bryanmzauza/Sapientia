@@ -1,7 +1,13 @@
 package dev.brmz.sapientia.content.geo;
 
+import dev.brmz.sapientia.api.Sapientia;
 import dev.brmz.sapientia.api.block.SapientiaBlock;
+import dev.brmz.sapientia.api.energy.EnergyNodeType;
+import dev.brmz.sapientia.api.energy.EnergySpecs;
+import dev.brmz.sapientia.api.energy.EnergyTier;
+import dev.brmz.sapientia.api.events.SapientiaBlockBreakEvent;
 import dev.brmz.sapientia.api.events.SapientiaBlockInteractEvent;
+import dev.brmz.sapientia.api.events.SapientiaBlockPlaceEvent;
 import dev.brmz.sapientia.api.guide.GuideCategory;
 import dev.brmz.sapientia.api.multiblock.MultiblockShapeValidator;
 import org.bukkit.Material;
@@ -41,5 +47,17 @@ public final class SapientiaDesalinatorController implements SapientiaBlock {
         } else {
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 0.7f, 0.7f);
         }
+    }
+
+    /** Register the controller as an HV CONSUMER so the 1.7.1 GeoTicker can drive it. */
+    @Override
+    public void onPlace(@NotNull SapientiaBlockPlaceEvent event) {
+        long bufferMax = EnergySpecs.bufferMax(EnergyNodeType.CONSUMER, EnergyTier.HIGH);
+        Sapientia.get().energy().addNode(event.block(), EnergyNodeType.CONSUMER, EnergyTier.HIGH, bufferMax);
+    }
+
+    @Override
+    public void onBreak(@NotNull SapientiaBlockBreakEvent event) {
+        Sapientia.get().energy().removeNode(event.block());
     }
 }
