@@ -2,6 +2,57 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and SemVer.
 
+## [1.5.1] — Petroleum kinetic loop ⛽ ✅
+
+Closes the deferred items from 1.5.0 so the crude → diesel → combustion vertical
+slice actually runs end-to-end.
+
+### Added
+- **`MachineProcessor`** (sapientia-core, T-404 / 1.4.1) — per-tick recipe
+  driver. Scans every CONSUMER energy node, looks up the SapientiaBlock kind via
+  `ChunkBlockIndex`, scans the chest above for a matching `MachineRecipe` from
+  `MachineRecipeRegistry`, advances the in-flight recipe, and on completion
+  drains the energy buffer and deposits the output stack into the chest below.
+  In-flight progress is in-memory only (server restart rolls back).
+- **`MachineRecipe` / `MachineRecipeRegistry`** (sapientia-api, T-404) — public
+  recipe model and synchronized registry exposed through
+  `SapientiaAPI#machineRecipes()`.
+- **`MachineRecipeData`** (sapientia-content, T-404 / T-405 / T-414) — bulk
+  registration of ~40 metallurgy + chemistry recipes covering every machine
+  block placed by 1.4.0 and 1.5.0.
+- **`ReservoirService` + V008 migration** (sapientia-core, T-412) — per-chunk
+  crude-oil reservoirs persisted in `crude_oil_reservoirs`. Initialisation is
+  deterministic (FNV-1a-mixed seed of `world × chunkX × chunkZ`) yielding
+  reserves in [10 000, 100 000] mB; slow regeneration of 1 mB/min capped at the
+  initial reserve (ADR-018).
+- **`PetroleumTicker`** (sapientia-core, T-412 / T-413 / T-414 / T-415) — drives
+  pumpjack (drains reservoir → fills tank above), oil-refinery controller
+  (validates 5×5×7 shell, drains 100 mB crude, emits 40/30/20/10 mB
+  diesel/gasoline/lubricant/water to N/E/S/W tanks), combustion_gen (5 mB diesel
+  or gasoline → 200 / 250 SU per cycle), biogas_gen (10 mB nutrient_broth →
+  80 SU per cycle).
+- **ADR-017** (Voltage incompatibility between tiers) and **ADR-018**
+  (Reservoir replenishment = chunk-decay slow-regen finite) — full prose in
+  `docs/decision-log.md`.
+- **Tests** — `ReservoirServiceTest` (5 cases: deterministic init range,
+  stability, distinctness, drain reduces amount + persists, drain caps at
+  available); `MigrationLoaderTest` extended to expect V008.
+
+### Changed
+- `SapientiaPlugin` schedules `machineProcessor.tick()` every 10 ticks and
+  `petroleumTicker.tick()` every 5 ticks alongside the existing energy/
+  logistics/fluid solvers.
+- `MachineProcessor.tick()` reaps stale in-flight entries whose energy node has
+  disappeared (block break) so map size stays bounded.
+
+### Notes
+- T-401 ore world-gen rolled forward again to 1.6.0 to ship alongside the
+  electronics-tier ores in a single `WorldGenerator` integration.
+- Recipe progress is intentionally non-persistent for now; 1.6.0 will add an
+  optional snapshot table once the kinetic loop has bedded in.
+
+---
+
 ## [1.2.0] — Fluids 💧 ✅
 
 Continuous-volume fluid logistics. Mirrors the 1.1.0 graph contract over a

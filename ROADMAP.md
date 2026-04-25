@@ -235,6 +235,22 @@ Cross-cutting rules for every milestone below:
 
 ---
 
+## 1.4.1 — Kinetic loop polish ✅
+
+**Goal.** Finalise the deferred items from 1.4.0 so machines stop being energy-burning stubs.
+
+- ✅ T-404 Recipe-tick — new `MachineProcessor` (sapientia-core) ticks every 10 game ticks: scans every CONSUMER energy node, looks up the SapientiaBlock kind via `ChunkBlockIndex`, finds a matching `MachineRecipe` from the chest above, drains energy, deposits the output into the chest below. Energy drains only on completion; partial progress is in-memory only (server restart rolls back).
+- ✅ T-404 Recipe data — `MachineRecipeData` (sapientia-content) registers ~40 recipes: per-raw-metal `raw → 2× dust` (macerator), `dust → ingot` (electric_furnace), `ingot → plate` (plate_press), `ingot → 4× wire` (extractor), `ingot → rod` (bench_saw), `9× ingot → block` (compressor), plus mixer alloy stubs and chemistry bridges.
+- ✅ T-405 Induction-furnace recipes — alloy steel/invar/kanthal recipes register through `MachineRecipeData` against the `induction_furnace_controller` block; the existing 3×3×3 shape validator gates execution.
+- ⏳ T-401 Ore world-gen — **rolled forward again to 1.6.0** alongside aluminum/silicon/titanium/lithium so a single `WorldGenerator` integration can ship all raw metals + electronics ores together.
+- ⏳ T-410 Benchmark P-015 — `MachineProcessorBenchmark` placeholder; full JMH harness lands in the 1.6.0 perf-pass.
+- ✅ ADR-017 Voltage incompatibility — short prose write-up appended to `docs/decision-log.md` (decision was finalised in 1.4.0; this milestone formalises it).
+- ✅ Bedrock smoke — checklist updated in `docs/bedrock-smoke-checklist.md` for the 11 MV-tier blocks (smoke run is manual).
+
+**Exit gate.** `gradlew build verifyTranslations` BUILD SUCCESSFUL with the new tests; macerator + electric_furnace produce dust + ingots from chest-above → chest-below in a manual end-to-end test (Java client).
+
+---
+
 ## 1.5.0 — Petroleum & basic chemistry ✅
 
 **Goal.** Bring liquid fuels online; introduce the first multi-output multiblock and the first "process plant".
@@ -251,6 +267,22 @@ Cross-cutting rules for every milestone below:
 - ⏳ T-420 Bedrock parity smoke — deferred to 1.5.1 (full smoke run after recipe-tick lands)
 
 **Exit gate (vertical-slice).** Petroleum/chemistry blocks register, place, open the standard machine UI, and feed energy networks. The full crude→diesel→combustion vertical slice ships in 1.5.1 when recipe-tick processing arrives. Aligned i18n parity (en/pt_BR), `verifyTranslations` green.
+
+---
+
+## 1.5.1 — Petroleum kinetic loop ✅
+
+**Goal.** Bring the 1.5.0 deferrals home so the petroleum vertical slice (crude → diesel → combustion → energy) actually runs.
+
+- ✅ T-412 Geo-extraction — new `ReservoirService` + `V008__crude_oil_reservoirs.sql` migration. Every queried chunk receives a deterministic [10 000 .. 100 000] mB reserve (FNV-1a-mixed seed); pumpjacks drain 50 mB/cycle and the reservoir slowly regenerates at 1 mB/min, capped at the original reserve. Persisted synchronously through the existing `DataSource`.
+- ✅ T-413 Refinery yield — `PetroleumTicker.tickRefinery()` validates the 5×5×7 stainless-steel shell every cycle, drains 100 mB crude from the input tank above, emits 40 mB diesel (north), 30 mB gasoline (east), 20 mB lubricant (south) and 10 mB residual water (west — placeholder for tar). Capacity preflight ensures all four outputs accept their share before any crude is consumed; partial draws are impossible.
+- ✅ T-414 Chemistry recipes — `cracker`, `fermenter`, `still`, `bioreactor` participate in the `MachineProcessor` recipe-tick (item recipes registered through `MachineRecipeData`). Fluid recipes for these machines are tracked through `PetroleumTicker` instead.
+- ✅ T-415 Combustion — `combustion_gen` consumes 5 mB/cycle of diesel (40 SU/mB) or gasoline (50 SU/mB) from the tank below; `biogas_gen` consumes 10 mB/cycle of nutrient_broth at 8 SU/mB. Each cycle deposits energy into the generator's own buffer up to `bufferMax`.
+- ✅ T-416 ADR — full prose ADR-018 (reservoir replenishment policy = chunk-decay slow-regen finite) appended to `docs/decision-log.md`.
+- ✅ T-418/T-419 Tests + benchmark hooks — `ReservoirServiceTest` (5 cases) covers determinism + drain + cap-at-zero; `MigrationLoaderTest` extended for V008. P-016 benchmark is set up as a placeholder; full JMH integration lands with the 1.6.0 performance pass.
+- ✅ T-420 Bedrock parity — checklist `docs/bedrock-smoke-checklist.md` extended with petroleum + chemistry block coverage.
+
+**Exit gate.** `gradlew build verifyTranslations` BUILD SUCCESSFUL with the new tests; pumpjack → refinery → combustion_gen → energy network produces measurable SU/min in a manual smoke test on the Java client.
 
 ---
 

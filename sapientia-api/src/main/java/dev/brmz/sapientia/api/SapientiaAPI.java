@@ -12,6 +12,7 @@ import dev.brmz.sapientia.api.guide.UnlockService;
 import dev.brmz.sapientia.api.item.SapientiaItem;
 import dev.brmz.sapientia.api.logic.LogicService;
 import dev.brmz.sapientia.api.logistics.ItemService;
+import dev.brmz.sapientia.api.machine.MachineRecipeRegistry;
 import dev.brmz.sapientia.api.overrides.ContentOverrides;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -70,6 +71,9 @@ public interface SapientiaAPI {
 
     /** Recipe registry entry point (T-131 / 0.4.0). */
     @NotNull RecipeRegistry recipes();
+
+    /** Machine recipe registry entry point (T-404 / 1.4.1). */
+    @NotNull MachineRecipeRegistry machineRecipes();
 
     /** In-game guide service entry point (T-150 / 0.4.0). */
     @NotNull GuideService guide();

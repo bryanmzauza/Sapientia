@@ -129,6 +129,9 @@ public final class ContentBootstrap {
         // 1.5.0 recipes.
         dev.brmz.sapientia.content.crafting.PetrochemRecipes.registerAll(plugin, api);
 
+        // Machine-recipe catalogue consumed by the kinetic loop (T-404 / 1.4.1 + 1.5.1).
+        dev.brmz.sapientia.content.crafting.MachineRecipeData.registerAll(plugin, api);
+
         // Look-to-inspect loop for the wrench (action bar / boss bar)
         new EnergyInspector(plugin).start();
     }

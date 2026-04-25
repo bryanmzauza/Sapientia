@@ -98,6 +98,10 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
     private ResourcePackBuilder resourcePackBuilder;
     private MachineRunningRegistry machineRunning;
     private MachineUIDescriptor machineUI;
+    private dev.brmz.sapientia.api.machine.MachineRecipeRegistry machineRecipes;
+    private dev.brmz.sapientia.core.machine.MachineProcessor machineProcessor;
+    private dev.brmz.sapientia.core.petroleum.ReservoirService reservoirService;
+    private dev.brmz.sapientia.core.petroleum.PetroleumTicker petroleumTicker;
 
     @Override
     public void onEnable() {
@@ -154,6 +158,15 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         this.fluidsService.registerType(BuiltinFluidTypes.LUBRICANT);
         this.fluidsService.registerType(BuiltinFluidTypes.NUTRIENT_BROTH);
         this.fluidsSolver = new FluidSolver(fluidsGraph, fluidsService);
+
+        // Machine recipe processor (T-404 / 1.4.1) + petroleum kinetic loop (T-412..T-415 / 1.5.1).
+        this.machineRecipes = new dev.brmz.sapientia.api.machine.MachineRecipeRegistry();
+        this.machineProcessor = new dev.brmz.sapientia.core.machine.MachineProcessor(
+                getLogger(), energyService, machineRecipes, chunkBlockIndex);
+        this.reservoirService = new dev.brmz.sapientia.core.petroleum.ReservoirService(
+                getLogger(), database.dataSource());
+        this.petroleumTicker = new dev.brmz.sapientia.core.petroleum.PetroleumTicker(
+                getLogger(), this, energyService, fluidsService, chunkBlockIndex, reservoirService);
 
         // Programmable-logic DAG runtime (T-302 / 1.3.0).
         this.logicService = new LogicServiceImpl(
@@ -300,6 +313,12 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         // Logic tick — every 5 ticks (T-302, P-004 envelope; DAG worst-case is O(|V|+|E|)).
         getServer().getScheduler().runTaskTimer(this, () -> logicService.tickAll(), 9L, 5L);
 
+        // Machine recipe-tick — every 10 ticks (T-404 / 1.4.1, mirrors energy cadence).
+        getServer().getScheduler().runTaskTimer(this, () -> machineProcessor.tick(), 11L, 10L);
+
+        // Petroleum / biochemistry kinetic loop — every 5 ticks (T-412..T-415 / 1.5.1).
+        getServer().getScheduler().runTaskTimer(this, () -> petroleumTicker.tick(), 13L, 5L);
+
         getLogger().info(messages.plain("plugin.enabled",
                 Placeholder.parsed("version", getPluginMeta().getVersion())));
     }
@@ -364,6 +383,18 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
 
     public @NotNull ChunkBlockIndex chunkBlockIndex() {
         return chunkBlockIndex;
+    }
+
+    public @NotNull dev.brmz.sapientia.core.machine.MachineProcessor machineProcessor() {
+        return machineProcessor;
+    }
+
+    public @NotNull dev.brmz.sapientia.core.petroleum.ReservoirService reservoirService() {
+        return reservoirService;
+    }
+
+    public @NotNull dev.brmz.sapientia.core.petroleum.PetroleumTicker petroleumTicker() {
+        return petroleumTicker;
     }
 
     @Override
@@ -441,6 +472,11 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
     @Override
     public @NotNull RecipeRegistry recipes() {
         return recipeRegistry;
+    }
+
+    @Override
+    public @NotNull dev.brmz.sapientia.api.machine.MachineRecipeRegistry machineRecipes() {
+        return machineRecipes;
     }
 
     @Override
