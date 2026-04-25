@@ -108,6 +108,14 @@ item:
     name: "<gold>Sapientia Guide</gold>"
     lore: "<gray>Right-click to open the in-game guide.</gray>"
     desc: "Your field manual. Opens a chest UI listing every\nSapientia item, block and recipe you have unlocked."
+  prospector:
+    name: "<aqua>Prospector</aqua>"
+    lore: "<gray>Right-click to scan the chunk for ore signals.</gray>"
+    desc: "GPS-style scan tool. Surveys the surrounding chunks for sub-bedrock ore reservoirs (active in 1.7.1)."
+  gps_handheld_map:
+    name: "<aqua>GPS Handheld Map</aqua>"
+    lore: "<gray>Right-click inside transmitter coverage to view markers.</gray>"
+    desc: "Renders nearby GPS markers when the player is inside a transmitter's coverage radius (active in 1.7.1)."
 
 block:
   pedestal:
@@ -274,6 +282,28 @@ block:
     name: "<aqua>Phase Separator</aqua>"
     desc: "HV machine. Splits multi-phase fluid mixtures into pure outputs."
 
+  quarry_controller:
+    name: "<aqua>Quarry Controller</aqua>"
+    desc: "Multiblock head of a 3x3x4 quarry. Mines a configurable AABB beneath the structure (active in 1.7.1)."
+  drill_rig_controller:
+    name: "<aqua>Drill Rig Controller</aqua>"
+    desc: "Multiblock head of a 5x5x8 drill rig. Performs sub-bedrock virtual mining via probability tables (active in 1.7.1)."
+  desalinator_controller:
+    name: "<aqua>Desalinator Controller</aqua>"
+    desc: "Multiblock head of a 5x3x3 desalinator. Splits sea water into fresh water + rock salt (active in 1.7.1)."
+  gas_extractor:
+    name: "<gold>Gas Extractor</gold>"
+    desc: "MV machine. Pulls underground gas pockets into the fluid network (active in 1.7.1)."
+  atmospheric_collector:
+    name: "<gold>Atmospheric Collector</gold>"
+    desc: "MV machine. Samples the world atmosphere into nitrogen, argon and CO2 gas tanks (active in 1.7.1)."
+  gps_transmitter:
+    name: "<aqua>GPS Transmitter</aqua>"
+    desc: "Broadcasts a coverage signal that lights up the handheld map. Stub in 1.7.0; coverage scan in 1.7.1."
+  gps_marker:
+    name: "<aqua>GPS Marker</aqua>"
+    desc: "A passive way-point inside transmitter coverage. Renders on the handheld map (active in 1.7.1)."
+
 fluid:
   water:
     name: "<aqua>Water</aqua>"
@@ -303,6 +333,12 @@ fluid:
     name: "<white>Ethylene</white>"
   compressed_air:
     name: "<aqua>Compressed Air</aqua>"
+  argon:
+    name: "<light_purple>Argon</light_purple>"
+  carbon_dioxide:
+    name: "<gray>Carbon Dioxide</gray>"
+  liquid_oxygen:
+    name: "<aqua>Liquid Oxygen</aqua>"
 
 guide:
   title: "<gold>Sapientia Guide</gold>"

@@ -108,6 +108,14 @@ item:
     name: "<gold>Guia Sapientia</gold>"
     lore: "<gray>Clique direito para abrir o guia.</gray>"
     desc: "Seu manual de campo. Abre uma UI em bau listando todos\nos itens, blocos e receitas Sapientia desbloqueados."
+  prospector:
+    name: "<aqua>Prospector</aqua>"
+    lore: "<gray>Clique direito para escanear o chunk em busca de minerios.</gray>"
+    desc: "Ferramenta de prospeccao GPS. Procura por reservatorios sub-bedrock nos chunks vizinhos (ativo em 1.7.1)."
+  gps_handheld_map:
+    name: "<aqua>Mapa GPS</aqua>"
+    lore: "<gray>Clique direito dentro da cobertura do transmissor para ver os marcadores.</gray>"
+    desc: "Mostra os marcadores GPS proximos quando o jogador esta na area de cobertura de um transmissor (ativo em 1.7.1)."
 
 block:
   pedestal:
@@ -274,6 +282,28 @@ block:
     name: "<aqua>Separador de Fases</aqua>"
     desc: "Maquina HV. Separa misturas multifasicas em saidas puras."
 
+  quarry_controller:
+    name: "<aqua>Controlador de Pedreira</aqua>"
+    desc: "Cabeca multibloco de pedreira 3x3x4. Mina uma AABB configuravel abaixo da estrutura (ativo em 1.7.1)."
+  drill_rig_controller:
+    name: "<aqua>Controlador de Sonda</aqua>"
+    desc: "Cabeca multibloco de sonda 5x5x8. Realiza mineracao virtual sub-bedrock via tabelas de probabilidade (ativo em 1.7.1)."
+  desalinator_controller:
+    name: "<aqua>Controlador de Dessalinizador</aqua>"
+    desc: "Cabeca multibloco de dessalinizador 5x3x3. Separa agua do mar em agua doce + sal-gema (ativo em 1.7.1)."
+  gas_extractor:
+    name: "<gold>Extrator de Gas</gold>"
+    desc: "Maquina MV. Puxa bolsas de gas subterraneas para a rede de fluidos (ativo em 1.7.1)."
+  atmospheric_collector:
+    name: "<gold>Coletor Atmosferico</gold>"
+    desc: "Maquina MV. Coleta a atmosfera do mundo em tanques de nitrogenio, argonio e CO2 (ativo em 1.7.1)."
+  gps_transmitter:
+    name: "<aqua>Transmissor GPS</aqua>"
+    desc: "Emite o sinal de cobertura que ilumina o mapa portatil. Stub em 1.7.0; varredura em 1.7.1."
+  gps_marker:
+    name: "<aqua>Marcador GPS</aqua>"
+    desc: "Ponto de referencia passivo dentro da cobertura do transmissor. Aparece no mapa portatil (ativo em 1.7.1)."
+
 fluid:
   water:
     name: "<aqua>Agua</aqua>"
@@ -303,6 +333,12 @@ fluid:
     name: "<white>Etileno</white>"
   compressed_air:
     name: "<aqua>Ar Comprimido</aqua>"
+  argon:
+    name: "<light_purple>Argonio</light_purple>"
+  carbon_dioxide:
+    name: "<gray>Dioxido de Carbono</gray>"
+  liquid_oxygen:
+    name: "<aqua>Oxigenio Liquido</aqua>"
 
 guide:
   title: "<gold>Guia Sapientia</gold>"

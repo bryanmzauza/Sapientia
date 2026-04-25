@@ -165,6 +165,10 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         this.fluidsService.registerType(BuiltinFluidTypes.CHLORINE);
         this.fluidsService.registerType(BuiltinFluidTypes.ETHYLENE);
         this.fluidsService.registerType(BuiltinFluidTypes.COMPRESSED_AIR);
+        // Atmospheric gases & cryogenics (T-435 / 1.7.0).
+        this.fluidsService.registerType(BuiltinFluidTypes.ARGON);
+        this.fluidsService.registerType(BuiltinFluidTypes.CARBON_DIOXIDE);
+        this.fluidsService.registerType(BuiltinFluidTypes.LIQUID_OXYGEN);
         this.fluidsSolver = new FluidSolver(fluidsGraph, fluidsService);
 
         // Machine recipe processor (T-404 / 1.4.1) + petroleum kinetic loop (T-412..T-415 / 1.5.1).

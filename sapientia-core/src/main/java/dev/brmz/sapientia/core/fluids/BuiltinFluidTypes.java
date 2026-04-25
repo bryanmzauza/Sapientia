@@ -69,5 +69,21 @@ public final class BuiltinFluidTypes {
     public static final FluidType COMPRESSED_AIR = new FluidType(
             new NamespacedKey("sapientia", "compressed_air"), "fluid.compressed_air.name", 0xDDEEFF, 12, false);
 
+    // --- Atmospheric gases & cryogenic liquids (T-435 / 1.7.0) ------------------------------
+    // Atmospheric collector outputs argon and CO2 from the world atmosphere; the liquefier
+    // chills oxygen_gas into liquid_oxygen for endgame rocketry / nuclear coolants (2.0.0).
+
+    /** Argon — inert atmospheric gas. Output of the atmospheric collector, used as shielding. */
+    public static final FluidType ARGON = new FluidType(
+            new NamespacedKey("sapientia", "argon"), "fluid.argon.name", 0xC8B0FF, 2, false);
+
+    /** Carbon dioxide — atmospheric collector + combustion byproduct. Reagent in algae bioreactor. */
+    public static final FluidType CARBON_DIOXIDE = new FluidType(
+            new NamespacedKey("sapientia", "carbon_dioxide"), "fluid.carbon_dioxide.name", 0x9090A0, 2, false);
+
+    /** Liquid oxygen — cryogenic liquid produced by chilling oxygen_gas in the liquefier. */
+    public static final FluidType LIQUID_OXYGEN = new FluidType(
+            new NamespacedKey("sapientia", "liquid_oxygen"), "fluid.liquid_oxygen.name", 0x6FAEFF, 1141, false);
+
     private BuiltinFluidTypes() {}
 }

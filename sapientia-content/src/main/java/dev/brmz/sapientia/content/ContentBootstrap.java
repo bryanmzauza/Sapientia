@@ -23,6 +23,15 @@ import dev.brmz.sapientia.content.fluids.SapientiaFluidDrain;
 import dev.brmz.sapientia.content.fluids.SapientiaFluidPipe;
 import dev.brmz.sapientia.content.fluids.SapientiaFluidPump;
 import dev.brmz.sapientia.content.fluids.SapientiaFluidTank;
+import dev.brmz.sapientia.content.geo.SapientiaAtmosphericCollector;
+import dev.brmz.sapientia.content.geo.SapientiaDesalinatorController;
+import dev.brmz.sapientia.content.geo.SapientiaDrillRigController;
+import dev.brmz.sapientia.content.geo.SapientiaGasExtractor;
+import dev.brmz.sapientia.content.geo.SapientiaGpsHandheldMap;
+import dev.brmz.sapientia.content.geo.SapientiaGpsMarker;
+import dev.brmz.sapientia.content.geo.SapientiaGpsTransmitter;
+import dev.brmz.sapientia.content.geo.SapientiaProspector;
+import dev.brmz.sapientia.content.geo.SapientiaQuarryController;
 import dev.brmz.sapientia.content.items.SapientiaGuide;
 import dev.brmz.sapientia.content.items.SapientiaWrench;
 import dev.brmz.sapientia.content.logistics.SapientiaItemCable;
@@ -176,6 +185,20 @@ public final class ContentBootstrap {
 
         // 1.6.0 recipes.
         dev.brmz.sapientia.content.crafting.ElectronicsRecipes.registerAll(plugin, api);
+
+        // Geo & atmosphere catalogue (T-431..T-436 / 1.7.0).
+        api.registerItem(new SapientiaProspector(plugin));
+        api.registerItem(new SapientiaGpsHandheldMap(plugin));
+        api.registerBlock(new SapientiaQuarryController(plugin));
+        api.registerBlock(new SapientiaDrillRigController(plugin));
+        api.registerBlock(new SapientiaDesalinatorController(plugin));
+        api.registerBlock(new SapientiaGasExtractor(plugin));
+        api.registerBlock(new SapientiaAtmosphericCollector(plugin));
+        api.registerBlock(new SapientiaGpsTransmitter(plugin));
+        api.registerBlock(new SapientiaGpsMarker(plugin));
+
+        // 1.7.0 recipes.
+        dev.brmz.sapientia.content.crafting.GeoRecipes.registerAll(plugin, api);
 
         // Look-to-inspect loop for the wrench (action bar / boss bar)
         new EnergyInspector(plugin).start();

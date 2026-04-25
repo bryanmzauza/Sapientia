@@ -2,6 +2,80 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and SemVer.
 
+## [1.7.0] — Geo & atmosphere ⛏️ ✅
+
+Catalogue release for industrial-scale resource gathering. Adds three multiblock
+controllers, two new MV-tier machines, the GPS infrastructure (transmitter +
+marker block + handheld map), the GPS-style prospector tool, and three new
+fluids (argon, carbon_dioxide, liquid_oxygen). Mirrors the 1.4.0 → 1.4.1 and
+1.6.0 → 1.6.1 splits: this release ships items, blocks, fluids, recipes and
+i18n; the kinetic-loop processing (quarry AABB tick, drill-rig probability
+tables, GPS coverage scan, atmospheric collection, desalination cycle) lands
+in 1.7.1.
+
+### Added
+- **Atmospheric gases & cryogenics** (sapientia-core, T-435) — three new
+  `FluidType`s registered automatically by `SapientiaPlugin`:
+  - `argon` — inert atmospheric gas (density 2 kg/m³); atmospheric collector
+    output, used as a shielding gas reagent.
+  - `carbon_dioxide` — atmospheric collector + combustion byproduct (density
+    2 kg/m³); reagent in algae bioreactor chains (2.0.0).
+  - `liquid_oxygen` — cryogenic liquid produced by chilling `oxygen_gas` in
+    the liquefier (density 1141 kg/m³, well above water — guards the
+    "low-density => gas" routing rule).
+- **Multiblock controller stubs** (sapientia-content, T-431 / T-432 / T-434)
+  — placement + shape-validation, kinetic ticks land in 1.7.1:
+  - `quarry_controller` — 3×3×4 hollow shell of stainless casing or
+    iron blocks (vanilla proxy). Future home of the AABB-driven mining tick.
+  - `drill_rig_controller` — 5×5×8 hollow shell. Future home of sub-bedrock
+    virtual mining via probability tables.
+  - `desalinator_controller` — 5×3×3 hollow shell. Future home of sea-water
+    → fresh-water + rock-salt processing.
+- **MV machines** (sapientia-content, T-433) — placement-only stubs registering
+  as MV CONSUMER nodes on the energy graph:
+  - `gas_extractor` — pulls underground gas pockets into the fluid network
+    (kinetic in 1.7.1).
+  - `atmospheric_collector` — samples world atmosphere into nitrogen / argon
+    / CO₂ tanks (biome-weighted in 1.7.1).
+- **GPS infrastructure** (sapientia-content, T-436):
+  - `gps_transmitter` (block) — broadcasts a coverage signal that lights up
+    handheld maps (coverage scan in 1.7.1).
+  - `gps_marker` (block) — passive way-point block; renders on the map.
+  - `gps_handheld_map` (item) — shows nearby markers when in coverage.
+- **Prospector** (sapientia-content, T-433) — GPS-style scan tool. Right-click
+  surveys surrounding chunks for sub-bedrock ore reservoirs (kinetic in 1.7.1).
+- **`GeoRecipes`** (sapientia-content, T-439) — 9 shaped workbench recipes
+  covering every new block + item, gating heavier multiblock controllers
+  behind 1.6.0 HV electronics (`circuit_t3`, `ram_t3`, `motor_t3`).
+- **`GeoAndAtmosphereFluidsTest`** (sapientia-core, T-437 catalogue piece) —
+  4 pure-arithmetic invariants on the new fluids: gas density gate, LOX
+  liquid density, id namespacing, non-zero color.
+
+### Changed
+- **`SapientiaPlugin`** — registers the three new `FluidType`s alongside the
+  existing 14 built-ins.
+- **`ContentBootstrap`** — wires the 7 new blocks and 2 new items, plus the
+  `GeoRecipes.registerAll` call, in the established 1.x sequence.
+
+### Deferred
+- **T-437 kinetic tests** — quarry AABB serialization, drill-rig probability
+  tables, GPS coverage radius. Land in 1.7.1 with the kinetic loop.
+- **T-438 Benchmark P-018** — quarry tick budget on 32×32 footprint.
+  Deferred (mirrors the 1.4.1 / 1.5.1 / 1.6.1 pattern).
+- **T-440 Bedrock parity** — quarry AABB selector via `CustomForm` numeric
+  inputs. Lands in 1.7.1 alongside the wrench AABB selector.
+
+### i18n
+- 23 new keys per locale: 3 fluids (argon, carbon_dioxide, liquid_oxygen),
+  2 items (prospector, gps_handheld_map — name + lore + desc each), 7 blocks
+  (3 controllers + 2 machines + 2 GPS — name + desc each). Parity holds at
+  **402** keys for both `en_us` and `pt_br`.
+
+### Tests
+- 4 new `GeoAndAtmosphereFluidsTest` cases, all green. `cleanTest test`
+  reports BUILD SUCCESSFUL across every module; `verifyTranslations` confirms
+  402-key parity.
+
 ## [1.6.1] — Electronics kinetic loop ⚡ ✅
 
 Activates the 1.6.0 HV catalogue. The new `ElectronicsTicker` drives every HV

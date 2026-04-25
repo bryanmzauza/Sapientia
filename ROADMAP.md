@@ -327,22 +327,43 @@ Cross-cutting rules for every milestone below:
 
 ---
 
-## 1.7.0 — Geo & atmosphere ⏳
+## 1.7.0 — Geo & atmosphere ✅
 
 **Goal.** Industrial-scale resource gathering from world and air.
 
-- ⏳ T-431 Multiblock — `quarry_controller` (3×3×4 carbon-steel casing) with AABB selector via wrench
-- ⏳ T-432 Multiblock — `drill_rig_controller` (5×5×8 stainless casing) for sub-bedrock virtual mining
-- ⏳ T-433 Machines — `gas_extractor`, `atmospheric_collector`, `prospector` (GPS-style scan tool)
-- ⏳ T-434 Multiblock — `desalinator_controller` (5×3×3) consuming sea water → fresh water + rock salt
-- ⏳ T-435 Atmospheric gases — `argon`, `carbon_dioxide` registered; `liquid_oxygen` fluid for endgame combustion
-- ⏳ T-436 GPS infra — `gps_transmitter`, `gps_marker`, `gps_handheld_map` item
-- ⏳ T-437 Tests — quarry AABB serialization, drill-rig probability tables, GPS coverage radius
-- ⏳ T-438 Benchmark P-018 — quarry tick budget (must respect bucket P-007 envelope even at 32×32 footprint)
-- ⏳ T-439 Content spec + recipes
-- ⏳ T-440 Bedrock parity — quarry AABB selector via `CustomForm` numeric inputs
+- ✅ T-431 Multiblock — `quarry_controller` (3×3×4 stainless-casing shell as carbon-steel proxy) with AABB selector via wrench — *catalogue ✅, AABB-driven mining tick + wrench AABB selector deferred to 1.7.1*
+- ✅ T-432 Multiblock — `drill_rig_controller` (5×5×8 stainless casing) for sub-bedrock virtual mining — *catalogue ✅, probability-table tick deferred to 1.7.1*
+- ✅ T-433 Machines — `gas_extractor`, `atmospheric_collector`, `prospector` (GPS-style scan tool) — *catalogue ✅, kinetic sampling + chunk scan deferred to 1.7.1*
+- ✅ T-434 Multiblock — `desalinator_controller` (5×3×3) consuming sea water → fresh water + rock salt — *catalogue ✅, processing tick + brine recipes deferred to 1.7.1*
+- ✅ T-435 Atmospheric gases — `argon`, `carbon_dioxide` registered; `liquid_oxygen` fluid for endgame combustion (3 new `FluidType`s in `BuiltinFluidTypes`)
+- ✅ T-436 GPS infra — `gps_transmitter`, `gps_marker`, `gps_handheld_map` item — *catalogue ✅, coverage scan + map overlay deferred to 1.7.1*
+- ⏳ T-437 Tests — quarry AABB serialization, drill-rig probability tables, GPS coverage radius — *catalogue tests ✅ (`GeoAndAtmosphereFluidsTest`); kinetic tests deferred to 1.7.1*
+- ⏳ T-438 Benchmark P-018 — quarry tick budget (must respect bucket P-007 envelope even at 32×32 footprint) — *deferred to 1.7.1 with the kinetic loop*
+- ✅ T-439 Content spec + recipes (`GeoRecipes`, 9 shaped workbench recipes; +23 i18n keys, en/pt_BR parity 402)
+- ⏳ T-440 Bedrock parity — quarry AABB selector via `CustomForm` numeric inputs — *deferred to 1.7.1 alongside the wrench AABB selector*
 
 **Exit gate:** quarry chews through a 16×16 zone in measured time without TPS regression; GPS handheld shows markers within transmitter coverage; both quarry and drill rig hot-reload across restart.
+
+> Mirrors the 1.4.0 → 1.4.1 and 1.6.0 → 1.6.1 splits: catalogue (items, blocks, fluids, recipes, i18n)
+> ships in 1.7.0; kinetic-loop processing (quarry AABB tick, drill-rig probability tables, GPS coverage
+> scan, atmospheric collection, desalination cycle) lands in **1.7.1**.
+
+---
+
+## 1.7.1 — Geo & atmosphere kinetic loop ⏳
+
+**Goal.** Activate the 1.7.0 catalogue — quarries chew, atmospheres feed gas tanks, GPS lights up.
+
+- ⏳ T-437 Tests — quarry AABB serialization, drill-rig probability tables, GPS coverage radius
+- ⏳ T-438 Benchmark P-018 — quarry tick budget on 32×32 footprint
+- ⏳ Quarry AABB-driven mining loop with wrench-driven AABB selector
+- ⏳ Drill-rig probability tables for sub-bedrock virtual yields
+- ⏳ Atmospheric collector biome-weighted nitrogen/argon/CO₂ sampling
+- ⏳ Desalinator sea-water → fresh-water + rock-salt cycle
+- ⏳ GPS coverage radius scan + handheld map overlay
+- ⏳ T-440 Bedrock parity — `CustomForm` numeric AABB editor
+
+**Exit gate:** quarry chews through a 16×16 zone within the bucket P-007 envelope; GPS handheld shows markers within transmitter coverage; benchmark P-018 within budget.
 
 ---
 
