@@ -148,6 +148,11 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         this.fluidsService.registerType(BuiltinFluidTypes.WATER);
         this.fluidsService.registerType(BuiltinFluidTypes.LAVA);
         this.fluidsService.registerType(BuiltinFluidTypes.MILK);
+        this.fluidsService.registerType(BuiltinFluidTypes.CRUDE_OIL);
+        this.fluidsService.registerType(BuiltinFluidTypes.DIESEL);
+        this.fluidsService.registerType(BuiltinFluidTypes.GASOLINE);
+        this.fluidsService.registerType(BuiltinFluidTypes.LUBRICANT);
+        this.fluidsService.registerType(BuiltinFluidTypes.NUTRIENT_BROTH);
         this.fluidsSolver = new FluidSolver(fluidsGraph, fluidsService);
 
         // Programmable-logic DAG runtime (T-302 / 1.3.0).

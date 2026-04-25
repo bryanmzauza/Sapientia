@@ -198,6 +198,33 @@ block:
   induction_furnace_controller:
     name: "<gold>Induction Furnace Controller</gold>"
     desc: "MV multiblock controller. Surround with a 3x3x3 shell of MV machine casing or smooth basalt to form the structure."
+  stainless_steel_casing:
+    name: "<gold>Stainless Steel Casing</gold>"
+    desc: "Refinery-grade casing. Used as the shell of the 5x5x7 oil refinery multiblock."
+  pumpjack:
+    name: "<gold>Pumpjack</gold>"
+    desc: "MV-tier geo-extractor. Pulls crude oil from the chunk reservoir below."
+  combustion_gen:
+    name: "<gold>Combustion Generator</gold>"
+    desc: "MV-tier generator. Burns diesel or gasoline into structured units of energy."
+  biogas_gen:
+    name: "<gold>Biogas Generator</gold>"
+    desc: "LV-tier generator. Burns nutrient broth into a steady trickle of energy."
+  cracker:
+    name: "<gold>Cracker</gold>"
+    desc: "MV-tier machine. Cracks heavy petroleum fractions into lighter ones."
+  fermenter:
+    name: "<gold>Fermenter</gold>"
+    desc: "MV-tier machine. Ferments nutrient broth into biogas precursors."
+  still:
+    name: "<gold>Still</gold>"
+    desc: "MV-tier machine. Distills fermented mash into purified fluids."
+  bioreactor:
+    name: "<gold>Bioreactor</gold>"
+    desc: "LV-tier machine. Cultures organics into nutrient broth."
+  oil_refinery_controller:
+    name: "<gold>Oil Refinery Controller</gold>"
+    desc: "Multiblock head of the 5x5x7 oil refinery. Splits crude oil into diesel, gasoline, lubricant and tar."
 
 fluid:
   water:
@@ -206,6 +233,16 @@ fluid:
     name: "<gold>Lava</gold>"
   milk:
     name: "<white>Milk</white>"
+  crude_oil:
+    name: "<dark_gray>Crude Oil</dark_gray>"
+  diesel:
+    name: "<gold>Diesel</gold>"
+  gasoline:
+    name: "<yellow>Gasoline</yellow>"
+  lubricant:
+    name: "<dark_red>Lubricant</dark_red>"
+  nutrient_broth:
+    name: "<green>Nutrient Broth</green>"
 
 guide:
   title: "<gold>Sapientia Guide</gold>"

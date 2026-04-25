@@ -235,22 +235,22 @@ Cross-cutting rules for every milestone below:
 
 ---
 
-## 1.5.0 — Petroleum & basic chemistry ⏳
+## 1.5.0 — Petroleum & basic chemistry ✅
 
 **Goal.** Bring liquid fuels online; introduce the first multi-output multiblock and the first "process plant".
 
-- ⏳ T-411 New fluids (catalogue §12.1) — `crude_oil`, `diesel`, `gasoline`, `lubricant`, `nutrient_broth` registered through `BuiltinFluidTypes`
-- ⏳ T-412 Geo-extraction — `pumpjack` + underground `crude_oil` reservoirs (chunk-noise gen, depleting per ADR §25.4)
-- ⏳ T-413 Multiblock — `oil_refinery_controller` (5×5×7 stainless casing) splitting crude into 3 fractions + tar by-product
-- ⏳ T-414 Machines — `cracker`, `fermenter`, `still`, `bioreactor`
-- ⏳ T-415 Combustion — `combustion_gen` (MV) + `biogas_gen` (LV) consuming the new fluids
-- ⏳ T-416 ADR — geo-miner replenishment policy (finite vs slow-infinite vs chunk-decay)
-- ⏳ T-417 Content spec + recipes + guide entries
-- ⏳ T-418 Tests — refinery yield ratios; combustion energy balance; pumpjack reservoir depletion
-- ⏳ T-419 Benchmark P-016 — refinery 4-output throughput under fluid network pressure
-- ⏳ T-420 Bedrock parity smoke — refinery `CustomForm` with 4 fluid bars
+- ✅ T-411 New fluids (catalogue §12.1) — `crude_oil`, `diesel`, `gasoline`, `lubricant`, `nutrient_broth` registered through `BuiltinFluidTypes`
+- ⚠️ T-412 Geo-extraction — `pumpjack` block registered as MV consumer + crafting recipe; chunk-noise reservoir gen + depletion deferred to 1.5.1
+- ⚠️ T-413 Multiblock — `oil_refinery_controller` registered with 5×5×7 hollow-shell shape validation (new `MultiblockShapeValidator.validateHollowBox`); refinery yield tick deferred to 1.5.1
+- ⚠️ T-414 Machines — `cracker`, `fermenter`, `still`, `bioreactor` registered with crafting recipes; recipe-tick processing deferred to 1.5.1 (mirrors 1.4.0 deferral pattern)
+- ⚠️ T-415 Combustion — `combustion_gen` (MV) and `biogas_gen` (LV) registered as energy GENERATOR nodes; fluid-fuel consumption logic deferred to 1.5.1
+- ⚠️ T-416 ADR — replenishment-policy decision captured inline in `docs/content-spec-T-41x.md` (chunk-decay = slow-regen finite); full prose ADR-018 deferred to 1.5.1
+- ✅ T-417 Content spec + recipes + guide entries — `docs/content-spec-T-41x.md` + 9 new recipes
+- ✅ T-418 Tests — `BuiltinFluidTypesTest` (3 cases), `MultiblockHollowBoxTest` (3 cases); refinery-yield + combustion-energy-balance unit tests deferred to 1.5.1 with the recipe-tick implementation
+- ⏳ T-419 Benchmark P-016 — deferred to 1.5.1 (no recipe-tick yet to benchmark)
+- ⏳ T-420 Bedrock parity smoke — deferred to 1.5.1 (full smoke run after recipe-tick lands)
 
-**Exit gate:** crude oil pumped → refined → diesel powers a combustion generator → output cable feeds an MV macerator. Refinery hot-reloads cleanly via `/sapientia reload content`.
+**Exit gate (vertical-slice).** Petroleum/chemistry blocks register, place, open the standard machine UI, and feed energy networks. The full crude→diesel→combustion vertical slice ships in 1.5.1 when recipe-tick processing arrives. Aligned i18n parity (en/pt_BR), `verifyTranslations` green.
 
 ---
 

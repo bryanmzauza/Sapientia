@@ -198,6 +198,33 @@ block:
   induction_furnace_controller:
     name: "<gold>Controlador do Forno de Inducao</gold>"
     desc: "Controlador multibloco MV. Cerque com uma casca 3x3x3 de carcaca MV ou basalto liso para formar a estrutura."
+  stainless_steel_casing:
+    name: "<gold>Carcaca de Aco Inoxidavel</gold>"
+    desc: "Carcaca de qualidade de refinaria. Usada como casca do multibloco 5x5x7 da refinaria de petroleo."
+  pumpjack:
+    name: "<gold>Bomba de Petroleo</gold>"
+    desc: "Geoextrator tier MV. Puxa petroleo bruto do reservatorio do chunk abaixo."
+  combustion_gen:
+    name: "<gold>Gerador de Combustao</gold>"
+    desc: "Gerador tier MV. Queima diesel ou gasolina em unidades estruturadas de energia."
+  biogas_gen:
+    name: "<gold>Gerador de Biogas</gold>"
+    desc: "Gerador tier LV. Queima caldo nutritivo num fluxo lento e constante de energia."
+  cracker:
+    name: "<gold>Craqueador</gold>"
+    desc: "Maquina tier MV. Craqueia fracoes pesadas de petroleo em fracoes mais leves."
+  fermenter:
+    name: "<gold>Fermentador</gold>"
+    desc: "Maquina tier MV. Fermenta caldo nutritivo em precursores de biogas."
+  still:
+    name: "<gold>Alambique</gold>"
+    desc: "Maquina tier MV. Destila mosto fermentado em fluidos purificados."
+  bioreactor:
+    name: "<gold>Biorreator</gold>"
+    desc: "Maquina tier LV. Cultiva organicos em caldo nutritivo."
+  oil_refinery_controller:
+    name: "<gold>Controlador da Refinaria de Petroleo</gold>"
+    desc: "Cabecalho multibloco da refinaria 5x5x7. Separa petroleo bruto em diesel, gasolina, lubrificante e alcatrao."
 
 fluid:
   water:
@@ -206,6 +233,16 @@ fluid:
     name: "<gold>Lava</gold>"
   milk:
     name: "<white>Leite</white>"
+  crude_oil:
+    name: "<dark_gray>Petroleo Bruto</dark_gray>"
+  diesel:
+    name: "<gold>Diesel</gold>"
+  gasoline:
+    name: "<yellow>Gasolina</yellow>"
+  lubricant:
+    name: "<dark_red>Lubrificante</dark_red>"
+  nutrient_broth:
+    name: "<green>Caldo Nutritivo</green>"
 
 guide:
   title: "<gold>Guia Sapientia</gold>"

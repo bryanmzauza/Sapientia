@@ -85,4 +85,45 @@ public final class MultiblockShapeValidator {
         for (Material m : mats) out.add(Objects.requireNonNull(m, "material entry"));
         return out;
     }
+
+    /**
+     * Validates a hollow rectangular shell of casing centered around the
+     * controller (T-413 / 1.5.0). Edge lengths must be odd, &gt;= 3 along every
+     * axis (so a center cell exists). Only the outer shell is checked; interior
+     * cells are unchecked. The controller block itself is skipped if it falls on
+     * the shell.
+     *
+     * <p>Used by the oil-refinery (5×5×7) and other non-cubic multiblocks.
+     */
+    public static boolean validateHollowBox(
+            @NotNull Block controller,
+            int xLength, int yLength, int zLength,
+            @NotNull Material... allowedCasings) {
+        ensureOddPositive(xLength, "xLength");
+        ensureOddPositive(yLength, "yLength");
+        ensureOddPositive(zLength, "zLength");
+        Set<Material> allowed = toSet(allowedCasings);
+        int hx = xLength / 2;
+        int hy = yLength / 2;
+        int hz = zLength / 2;
+        for (int dx = -hx; dx <= hx; dx++) {
+            for (int dy = -hy; dy <= hy; dy++) {
+                for (int dz = -hz; dz <= hz; dz++) {
+                    boolean onShell =
+                            Math.abs(dx) == hx || Math.abs(dy) == hy || Math.abs(dz) == hz;
+                    if (!onShell) continue;
+                    if (dx == 0 && dy == 0 && dz == 0) continue;
+                    Block b = controller.getRelative(dx, dy, dz);
+                    if (!allowed.contains(b.getType())) return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private static void ensureOddPositive(int value, String name) {
+        if (value < 3 || (value & 1) == 0) {
+            throw new IllegalArgumentException(name + " must be an odd integer >= 3");
+        }
+    }
 }

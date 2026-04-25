@@ -35,6 +35,15 @@ import dev.brmz.sapientia.content.metallurgy.MetalCatalog;
 import dev.brmz.sapientia.content.multiblock.SapientiaInductionFurnaceController;
 import dev.brmz.sapientia.content.multiblock.SapientiaMachineCasing;
 import dev.brmz.sapientia.content.multiblock.SapientiaMachineCasingMv;
+import dev.brmz.sapientia.content.chemistry.SapientiaBioreactor;
+import dev.brmz.sapientia.content.chemistry.SapientiaCracker;
+import dev.brmz.sapientia.content.chemistry.SapientiaFermenter;
+import dev.brmz.sapientia.content.chemistry.SapientiaStill;
+import dev.brmz.sapientia.content.petroleum.SapientiaBiogasGen;
+import dev.brmz.sapientia.content.petroleum.SapientiaCombustionGen;
+import dev.brmz.sapientia.content.petroleum.SapientiaOilRefineryController;
+import dev.brmz.sapientia.content.petroleum.SapientiaPumpjack;
+import dev.brmz.sapientia.content.petroleum.SapientiaStainlessSteelCasing;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
@@ -105,6 +114,20 @@ public final class ContentBootstrap {
 
         // 1.4.0 recipes (must come after items + blocks are registered).
         dev.brmz.sapientia.content.crafting.MetallurgyRecipes.registerAll(plugin, api);
+
+        // Petroleum & basic chemistry (T-411..T-415 / 1.5.0).
+        api.registerBlock(new SapientiaStainlessSteelCasing(plugin));
+        api.registerBlock(new SapientiaPumpjack(plugin));
+        api.registerBlock(new SapientiaCombustionGen(plugin));
+        api.registerBlock(new SapientiaBiogasGen(plugin));
+        api.registerBlock(new SapientiaCracker(plugin));
+        api.registerBlock(new SapientiaFermenter(plugin));
+        api.registerBlock(new SapientiaStill(plugin));
+        api.registerBlock(new SapientiaBioreactor(plugin));
+        api.registerBlock(new SapientiaOilRefineryController(plugin));
+
+        // 1.5.0 recipes.
+        dev.brmz.sapientia.content.crafting.PetrochemRecipes.registerAll(plugin, api);
 
         // Look-to-inspect loop for the wrench (action bar / boss bar)
         new EnergyInspector(plugin).start();
