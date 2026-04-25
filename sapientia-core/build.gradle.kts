@@ -6,10 +6,8 @@ plugins {
 
 dependencies {
     api(project(":sapientia-api"))
-    // sapientia-content / sapientia-benchmarks / sapientia-testkit are deliberately
-    // absent here — those modules are empty shells reserved for future releases
-    // (see ROADMAP 0.2.0+). Wire them up when the first real class lands.
     implementation(project(":sapientia-bedrock"))
+    implementation(project(":sapientia-content"))
 
     compileOnly(libs.paper.api)
     compileOnly(libs.adventure.minimsg)
@@ -28,6 +26,7 @@ dependencies {
 
     testImplementation(libs.paper.api)
     testImplementation(libs.adventure.minimsg)
+    testImplementation(libs.archunit.junit5)
     // MockBukkit is deferred to T-170 (sapientia-testkit) — no matching artifact
     // for Paper 26.x is published yet.
 }

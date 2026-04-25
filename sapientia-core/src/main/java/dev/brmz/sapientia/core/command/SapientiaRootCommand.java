@@ -6,9 +6,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+import dev.brmz.sapientia.api.overrides.ContentOverrides;
 import dev.brmz.sapientia.core.SapientiaPlugin;
 import dev.brmz.sapientia.core.i18n.Messages;
 import dev.brmz.sapientia.core.item.ItemRegistry;
+import dev.brmz.sapientia.core.pack.ResourcePackBuilder;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -24,14 +26,21 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class SapientiaRootCommand implements TabExecutor {
 
-    private static final List<String> SUBCOMMANDS = List.of("help", "reload", "give");
+    private static final List<String> SUBCOMMANDS = List.of("help", "reload", "give", "pack");
 
     private final SapientiaPlugin plugin;
     private final ItemRegistry registry;
+    private final ContentOverrides overrides;
+    private final ResourcePackBuilder packBuilder;
 
-    public SapientiaRootCommand(@NotNull SapientiaPlugin plugin, @NotNull ItemRegistry registry) {
+    public SapientiaRootCommand(@NotNull SapientiaPlugin plugin,
+                                @NotNull ItemRegistry registry,
+                                @NotNull ContentOverrides overrides,
+                                @NotNull ResourcePackBuilder packBuilder) {
         this.plugin = plugin;
         this.registry = registry;
+        this.overrides = overrides;
+        this.packBuilder = packBuilder;
     }
 
     @Override
@@ -46,8 +55,9 @@ public final class SapientiaRootCommand implements TabExecutor {
         }
         switch (args[0].toLowerCase(Locale.ROOT)) {
             case "help" -> showHelp(sender, msg);
-            case "reload" -> handleReload(sender, msg);
+            case "reload" -> handleReload(sender, msg, args);
             case "give" -> handleGive(sender, msg, args);
+            case "pack" -> handlePack(sender, msg, args);
             default -> sender.sendMessage(msg.component("command.unknown"));
         }
         return true;
@@ -57,7 +67,9 @@ public final class SapientiaRootCommand implements TabExecutor {
         sender.sendMessage(msg.component("command.help.header"));
         sendHelpLine(sender, msg, "/sapientia help", "command.help.desc.help");
         sendHelpLine(sender, msg, "/sapientia reload", "command.help.desc.reload");
+        sendHelpLine(sender, msg, "/sapientia reload content", "command.help.desc.reload-content");
         sendHelpLine(sender, msg, "/sapientia give <player> <id> [amount]", "command.help.desc.give");
+        sendHelpLine(sender, msg, "/sapientia pack build java", "command.help.desc.pack-build");
     }
 
     private void sendHelpLine(CommandSender sender, Messages msg, String usage, String descKey) {
@@ -67,9 +79,24 @@ public final class SapientiaRootCommand implements TabExecutor {
                 Placeholder.parsed("description", description)));
     }
 
-    private void handleReload(CommandSender sender, Messages msg) {
+    private void handleReload(CommandSender sender, Messages msg, String[] args) {
         if (!sender.hasPermission("sapientia.command.reload")) {
             sender.sendMessage(msg.component("command.no-permission"));
+            return;
+        }
+        if (args.length >= 2 && args[1].equalsIgnoreCase("content")) {
+            long startedContent = System.nanoTime();
+            ContentOverrides.ReloadReport report = overrides.reload();
+            long ms = (System.nanoTime() - startedContent) / 1_000_000;
+            sender.sendMessage(msg.component("command.reload.content.success",
+                    Placeholder.parsed("items", Integer.toString(report.items())),
+                    Placeholder.parsed("blocks", Integer.toString(report.blocks())),
+                    Placeholder.parsed("recipes", Integer.toString(report.recipes())),
+                    Placeholder.parsed("ms", Long.toString(ms))));
+            if (!report.issues().isEmpty()) {
+                sender.sendMessage(msg.component("command.reload.content.issues",
+                        Placeholder.parsed("count", Integer.toString(report.issues().size()))));
+            }
             return;
         }
         long started = System.nanoTime();
@@ -83,6 +110,26 @@ public final class SapientiaRootCommand implements TabExecutor {
         } catch (RuntimeException e) {
             plugin.getLogger().warning("Reload failed: " + e);
             sender.sendMessage(msg.component("command.reload.failure",
+                    Placeholder.parsed("error", String.valueOf(e.getMessage()))));
+        }
+    }
+
+    private void handlePack(CommandSender sender, Messages msg, String[] args) {
+        if (!sender.hasPermission("sapientia.command.pack")) {
+            sender.sendMessage(msg.component("command.no-permission"));
+            return;
+        }
+        if (args.length < 3 || !args[1].equalsIgnoreCase("build") || !args[2].equalsIgnoreCase("java")) {
+            sender.sendMessage(msg.component("command.pack.usage"));
+            return;
+        }
+        try {
+            java.nio.file.Path output = packBuilder.buildJavaPack();
+            sender.sendMessage(msg.component("command.pack.success",
+                    Placeholder.parsed("path", output.toString())));
+        } catch (java.io.IOException e) {
+            plugin.getLogger().warning("Pack build failed: " + e);
+            sender.sendMessage(msg.component("command.pack.failure",
                     Placeholder.parsed("error", String.valueOf(e.getMessage()))));
         }
     }
@@ -133,6 +180,15 @@ public final class SapientiaRootCommand implements TabExecutor {
                                       @NotNull String[] args) {
         if (args.length == 1) {
             return filter(SUBCOMMANDS, args[0]);
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("reload")) {
+            return filter(List.of("content"), args[1]);
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("pack")) {
+            return filter(List.of("build"), args[1]);
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("pack") && args[1].equalsIgnoreCase("build")) {
+            return filter(List.of("java"), args[2]);
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("give")) {
             return filter(Bukkit.getOnlinePlayers().stream()

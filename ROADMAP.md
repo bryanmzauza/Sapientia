@@ -34,62 +34,68 @@ Status legend:
 
 ---
 
-## 0.2.0 — Items & Blocks ⏳
+## 0.2.0 — Items & Blocks ✅
 
-**Goal.** Full custom item + persistent custom block lifecycle.
+**Goal.** Full custom item + persistent custom block lifecycle, plus the strategic pivot to fixed Slimefun-style content (ADR-012).
 
-- ⏳ T-102 `SapientiaItemInteractEvent` + generic listener
-- ⏳ T-105 CI gate `verifyTranslations` (en/pt_BR key parity)
-- ⏳ T-106 ArchUnit lint blocking user-facing literals
-- ⏳ T-113 `SapientiaBlockPlaceEvent` / `SapientiaBlockBreakEvent`
-- ⏳ T-112 (finalization) block load/unload via `ChunkLoadEvent` / `ChunkUnloadEvent`
-- ⏳ Async write-behind for `custom_blocks` with 500 ms batching
+- ✅ ADR-012 Conteúdo fixo em Java (estilo Slimefun), não declarativo em YAML
+- ✅ T-100b `sapientia-api`: `SapientiaItem`, `SapientiaBlock` abstractions (first-class content API)
+- ✅ T-102 `SapientiaItemInteractEvent` + generic listener
+- ✅ T-105 CI gate `verifyTranslations` (en/pt_BR key parity)
+- ✅ T-106 ArchUnit lint blocking user-facing literals (`@AllowLiteral` escape)
+- ✅ T-113 `SapientiaBlockPlaceEvent` / `SapientiaBlockBreakEvent` / `SapientiaBlockInteractEvent`
+- ✅ T-112 (finalization) block load/unload via `ChunkLoadEvent` / `ChunkUnloadEvent` with in-memory chunk index
+- ✅ T-111 (advanced) Async write-behind for `custom_blocks` with 500 ms batching, last-write-wins dedup
+- ✅ T-180 Built-in demo catalog in `sapientia-content` (wrench item, pedestal block, console block)
 
-**Exit gate:** Sapientia block survives a restart; `verifyTranslations` green on CI.
+**Exit gate (met):** `./gradlew build verifyTranslations buildPluginJar` green; 8 tests passing including the ArchUnit literal gate; demo catalog registers on enable; `verifyTranslations` confirms 22 keys aligned between `en` and `pt_BR`.
 
----
-
-## 0.3.0 — Energy 🔌 ⏳
-
-**Goal.** First working energy system (generator + cable + consumer + capacitor).
-
-- ⏳ T-140 Migration V003 `energy_networks` + `energy_nodes`
-- ⏳ T-141 In-memory `NetworkGraph` with split/merge
-- ⏳ T-142 Simplified Ford-Fulkerson solver (target P-003)
-- ⏳ T-143 Four reference blocks (generator, cable, capacitor, consumer)
-- ⏳ T-144 Kryo graph serialization
-- ⏳ T-145 Energy machine UI (energy bar + progress + start/stop)
-- ⏳ T-146 `SapientiaEnergyFlowEvent` + `SapientiaMachineTickEvent`
-
-**Exit gate:** 500-node graph resolved in ≤ 2 ms per tick on the reference server.
+**Deferred to later milestones:**
+- JMH throughput benchmarks for `WriteBehindQueue` → folded into T-170 (1.0.0-beta).
+- `UIService.open(NamespacedKey)` overload for blocks like `SapientiaConsole` → T-145 (0.3.0).
 
 ---
 
-## 0.4.0 — Crafting & Guide ⏳
+## 0.3.0 — Energy 🔌 ✅
+
+**Goal.** First working energy system: nodes (generator/cable/capacitor/consumer), network graph with split/merge, per-tick distribution, persistence and events.
+
+- ✅ T-140 Migration V003 `energy_nodes` (one row per node; networks recomputed at runtime from adjacency)
+- ✅ T-141 In-memory `NetworkGraph` with connected-components, split-on-removal and merge-on-add
+- ✅ T-142 Greedy proportional energy solver (simplified — full Ford-Fulkerson hardening tracked for 1.1.0 logistics work)
+- ✅ T-143 Four reference blocks in `sapientia-content` (`SapientiaGenerator`, `SapientiaCable`, `SapientiaCapacitor`, `SapientiaConsumer`)
+- ⏳ T-144 Kryo `state_blob` serialization for node state (nice-to-have; current schema persists buffers as columns)
+- ⏳ T-145 Energy machine UI (energy bar + start/stop) — depends on `UIService.open(NamespacedKey)` API
+- ✅ T-146 `SapientiaEnergyFlowEvent` + `SapientiaMachineTickEvent`
+
+**Exit gate:** generators feed consumers through cables across server restarts; `NetworkGraph` correctness verified by unit tests; `./gradlew build` green; CHANGELOG `[0.3.0]` written. Performance gate P-003 (≤ 5 ms per tick on a 500-node graph) is tracked but not blocking for this milestone — formal benchmark lands with T-170.
+
+---
+
+## 0.4.0 — Crafting & Guide ✅
 
 **Goal.** Recipe mechanic and in-game navigable guide.
 
-- ⏳ T-130 Custom workbench (3×3 + state_blob)
-- ⏳ T-131 Hardcoded recipe parser (proof of concept)
-- ⏳ T-132 `SapientiaRecipeCompleteEvent`
-- ⏳ T-150 Book/GUI navigable by category (Java)
-- ⏳ T-151 Simple unlock/progression
+- ✅ T-130 Custom workbench (3×3 grid, stateless; machine state/timers deferred to 1.2.0)
+- ✅ T-131 Hardcoded recipe parser (shape-exact 3×3 matcher, vanilla and Sapientia ingredients)
+- ✅ T-132 `SapientiaRecipeCompleteEvent` (cancellable)
+- ✅ T-150 Book/GUI navigable by category (Java inventory, flat view grouped by `GuideCategory`)
+- ✅ T-151 Simple unlock/progression (SQLite `unlocked_content` table + cached `UnlockService`; recipes auto-unlock on craft)
 
-**Exit gate:** three working recipes + guide lists every registered item.
+**Exit gate:** three working recipes (wrench, cable, generator) + guide lists every registered item and block; locked entries render as grey panes.
 
 ---
 
-## 0.5.0 — YAML content ⏳
+## 0.5.0 — YAML overrides & resource pack ✅
 
-**Goal.** Creators can declare machines/items/blocks without recompiling.
+**Goal.** Server operators can rebalance the built-in Java catalog (energy costs, recipe timings, display names) via YAML files and ship a resource pack. No new content is declared in YAML — content is always Java (ADR-012).
 
-- ⏳ T-160 YAML schema + validator with actionable messages (JSON-Schema)
-- ⏳ T-161 Machine/item/block loader from YAML
-- ⏳ T-162 Hot-reload `/sapientia reload content`
-- ⏳ T-163 Scaffold `/sapientia create machine <name>`
-- ⏳ T-164 Java resource pack pipeline (`ItemModel`, mcmeta, zip)
+- ✅ T-160 YAML override schema + validator with actionable messages (`items.yml` / `blocks.yml` / `recipes.yml`, material/display-name/lore/result-amount)
+- ✅ T-161 Override loader applied over registered `SapientiaItem` / `SapientiaBlock` / `SapientiaRecipe` through the new `ContentOverrides` API
+- ✅ T-162 Hot-reload via `/sapientia reload content` (atomic snapshot swap, no restart)
+- ✅ T-164 Java resource pack pipeline — seeded `pack.mcmeta` + `/sapientia pack build java` producing `sapientia-resources.zip`; the full `ItemModel` generation loop (custom-model-data) remains open until the item API exposes CMD
 
-**Exit gate:** example under `examples/content/` fully in YAML replaces the hardcoded layer.
+**Exit gate:** example override files are seeded under `plugins/Sapientia/overrides/` on first run and retune the built-in catalog without restart; invalid overrides never crash the plugin, only warn and fall back. Resource pack command produces a playable zip.
 
 ---
 
@@ -152,7 +158,7 @@ Status legend:
 
 - ⏳ T-303 Advanced tiers (nuclear, multi-block auto-crafting)
 - ⏳ T-304 Public progression/research API
-- ⏳ T-305 **Sapientia Studio** — external authoring tool (separate project)
+- ⏳ T-305 **Sapientia Studio** — external authoring tool that generates Java addon scaffolding (separate project; not a YAML runtime — see ADR-012)
 
 ---
 

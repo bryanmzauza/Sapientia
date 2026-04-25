@@ -17,13 +17,51 @@ command:
     desc:
       help: "Show this help message."
       reload: "Reload configuration and catalogs."
+      reload-content: "Reload YAML overrides without restarting the server."
       give: "Give a Sapientia item to a player."
+      pack-build: "Build the Java resource pack into plugins/Sapientia/sapientia-resources.zip."
   give:
     usage: "<red>Usage: /sapientia give <player> <id> [amount]</red>"
     success: "<green>Gave <white><amount></white> x <white><id></white> to <white><player></white>.</green>"
     unknown-item: "<red>Unknown item id: <white><id></white></red>"
     invalid-amount: "<red>Invalid amount: <white><value></white></red>"
     player-not-found: "<red>Player not found: <white><name></white></red>"
+  reload:
+    content:
+      success: "<green>Overrides reloaded in <white><ms>ms</white> <gray>(items=<items> blocks=<blocks> recipes=<recipes>)</gray>.</green>"
+      issues: "<yellow><count> validation issue(s) logged; check the server log.</yellow>"
+  pack:
+    usage: "<red>Usage: /sapientia pack build java</red>"
+    success: "<green>Resource pack written to <white><path></white>.</green>"
+    failure: "<red>Pack build failed: <white><error></white></red>"
 
 error:
   internal: "<red>An internal error occurred. Check the server log.</red>"
+
+item:
+  wrench:
+    name: "<aqua>Sapientia Wrench</aqua>"
+    lore: "<gray>Right-click to inspect Sapientia blocks.</gray>"
+  guide:
+    name: "<gold>Sapientia Guide</gold>"
+    lore: "<gray>Right-click to open the in-game guide.</gray>"
+
+block:
+  pedestal:
+    name: "<white>Sapientia Pedestal</white>"
+  console:
+    name: "<gold>Sapientia Console</gold>"
+  generator:
+    name: "<yellow>Sapientia Generator</yellow>"
+  cable:
+    name: "<gray>Sapientia Cable</gray>"
+  capacitor:
+    name: "<aqua>Sapientia Capacitor</aqua>"
+  consumer:
+    name: "<red>Sapientia Consumer</red>"
+  workbench:
+    name: "<gold>Sapientia Workbench</gold>"
+
+guide:
+  title: "<gold>Sapientia Guide</gold>"
+  locked: "<dark_gray>Locked</dark_gray>"

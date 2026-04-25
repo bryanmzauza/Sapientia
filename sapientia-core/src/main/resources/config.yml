@@ -5,3 +5,8 @@ locale: en
 persistence:
   # Hikari pool size for SQLite. Writes serialise regardless; more only helps reads.
   pool-size: 4
+
+resource-pack:
+  # Pack format embedded in the generated pack.mcmeta (T-164 / 0.5.0).
+  # Align with the server's Minecraft version; adjust if the pack fails to load.
+  pack-format: 32

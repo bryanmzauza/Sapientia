@@ -22,3 +22,6 @@ permissions:
   sapientia.command.give:
     description: Allows spawning Sapientia items via /sapientia give.
     default: op
+  sapientia.command.pack:
+    description: Allows building the Sapientia resource pack via /sapientia pack build.
+    default: op

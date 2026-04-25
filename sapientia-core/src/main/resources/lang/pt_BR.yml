@@ -17,13 +17,51 @@ command:
     desc:
       help: "Mostra esta mensagem de ajuda."
       reload: "Recarrega configuração e catálogos."
+      reload-content: "Recarrega os YAMLs de override sem reiniciar o servidor."
       give: "Dá um item do Sapientia a um jogador."
+      pack-build: "Gera o resource pack Java em plugins/Sapientia/sapientia-resources.zip."
   give:
     usage: "<red>Uso: /sapientia give <jogador> <id> [quantidade]</red>"
     success: "<green>Entregue <white><amount></white> x <white><id></white> para <white><player></white>.</green>"
     unknown-item: "<red>Item desconhecido: <white><id></white></red>"
     invalid-amount: "<red>Quantidade inválida: <white><value></white></red>"
     player-not-found: "<red>Jogador não encontrado: <white><name></white></red>"
+  reload:
+    content:
+      success: "<green>Overrides recarregados em <white><ms>ms</white> <gray>(itens=<items> blocos=<blocks> receitas=<recipes>)</gray>.</green>"
+      issues: "<yellow><count> problema(s) de validação registrados; veja o log do servidor.</yellow>"
+  pack:
+    usage: "<red>Uso: /sapientia pack build java</red>"
+    success: "<green>Resource pack gerado em <white><path></white>.</green>"
+    failure: "<red>Falha ao gerar o pack: <white><error></white></red>"
 
 error:
   internal: "<red>Ocorreu um erro interno. Consulte o log do servidor.</red>"
+
+item:
+  wrench:
+    name: "<aqua>Chave Sapientia</aqua>"
+    lore: "<gray>Clique direito para inspecionar blocos Sapientia.</gray>"
+  guide:
+    name: "<gold>Guia Sapientia</gold>"
+    lore: "<gray>Clique direito para abrir o guia.</gray>"
+
+block:
+  pedestal:
+    name: "<white>Pedestal Sapientia</white>"
+  console:
+    name: "<gold>Console Sapientia</gold>"
+  generator:
+    name: "<yellow>Gerador Sapientia</yellow>"
+  cable:
+    name: "<gray>Cabo Sapientia</gray>"
+  capacitor:
+    name: "<aqua>Capacitor Sapientia</aqua>"
+  consumer:
+    name: "<red>Consumidor Sapientia</red>"
+  workbench:
+    name: "<gold>Bancada Sapientia</gold>"
+
+guide:
+  title: "<gold>Guia Sapientia</gold>"
+  locked: "<dark_gray>Bloqueado</dark_gray>"
