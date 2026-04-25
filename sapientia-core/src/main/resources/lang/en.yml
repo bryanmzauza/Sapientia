@@ -20,6 +20,8 @@ command:
       reload-content: "Reload YAML overrides without restarting the server."
       give: "Give a Sapientia item to a player."
       pack-build: "Build the Java resource pack into plugins/Sapientia/sapientia-resources.zip."
+      pack-build-bedrock: "Build the Bedrock .mcpack and Geyser mappings into plugins/Sapientia/."
+      pack-build-all: "Build both the Java pack and the Bedrock pack at once."
   give:
     usage: "<red>Usage: /sapientia give <player> <id> [amount]</red>"
     success: "<green>Gave <white><amount></white> x <white><id></white> to <white><player></white>.</green>"
@@ -31,9 +33,12 @@ command:
       success: "<green>Overrides reloaded in <white><ms>ms</white> <gray>(items=<items> blocks=<blocks> recipes=<recipes>)</gray>.</green>"
       issues: "<yellow><count> validation issue(s) logged; check the server log.</yellow>"
   pack:
-    usage: "<red>Usage: /sapientia pack build java</red>"
+    usage: "<red>Usage: /sapientia pack build <java|bedrock|all></red>"
     success: "<green>Resource pack written to <white><path></white>.</green>"
     failure: "<red>Pack build failed: <white><error></white></red>"
+    bedrock:
+      success: "<green>Bedrock pack written to <white><pack></white>; mappings under <white><mappings></white>.</green>"
+      unsupported: "<red>Unknown pack target. Use <white>java</white>, <white>bedrock</white> or <white>all</white>.</red>"
 
 error:
   internal: "<red>An internal error occurred. Check the server log.</red>"
@@ -42,26 +47,68 @@ item:
   wrench:
     name: "<aqua>Sapientia Wrench</aqua>"
     lore: "<gray>Right-click to inspect Sapientia blocks.</gray>"
+    desc: "Aim at an energy block while holding the wrench to see a live\nbuffer + network readout. No click needed."
   guide:
     name: "<gold>Sapientia Guide</gold>"
     lore: "<gray>Right-click to open the in-game guide.</gray>"
+    desc: "Your field manual. Opens a chest UI listing every\nSapientia item, block and recipe you have unlocked."
 
 block:
   pedestal:
     name: "<white>Sapientia Pedestal</white>"
+    desc: "Decorative display block. Useful for showcasing\nitems or marking important locations."
   console:
     name: "<gold>Sapientia Console</gold>"
+    desc: "Interactive demo block. Reserved for upcoming\nautomation and scripting UIs."
   generator:
     name: "<yellow>Sapientia Generator</yellow>"
+    desc: "Produces energy each tick. Connect it to cables to\npower capacitors and consumers in the same network."
   cable:
     name: "<gray>Sapientia Cable</gray>"
+    desc: "Links energy nodes. Forms a single network out of\nall adjacent (6-neighbour) Sapientia energy blocks."
   capacitor:
     name: "<aqua>Sapientia Capacitor</aqua>"
+    desc: "Bulk energy buffer. Smooths spikes in generation\nand demand so consumers keep running."
   consumer:
     name: "<red>Sapientia Consumer</red>"
+    desc: "Drains energy each tick. Demo sink used to verify\nthat your network is producing and delivering power."
   workbench:
     name: "<gold>Sapientia Workbench</gold>"
+    desc: "Sapientia 3x3 crafting grid. Right-click to open\nand craft bundled Sapientia recipes."
 
 guide:
   title: "<gold>Sapientia Guide</gold>"
   locked: "<dark_gray>Locked</dark_gray>"
+  index:
+    header:
+      name: "<gold><bold>Sapientia Guide</bold></gold>"
+      lore: "<gray>Click any entry to view its\nrecipe and detailed information.</gray>"
+  detail:
+    title: "<gold>Guide</gold> <gray>·</gray> <white><name></white>"
+    recipe:
+      header: "<aqua><bold>Recipe</bold></aqua>"
+      none: "<gray>This item has no crafting recipe.\nObtain it from world drops, the\n/sapientia give command, or admins.</gray>"
+    yields: "<gray>Yields <white><amount>x</white> per craft.</gray>"
+    category: "<dark_gray>Category:</dark_gray> <gray><category></gray>"
+    back:
+      name: "<yellow>« Back to Index</yellow>"
+      lore: "<gray>Return to the guide index.</gray>"
+
+ui:
+  machine:
+    title: "<gold>Sapientia Machine</gold>"
+    energy:
+      title: "<aqua>Energy Buffer</aqua>"
+      value: "<gray><current>/<max> E</gray>"
+      percent: "<gray><percent>%</percent></gray>"
+    running: "<green>Running</green>"
+    stopped: "<red>Stopped</red>"
+    click:
+      start: "<gray>Click to start.</gray>"
+      stop: "<gray>Click to stop.</gray>"
+    bedrock:
+      content: "<current>/<max> E (<percent>%)"
+      toggle: "Running"
+  filter:
+    title: "<gold>Item Filter</gold>"
+    experimental: "<gray>Experimental — wiring lands in 1.x.</gray>"

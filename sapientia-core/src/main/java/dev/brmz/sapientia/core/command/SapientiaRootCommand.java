@@ -70,6 +70,8 @@ public final class SapientiaRootCommand implements TabExecutor {
         sendHelpLine(sender, msg, "/sapientia reload content", "command.help.desc.reload-content");
         sendHelpLine(sender, msg, "/sapientia give <player> <id> [amount]", "command.help.desc.give");
         sendHelpLine(sender, msg, "/sapientia pack build java", "command.help.desc.pack-build");
+        sendHelpLine(sender, msg, "/sapientia pack build bedrock", "command.help.desc.pack-build-bedrock");
+        sendHelpLine(sender, msg, "/sapientia pack build all", "command.help.desc.pack-build-all");
     }
 
     private void sendHelpLine(CommandSender sender, Messages msg, String usage, String descKey) {
@@ -119,14 +121,33 @@ public final class SapientiaRootCommand implements TabExecutor {
             sender.sendMessage(msg.component("command.no-permission"));
             return;
         }
-        if (args.length < 3 || !args[1].equalsIgnoreCase("build") || !args[2].equalsIgnoreCase("java")) {
+        if (args.length < 3 || !args[1].equalsIgnoreCase("build")) {
             sender.sendMessage(msg.component("command.pack.usage"));
             return;
         }
+        String target = args[2].toLowerCase(java.util.Locale.ROOT);
         try {
-            java.nio.file.Path output = packBuilder.buildJavaPack();
-            sender.sendMessage(msg.component("command.pack.success",
-                    Placeholder.parsed("path", output.toString())));
+            switch (target) {
+                case "java" -> {
+                    java.nio.file.Path output = packBuilder.buildJavaPack();
+                    sender.sendMessage(msg.component("command.pack.success",
+                            Placeholder.parsed("path", output.toString())));
+                }
+                case "bedrock" -> {
+                    java.nio.file.Path output = packBuilder.buildBedrockPack();
+                    sender.sendMessage(msg.component("command.pack.bedrock.success",
+                            Placeholder.parsed("path", output.toString())));
+                }
+                case "all" -> {
+                    java.nio.file.Path j = packBuilder.buildJavaPack();
+                    sender.sendMessage(msg.component("command.pack.success",
+                            Placeholder.parsed("path", j.toString())));
+                    java.nio.file.Path b = packBuilder.buildBedrockPack();
+                    sender.sendMessage(msg.component("command.pack.bedrock.success",
+                            Placeholder.parsed("path", b.toString())));
+                }
+                default -> sender.sendMessage(msg.component("command.pack.usage"));
+            }
         } catch (java.io.IOException e) {
             plugin.getLogger().warning("Pack build failed: " + e);
             sender.sendMessage(msg.component("command.pack.failure",
@@ -149,7 +170,11 @@ public final class SapientiaRootCommand implements TabExecutor {
                     Placeholder.parsed("name", args[1])));
             return;
         }
-        String id = args[2];
+        String rawId = args[2];
+        // Accept bare ids (e.g. "wrench") as shorthand for "sapientia:wrench".
+        // Explicit "vendor:id" is still respected; only the default namespace
+        // is inferred when the argument has no colon.
+        String id = rawId.indexOf(':') < 0 ? "sapientia:" + rawId : rawId;
         int amount = 1;
         if (args.length >= 4) {
             try {
@@ -188,14 +213,23 @@ public final class SapientiaRootCommand implements TabExecutor {
             return filter(List.of("build"), args[1]);
         }
         if (args.length == 3 && args[0].equalsIgnoreCase("pack") && args[1].equalsIgnoreCase("build")) {
-            return filter(List.of("java"), args[2]);
+            return filter(List.of("java", "bedrock", "all"), args[2]);
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("give")) {
             return filter(Bukkit.getOnlinePlayers().stream()
                     .map(Player::getName).collect(Collectors.toList()), args[1]);
         }
         if (args.length == 3 && args[0].equalsIgnoreCase("give")) {
-            return filter(new ArrayList<>(registry.all().keySet()), args[2]);
+            // Show only the bare names (e.g. "wrench" instead of "sapientia:wrench").
+            // The give handler auto-prefixes "sapientia:" when no colon is present,
+            // so this stays unambiguous for the bundled catalog while still letting
+            // power users type a fully-qualified vendor id manually.
+            List<String> bareNames = new ArrayList<>();
+            for (String fullId : registry.all().keySet()) {
+                int colon = fullId.indexOf(':');
+                bareNames.add(colon < 0 ? fullId : fullId.substring(colon + 1));
+            }
+            return filter(bareNames, args[2]);
         }
         return Collections.emptyList();
     }

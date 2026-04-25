@@ -77,7 +77,8 @@ public final class ItemRegistry {
                 key.toString(),
                 item.baseMaterial(),
                 item.displayNameKey(),
-                item.loreKeys()));
+                item.loreKeys(),
+                item.customModelData()));
     }
 
     public @NotNull Optional<ItemDefinition> get(@NotNull String id) {
@@ -124,14 +125,16 @@ public final class ItemRegistry {
         Material material = def.material();
         String displayNameKey = def.displayNameKey();
         List<String> loreKeys = def.loreKeys();
+        int customModelData = def.customModelData();
         if (overrides != null) {
             NamespacedKey key = NamespacedKey.fromString(id);
             if (key != null) {
                 ItemOverride itemOv = overrides.forItem(key).orElse(null);
                 if (itemOv != null) {
-                    if (itemOv.material().isPresent())       material = itemOv.material().get();
-                    if (itemOv.displayNameKey().isPresent()) displayNameKey = itemOv.displayNameKey().get();
-                    if (itemOv.loreKeys().isPresent())       loreKeys = itemOv.loreKeys().get();
+                    if (itemOv.material().isPresent())         material = itemOv.material().get();
+                    if (itemOv.displayNameKey().isPresent())   displayNameKey = itemOv.displayNameKey().get();
+                    if (itemOv.loreKeys().isPresent())         loreKeys = itemOv.loreKeys().get();
+                    if (itemOv.customModelData().isPresent())  customModelData = itemOv.customModelData().get();
                 } else {
                     // Block companion items share the block's id; let BlockOverride retune them too.
                     dev.brmz.sapientia.api.overrides.BlockOverride blockOv =
@@ -145,6 +148,7 @@ public final class ItemRegistry {
         }
         final String finalDisplayNameKey = displayNameKey;
         final List<String> finalLoreKeys = loreKeys;
+        final int finalCustomModelData = customModelData;
         ItemStack stack = new ItemStack(material, Math.max(1, amount));
         stack.editMeta(meta -> {
             Component displayName = messages.component(finalDisplayNameKey)
@@ -157,6 +161,9 @@ public final class ItemRegistry {
                         .toList();
                 meta.lore(lore);
             }
+            if (finalCustomModelData > 0) {
+                meta.setCustomModelData(finalCustomModelData);
+            }
             meta.getPersistentDataContainer().set(idKey, PersistentDataType.STRING, def.id());
         });
         return stack;
@@ -167,7 +174,8 @@ public final class ItemRegistry {
             String id,
             Material material,
             String displayNameKey,
-            List<String> loreKeys) {
+            List<String> loreKeys,
+            int customModelData) {
 
         public ItemDefinition {
             if (id == null || id.isBlank()) {
@@ -179,7 +187,15 @@ public final class ItemRegistry {
             if (displayNameKey == null || displayNameKey.isBlank()) {
                 throw new IllegalArgumentException("displayNameKey must not be blank");
             }
+            if (customModelData < 0) {
+                throw new IllegalArgumentException("customModelData must be >= 0");
+            }
             loreKeys = loreKeys == null ? List.of() : List.copyOf(loreKeys);
+        }
+
+        /** Convenience constructor for legacy callers without custom-model-data. */
+        public ItemDefinition(String id, Material material, String displayNameKey, List<String> loreKeys) {
+            this(id, material, displayNameKey, loreKeys, 0);
         }
     }
 }

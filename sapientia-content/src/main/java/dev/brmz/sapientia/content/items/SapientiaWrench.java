@@ -12,8 +12,9 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Demo tool item (T-180). Right-click a Sapientia block to ping it; the listener
- * path emits {@link SapientiaItemInteractEvent} before this handler runs.
+ * Inspector tool. Just aiming at a Sapientia energy block while holding the
+ * wrench renders the live readout via the {@code EnergyInspector} look-scan —
+ * no click is needed. Clicking plays a short UI sound for feedback.
  */
 public final class SapientiaWrench implements SapientiaItem {
 

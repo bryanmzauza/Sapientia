@@ -113,24 +113,24 @@ Status legend:
 
 ---
 
-## 1.0.0 — Bedrock parity 📱 ⏳
+## 1.0.0 — Bedrock parity 📱 ✅
 
 **Goal.** Bedrock players (Geyser/Floodgate) get an equivalent experience to Java.
 
-- ⏳ T-201 `SimpleForm` / `ModalForm` / `CustomForm` wrappers
-- ⏳ T-202 Machine UI on Bedrock (mirror `CustomForm` + temporary chest)
-- ⏳ T-203 Filter UI
-- ⏳ T-204 Guide UI
-- ⏳ T-205 `TextAdapter.toPlainBedrock(Component)`
-- ⏳ T-205b Bedrock `.lang` catalogs derived from `en.yml` / `pt_BR.yml`
-- ⏳ T-206 Java-only fallback → auto `CustomForm`
-- ⏳ T-207 `.mcpack` pipeline + manifest + geometry
-- ⏳ T-208 Geyser mappings (`items.json`, `blocks.json`)
-- ⏳ T-209 `/sapientia pack build bedrock`
-- ⏳ T-210 Integration test in container (Paper + Floodgate + Geyser)
-- ⏳ T-211 Benchmarks P-009..P-012 + P-014
+- ✅ T-201 `SimpleForm` / `ModalForm` / `CustomForm` wrappers (`sapientia-bedrock.forms`, typed Cumulus API)
+- ✅ T-202 Machine UI on Bedrock (`MachineBedrockRenderer` + `CustomForm`)
+- ✅ T-203 Filter UI stub (`FilterDescriptor`, gated by `experimental.filter` flag)
+- ✅ T-204 Guide UI Bedrock renderers (index + detail SimpleForm)
+- ✅ T-205 `TextAdapter.toPlainBedrock(Component)`
+- ✅ T-205b Bedrock `.lang` catalogs derived from `en.yml` / `pt_BR.yml` (`LangFileWriter`)
+- ✅ T-206 Java-only fallback → auto-generated `SimpleForm` (`BedrockFallbackForm`)
+- ✅ T-207 `.mcpack` pipeline + manifest (`ResourcePackBuilder.buildBedrockPack`, `BedrockPackConstants`)
+- ✅ T-208 Geyser item mappings (`GeyserMappingsBuilder`)
+- ✅ T-209 `/sapientia pack build bedrock|all`
+- ✅ T-210 Bedrock smoke script (`scripts/smoke-bedrock.{sh,ps1}`) + checklist (`docs/bedrock-smoke-checklist.md`)
+- ✅ T-211 Benchmarks P-009..P-012 + P-014 (`PlatformDetectBenchmark`, `CustomFormOpenBenchmark`, `BedrockMixOverheadBenchmark`, `GeyserMappingBenchmark`)
 
-**Exit gate:** Bedrock smoke test passes; Geyser/Floodgate compatibility matrix published.
+**Exit gate:** Bedrock smoke checklist passes; Geyser/Floodgate compatibility matrix published.
 
 ---
 
@@ -166,7 +166,7 @@ Status legend:
 
 ## Published releases
 
-_None yet._ First planned tag: `v0.1.0`.
+_None yet._ First planned tag: `v1.0.0`.
 
 ---
 

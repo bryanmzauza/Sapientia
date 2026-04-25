@@ -8,7 +8,9 @@ dependencies {
 
     compileOnly(libs.paper.api)
     compileOnly(libs.floodgate.api)
+    compileOnly(libs.adventure.minimsg)
 
     testImplementation(libs.paper.api)
     testImplementation(libs.floodgate.api)
+    testImplementation(libs.adventure.minimsg)
 }

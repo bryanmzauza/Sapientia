@@ -124,11 +124,18 @@ public final class BlockLifecycleListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = false)
     public void onInteract(@NotNull PlayerInteractEvent event) {
-        // Guard against double-fire for off-hand when a main-hand event is also fired.
+        // PlayerInteractEvent fires once per hand. We only react to the main-hand
+        // pass to avoid double-firing onUse / opening the same UI twice.
+        //
+        // NOTE: We deliberately do NOT set ignoreCancelled=true: Paper frequently
+        // delivers RIGHT_CLICK_AIR pre-cancelled when the item has no vanilla
+        // action (e.g. KNOWLEDGE_BOOK without recipes), which would otherwise
+        // silence our SapientiaItem#onUse for air-clicks. We still respect
+        // cancellation when the click targets a real block.
         EquipmentSlot hand = event.getHand();
-        if (hand == null) {
+        if (hand != EquipmentSlot.HAND) {
             return;
         }
 
@@ -136,6 +143,10 @@ public final class BlockLifecycleListener implements Listener {
         Block clicked = event.getClickedBlock();
         if (clicked != null
                 && (action == Action.RIGHT_CLICK_BLOCK || action == Action.LEFT_CLICK_BLOCK)) {
+            // Respect pre-cancellation for block clicks (permission/region plugins).
+            if (event.useInteractedBlock() == org.bukkit.event.Event.Result.DENY) {
+                return;
+            }
             SapientiaBlock def = index.at(clicked);
             if (def != null && action == Action.RIGHT_CLICK_BLOCK) {
                 SapientiaBlockInteractEvent interactEvent = new SapientiaBlockInteractEvent(
@@ -160,11 +171,13 @@ public final class BlockLifecycleListener implements Listener {
             if (item == null) {
                 return;
             }
+            // Suppress vanilla side-effects (e.g. opening WRITTEN_BOOK UI for the guide,
+            // eating food, etc.) BEFORE handlers run so any UI we open is not shadowed.
+            event.setCancelled(true);
             SapientiaItemInteractEvent itemEvent = new SapientiaItemInteractEvent(
                     event.getPlayer(), used, item, action, hand);
             Bukkit.getPluginManager().callEvent(itemEvent);
             if (itemEvent.isCancelled()) {
-                event.setCancelled(true);
                 return;
             }
             item.onUse(itemEvent);

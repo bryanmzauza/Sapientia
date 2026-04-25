@@ -5,6 +5,7 @@ import dev.brmz.sapientia.content.blocks.SapientiaConsole;
 import dev.brmz.sapientia.content.blocks.SapientiaPedestal;
 import dev.brmz.sapientia.content.crafting.BundledRecipes;
 import dev.brmz.sapientia.content.crafting.SapientiaWorkbench;
+import dev.brmz.sapientia.content.energy.EnergyInspector;
 import dev.brmz.sapientia.content.energy.SapientiaCable;
 import dev.brmz.sapientia.content.energy.SapientiaCapacitor;
 import dev.brmz.sapientia.content.energy.SapientiaConsumer;
@@ -41,5 +42,8 @@ public final class ContentBootstrap {
         // Crafting (T-130 / 0.4.0)
         api.registerBlock(new SapientiaWorkbench(plugin));
         BundledRecipes.registerAll(plugin, api);
+
+        // Look-to-inspect loop for the wrench (action bar / boss bar)
+        new EnergyInspector(plugin).start();
     }
 }

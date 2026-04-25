@@ -2,10 +2,12 @@ package dev.brmz.sapientia.content.energy;
 
 import dev.brmz.sapientia.api.Sapientia;
 import dev.brmz.sapientia.api.block.SapientiaBlock;
+import dev.brmz.sapientia.api.energy.EnergyNode;
 import dev.brmz.sapientia.api.energy.EnergyNodeType;
 import dev.brmz.sapientia.api.energy.EnergySpecs;
 import dev.brmz.sapientia.api.energy.EnergyTier;
 import dev.brmz.sapientia.api.events.SapientiaBlockBreakEvent;
+import dev.brmz.sapientia.api.events.SapientiaBlockInteractEvent;
 import dev.brmz.sapientia.api.events.SapientiaBlockPlaceEvent;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -16,6 +18,10 @@ import org.jetbrains.annotations.NotNull;
  * Shared scaffolding for {@link SapientiaBlock} implementations that contribute an
  * energy node. Subclasses declare id, material, type and tier; the base class
  * registers / unregisters the node with the {@code EnergyService}.
+ *
+ * <p>The inspector readout (action bar / boss bar) is produced by
+ * {@link EnergyInspector}, a periodic look-to-inspect loop driven by the
+ * wrench — no per-block interaction is needed here.
  */
 abstract class EnergyContentBlock implements SapientiaBlock {
 
@@ -67,5 +73,18 @@ abstract class EnergyContentBlock implements SapientiaBlock {
     @Override
     public void onBreak(@NotNull SapientiaBlockBreakEvent event) {
         Sapientia.get().energy().removeNode(event.block());
+    }
+
+    @Override
+    public void onInteract(@NotNull SapientiaBlockInteractEvent event) {
+        // Cables are passive carriers — opening the Machine UI on them adds no info.
+        if (type == EnergyNodeType.CABLE) {
+            return;
+        }
+        EnergyNode node = Sapientia.get().energy().nodeAt(event.block()).orElse(null);
+        if (node == null) {
+            return;
+        }
+        Sapientia.get().openMachineUI(event.player(), node);
     }
 }

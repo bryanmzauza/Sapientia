@@ -42,7 +42,20 @@ The shadow JAR lands in `sapientia-core/build/libs/sapientia-core-<version>.jar`
 ./gradlew :sapientia-benchmarks:saveBenchmarkBaseline   # promote the latest result to the committed baseline
 ```
 
-Current benches cover P-003 (energy graph rebuild, 500 nodes) and P-007 (tick bucket dispatch, 20 000 tickables across 20 buckets). See [docs/performance-contract.md](docs/performance-contract.md).
+Current benches cover P-003 (energy graph rebuild, 500 nodes), P-007 (tick bucket dispatch, 20 000 tickables across 20 buckets), and the Bedrock parity suite — P-009/P-010 (`PlatformDetectBenchmark`), P-011 (`CustomFormOpenBenchmark`), P-012 (`BedrockMixOverheadBenchmark`), P-014 (`GeyserMappingBenchmark`). See [docs/performance-contract.md](docs/performance-contract.md).
+
+## Resource packs
+
+```powershell
+# Java + Bedrock packs at once
+./gradlew :sapientia-core:buildPluginJar
+# In-game (op required):
+#   /sapientia pack build java
+#   /sapientia pack build bedrock
+#   /sapientia pack build all
+```
+
+The Bedrock pipeline emits `plugins/Sapientia/sapientia-bedrock.mcpack` containing a stable manifest, generated `.lang` files for every loaded locale, and a Geyser `mappings/sapientia_items.json`. Smoke-test a release with [scripts/smoke-bedrock.ps1](scripts/smoke-bedrock.ps1) (or `.sh`) and the [Bedrock smoke checklist](docs/bedrock-smoke-checklist.md).
 
 ## Layout
 

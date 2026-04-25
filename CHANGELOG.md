@@ -2,6 +2,59 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and SemVer.
 
+## [1.0.0] — Bedrock parity 📱 ✅
+
+Bedrock parity milestone. Floodgate-detected Bedrock players now get a UI
+surface and resource-pack pipeline equivalent to Java.
+
+### Added
+- **Floodgate form wrappers** (T-201) — `SapientiaSimpleForm`,
+  `SapientiaModalForm`, `SapientiaCustomForm` in
+  `dev.brmz.sapientia.bedrock.forms`. Typed Cumulus 1.1.2 API; reflection
+  removed from `BedrockFormsUIProvider#isReady`.
+- **Machine UI on Bedrock** (T-202) — `MachineBedrockRenderer` builds a
+  `CustomForm` with energy/percent labels and a Running toggle that round-
+  trips state through `MachineRunningRegistry`.
+- **Experimental filter UI stub** (T-203) — `FilterDescriptor`, opt-in via
+  `experimental.filter` config flag. Lays the surface for 1.x logistics.
+- **Guide UI on Bedrock** (T-204) — `GuideIndexBedrockRenderer` +
+  `GuideDetailBedrockRenderer` mirror the Java guide flow as `SimpleForm`s.
+- **`TextAdapter.toPlainBedrock(Component)`** (T-205) and
+  **`LangFileWriter`** (T-205b) — render Adventure components into Bedrock-
+  friendly legacy strings and emit one `.lang` file per loaded locale.
+- **Auto Java→Bedrock fallback** (T-206) — `BedrockFallbackForm`
+  synthesises a `SimpleForm` from any `JavaInventoryRenderer` when no
+  dedicated `BedrockFormRenderer` is provided.
+- **`.mcpack` pipeline** (T-207) — `ResourcePackBuilder.buildBedrockPack()`
+  writes a stable Bedrock manifest using the fixed UUIDs in
+  `BedrockPackConstants`.
+- **Geyser item mappings** (T-208) — `GeyserMappingsBuilder` writes
+  `mappings/sapientia_items.json`. Items with non-zero
+  `customModelData()` get a deterministic Bedrock entry under their base
+  material.
+- **`/sapientia pack build {java|bedrock|all}`** (T-209) plus tab-complete
+  + help entries.
+- **Bedrock smoke harness** (T-210) — `scripts/smoke-bedrock.{sh,ps1}` +
+  `docs/bedrock-smoke-checklist.md`.
+- **Performance benchmarks** (T-211, P-009..P-012, P-014):
+  `PlatformDetectBenchmark`, `CustomFormOpenBenchmark`,
+  `BedrockMixOverheadBenchmark`, `GeyserMappingBenchmark`.
+- `SapientiaItem#customModelData()` default and `ItemOverride.customModelData`
+  YAML field, plus `ItemRegistry` propagation to spawned stacks (T-145).
+- `UIService#open(Player, NamespacedKey, Object)` overload for descriptor-
+  by-key open paths.
+- `SapientiaAPI#openMachineUI(Player, EnergyNode)` and
+  `SapientiaAPI#openUI(Player, NamespacedKey, Object)`.
+- New i18n keys under `ui.machine.*`, `ui.filter.*`, plus the new
+  `command.help.desc.pack-build-{bedrock,all}` and
+  `command.pack.bedrock.*` strings — `verifyTranslations` parity preserved.
+
+### Changed
+- `BedrockFormsUIProvider#isReady` now uses
+  `Bukkit.getPluginManager().getPlugin("floodgate")` instead of reflection.
+- `ResourcePackBuilder` accepts optional `Messages` + `ItemRegistry`
+  injections (no behaviour change for existing Java pack consumers).
+
 ## [1.0.0-beta] — Java MVP polish ⚡
 
 Sixth milestone. Release-grade quality: continuous benchmarking and a

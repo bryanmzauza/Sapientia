@@ -42,6 +42,16 @@ public interface SapientiaItem {
     }
 
     /**
+     * Custom-model-data tag applied to the rendered {@link org.bukkit.inventory.ItemStack}.
+     * A value of {@code 0} (the default) leaves the stack untagged and reuses the vanilla
+     * model. Resource packs and Geyser mappings consume this number to pick the override
+     * model for both Java and Bedrock.
+     */
+    default int customModelData() {
+        return 0;
+    }
+
+    /**
      * Invoked when a player right-clicks holding a stack of this item.
      * The default implementation is a no-op; override to react.
      */

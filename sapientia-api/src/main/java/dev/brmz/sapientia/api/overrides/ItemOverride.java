@@ -19,7 +19,8 @@ public record ItemOverride(
         @NotNull NamespacedKey id,
         @NotNull Optional<Material> material,
         @NotNull Optional<String> displayNameKey,
-        @NotNull Optional<List<String>> loreKeys) {
+        @NotNull Optional<List<String>> loreKeys,
+        @NotNull Optional<Integer> customModelData) {
 
     public ItemOverride {
         if (loreKeys.isPresent()) {

@@ -20,6 +20,8 @@ command:
       reload-content: "Recarrega os YAMLs de override sem reiniciar o servidor."
       give: "Dá um item do Sapientia a um jogador."
       pack-build: "Gera o resource pack Java em plugins/Sapientia/sapientia-resources.zip."
+      pack-build-bedrock: "Gera o .mcpack e os mappings do Geyser em plugins/Sapientia/."
+      pack-build-all: "Gera os packs Java e Bedrock de uma vez."
   give:
     usage: "<red>Uso: /sapientia give <jogador> <id> [quantidade]</red>"
     success: "<green>Entregue <white><amount></white> x <white><id></white> para <white><player></white>.</green>"
@@ -31,9 +33,12 @@ command:
       success: "<green>Overrides recarregados em <white><ms>ms</white> <gray>(itens=<items> blocos=<blocks> receitas=<recipes>)</gray>.</green>"
       issues: "<yellow><count> problema(s) de validação registrados; veja o log do servidor.</yellow>"
   pack:
-    usage: "<red>Uso: /sapientia pack build java</red>"
+    usage: "<red>Uso: /sapientia pack build <java|bedrock|all></red>"
     success: "<green>Resource pack gerado em <white><path></white>.</green>"
     failure: "<red>Falha ao gerar o pack: <white><error></white></red>"
+    bedrock:
+      success: "<green>Pack Bedrock gerado em <white><pack></white>; mappings em <white><mappings></white>.</green>"
+      unsupported: "<red>Alvo de pack desconhecido. Use <white>java</white>, <white>bedrock</white> ou <white>all</white>.</red>"
 
 error:
   internal: "<red>Ocorreu um erro interno. Consulte o log do servidor.</red>"
@@ -42,26 +47,68 @@ item:
   wrench:
     name: "<aqua>Chave Sapientia</aqua>"
     lore: "<gray>Clique direito para inspecionar blocos Sapientia.</gray>"
+    desc: "Mire em um bloco de energia segurando a chave para ver\no buffer e o resumo da rede em tempo real. Sem clicar."
   guide:
     name: "<gold>Guia Sapientia</gold>"
     lore: "<gray>Clique direito para abrir o guia.</gray>"
+    desc: "Seu manual de campo. Abre uma UI em bau listando todos\nos itens, blocos e receitas Sapientia desbloqueados."
 
 block:
   pedestal:
     name: "<white>Pedestal Sapientia</white>"
+    desc: "Bloco decorativo para exibir itens ou marcar\nlocais importantes."
   console:
     name: "<gold>Console Sapientia</gold>"
+    desc: "Bloco interativo de demonstracao. Reservado para\nUIs de automacao e scripting que virao a seguir."
   generator:
     name: "<yellow>Gerador Sapientia</yellow>"
+    desc: "Produz energia a cada tick. Conecte com cabos para\nalimentar capacitores e consumidores na mesma rede."
   cable:
     name: "<gray>Cabo Sapientia</gray>"
+    desc: "Liga nos de energia. Forma uma unica rede unindo\ntodos os blocos Sapientia adjacentes (6 vizinhos)."
   capacitor:
     name: "<aqua>Capacitor Sapientia</aqua>"
+    desc: "Buffer de energia em massa. Suaviza picos de\ngeracao e demanda para os consumidores seguirem ativos."
   consumer:
     name: "<red>Consumidor Sapientia</red>"
+    desc: "Consome energia a cada tick. Usado para verificar\nse sua rede esta gerando e entregando energia."
   workbench:
     name: "<gold>Bancada Sapientia</gold>"
+    desc: "Grade 3x3 do Sapientia. Clique direito para abrir\ne montar as receitas empacotadas."
 
 guide:
   title: "<gold>Guia Sapientia</gold>"
   locked: "<dark_gray>Bloqueado</dark_gray>"
+  index:
+    header:
+      name: "<gold><bold>Guia Sapientia</bold></gold>"
+      lore: "<gray>Clique em uma entrada para ver\nsua receita e informacoes detalhadas.</gray>"
+  detail:
+    title: "<gold>Guia</gold> <gray>·</gray> <white><name></white>"
+    recipe:
+      header: "<aqua><bold>Receita</bold></aqua>"
+      none: "<gray>Este item nao possui receita.\nObtenha por drops no mundo, pelo\ncomando /sapientia give ou via admin.</gray>"
+    yields: "<gray>Produz <white><amount>x</white> por craft.</gray>"
+    category: "<dark_gray>Categoria:</dark_gray> <gray><category></gray>"
+    back:
+      name: "<yellow>« Voltar ao Indice</yellow>"
+      lore: "<gray>Retornar ao indice do guia.</gray>"
+
+ui:
+  machine:
+    title: "<gold>Máquina Sapientia</gold>"
+    energy:
+      title: "<aqua>Buffer de Energia</aqua>"
+      value: "<gray><current>/<max> E</gray>"
+      percent: "<gray><percent>%</percent></gray>"
+    running: "<green>Em operação</green>"
+    stopped: "<red>Parada</red>"
+    click:
+      start: "<gray>Clique para iniciar.</gray>"
+      stop: "<gray>Clique para parar.</gray>"
+    bedrock:
+      content: "<current>/<max> E (<percent>%)"
+      toggle: "Em operação"
+  filter:
+    title: "<gold>Filtro de Itens</gold>"
+    experimental: "<gray>Experimental — integração chega em 1.x.</gray>"

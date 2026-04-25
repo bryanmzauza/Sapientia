@@ -181,7 +181,17 @@ public final class ContentOverrideService implements ContentOverrides {
             } else {
                 loreKeys = Optional.empty();
             }
-            out.put(id, new ItemOverride(id, material, displayNameKey, loreKeys));
+            Optional<Integer> customModelData = Optional.empty();
+            if (entry.contains("custom_model_data")) {
+                int raw = entry.getInt("custom_model_data", -1);
+                if (raw < 0) {
+                    issues.add("items.yml: '" + key + "' has invalid custom_model_data="
+                            + raw + " (must be >= 0)");
+                } else {
+                    customModelData = Optional.of(raw);
+                }
+            }
+            out.put(id, new ItemOverride(id, material, displayNameKey, loreKeys, customModelData));
         }
     }
 

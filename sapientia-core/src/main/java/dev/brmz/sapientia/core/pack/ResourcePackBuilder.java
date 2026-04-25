@@ -9,29 +9,50 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import java.util.logging.Logger;
 
+import dev.brmz.sapientia.core.i18n.Messages;
+import dev.brmz.sapientia.core.item.ItemRegistry;
+import dev.brmz.sapientia.core.pack.bedrock.BedrockPackConstants;
+import dev.brmz.sapientia.core.pack.bedrock.GeyserMappingsBuilder;
+import dev.brmz.sapientia.core.pack.bedrock.LangFileWriter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Minimal Java resource pack builder (T-164 / 0.5.0).
+ * Resource pack builder for Java + Bedrock (T-164 / T-207).
  *
  * <p>Writes a well-formed {@code pack.mcmeta} and zips the on-disk
  * {@code plugins/Sapientia/pack/} directory into {@code sapientia-resources.zip}.
  * Operators drop custom textures/models into that directory; the pipeline
  * stitches them together without demanding a full Minecraft asset tree.
  *
- * <p>The full {@code ItemModel} generation loop tracked under T-164 will extend
- * this class once custom-model-data becomes part of the public item API.
+ * <p>{@link #buildBedrockPack()} produces a sibling {@code sapientia-bedrock.mcpack}
+ * containing a Bedrock {@code manifest.json}, generated {@code .lang} files for
+ * each loaded locale, and a Geyser {@code item_mappings.json}. {@link Messages}
+ * + {@link ItemRegistry} are optional dependencies — when {@code null}, the
+ * Bedrock pipeline degrades gracefully (no lang / no mappings).
  */
 public final class ResourcePackBuilder {
 
     private final Logger logger;
     private final Path packDir;
     private final int packFormat;
+    private @Nullable Messages messages;
+    private @Nullable ItemRegistry itemRegistry;
 
     public ResourcePackBuilder(@NotNull Logger logger, @NotNull Path packDir, int packFormat) {
         this.logger = logger;
         this.packDir = packDir;
         this.packFormat = packFormat;
+    }
+
+    /** Optional injection point: required for {@link #buildBedrockPack()} to emit lang files. */
+    public void setMessages(@Nullable Messages messages) {
+        this.messages = messages;
+    }
+
+    /** Optional injection point: required for {@link #buildBedrockPack()} to emit Geyser mappings. */
+    public void setItemRegistry(@Nullable ItemRegistry itemRegistry) {
+        this.itemRegistry = itemRegistry;
     }
 
     /** Ensures the pack directory exists and seeds {@code pack.mcmeta} when missing. */
@@ -81,5 +102,70 @@ public final class ResourcePackBuilder {
                 zip.closeEntry();
             }
         }
+    }
+
+    /**
+     * Builds a {@code sapientia-bedrock.mcpack} (T-207) containing a Bedrock
+     * manifest, generated {@code .lang} files for each loaded locale, and a
+     * Geyser {@code item_mappings.json}. The pack staging directory lives at
+     * {@code packDir/bedrock/}.
+     */
+    public @NotNull Path buildBedrockPack() throws IOException {
+        Path stage = packDir.resolve("bedrock");
+        Files.createDirectories(stage);
+        Path texts = stage.resolve("texts");
+        Files.createDirectories(texts);
+        Files.writeString(stage.resolve("manifest.json"), bedrockManifestJson(),
+                StandardCharsets.UTF_8);
+
+        if (messages != null) {
+            new LangFileWriter(messages).writeAll(texts);
+        } else {
+            logger.warning("buildBedrockPack: Messages not wired — skipping .lang generation.");
+        }
+        if (itemRegistry != null) {
+            new GeyserMappingsBuilder(itemRegistry).write(stage.resolve("mappings"));
+        } else {
+            logger.warning("buildBedrockPack: ItemRegistry not wired — skipping Geyser mappings.");
+        }
+
+        Path output = packDir.resolveSibling("sapientia-bedrock.mcpack");
+        try (OutputStream out = Files.newOutputStream(output);
+             ZipOutputStream zip = new ZipOutputStream(out)) {
+            zipDir(stage, stage, zip);
+        }
+        logger.info("Sapientia Bedrock pack written to " + output);
+        return output;
+    }
+
+    private static String bedrockManifestJson() {
+        int[] v = BedrockPackConstants.VERSION;
+        int[] mev = BedrockPackConstants.MIN_ENGINE_VERSION;
+        return """
+                {
+                  "format_version": 2,
+                  "header": {
+                    "name": "%s",
+                    "description": "%s",
+                    "uuid": "%s",
+                    "version": [%d, %d, %d],
+                    "min_engine_version": [%d, %d, %d]
+                  },
+                  "modules": [
+                    {
+                      "type": "resources",
+                      "uuid": "%s",
+                      "version": [%d, %d, %d]
+                    }
+                  ]
+                }
+                """.formatted(
+                BedrockPackConstants.PACK_NAME,
+                BedrockPackConstants.PACK_DESCRIPTION,
+                BedrockPackConstants.HEADER_UUID,
+                v[0], v[1], v[2],
+                mev[0], mev[1], mev[2],
+                BedrockPackConstants.MODULE_UUID,
+                v[0], v[1], v[2]);
     }
 }

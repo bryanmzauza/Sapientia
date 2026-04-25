@@ -5,6 +5,7 @@ import java.util.Optional;
 import dev.brmz.sapientia.api.block.SapientiaBlock;
 import dev.brmz.sapientia.api.crafting.RecipeRegistry;
 import dev.brmz.sapientia.api.energy.EnergyService;
+import dev.brmz.sapientia.api.energy.EnergyNode;
 import dev.brmz.sapientia.api.guide.GuideService;
 import dev.brmz.sapientia.api.guide.UnlockService;
 import dev.brmz.sapientia.api.item.SapientiaItem;
@@ -66,4 +67,17 @@ public interface SapientiaAPI {
 
     /** YAML override service entry point (T-160 / 0.5.0). */
     @NotNull ContentOverrides overrides();
+
+    /**
+     * Opens the bundled Machine UI for the given energy node (T-145 / T-202).
+     * Routed through {@code UIService.open} so Java players see the chest UI and
+     * Bedrock players (when Floodgate is loaded) receive a {@code CustomForm}.
+     */
+    void openMachineUI(@NotNull Player player, @NotNull EnergyNode node);
+
+    /**
+     * Opens a registered UI by its key (T-145). The {@code context} type must
+     * match what the descriptor was declared with.
+     */
+    void openUI(@NotNull Player player, @NotNull NamespacedKey key, @NotNull Object context);
 }

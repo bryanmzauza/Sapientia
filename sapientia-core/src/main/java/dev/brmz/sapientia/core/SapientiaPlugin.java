@@ -9,6 +9,7 @@ import dev.brmz.sapientia.api.SapientiaAPI;
 import dev.brmz.sapientia.api.Version;
 import dev.brmz.sapientia.api.block.SapientiaBlock;
 import dev.brmz.sapientia.api.crafting.RecipeRegistry;
+import dev.brmz.sapientia.api.energy.EnergyNode;
 import dev.brmz.sapientia.api.energy.EnergyService;
 import dev.brmz.sapientia.api.guide.GuideEntry;
 import dev.brmz.sapientia.api.guide.GuideService;
@@ -39,6 +40,9 @@ import dev.brmz.sapientia.core.platform.PlatformService;
 import dev.brmz.sapientia.core.scheduler.SapientiaScheduler;
 import dev.brmz.sapientia.core.tick.TickBucketing;
 import dev.brmz.sapientia.core.ui.JavaInventoryUIProvider;
+import dev.brmz.sapientia.core.ui.MachineJavaRenderer;
+import dev.brmz.sapientia.core.ui.MachineRunningRegistry;
+import dev.brmz.sapientia.core.ui.MachineUIDescriptor;
 import dev.brmz.sapientia.core.ui.UIService;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.NamespacedKey;
@@ -73,6 +77,8 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
     private GuideServiceImpl guideService;
     private ContentOverrideService overrideService;
     private ResourcePackBuilder resourcePackBuilder;
+    private MachineRunningRegistry machineRunning;
+    private MachineUIDescriptor machineUI;
 
     @Override
     public void onEnable() {
@@ -123,12 +129,32 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
                 getLogger(),
                 getDataFolder().toPath().resolve("pack"),
                 getConfig().getInt("resource-pack.pack-format", 32));
+        this.resourcePackBuilder.setMessages(messages);
+        this.resourcePackBuilder.setItemRegistry(itemRegistry);
 
         this.uiService = new UIService(platformService);
         this.uiService.registerProvider(new JavaInventoryUIProvider(uiService));
         if (platformService.floodgateAvailable()) {
             this.uiService.registerProvider(new BedrockFormsUIProvider(getLogger()));
         }
+
+        // Machine UI (T-145 / T-202).
+        this.machineRunning = new MachineRunningRegistry();
+        this.machineUI = new MachineUIDescriptor(
+                machineRunning,
+                new MachineJavaRenderer(messages, machineRunning),
+                platformService.floodgateAvailable()
+                        ? new dev.brmz.sapientia.core.ui.MachineBedrockRenderer(messages, machineRunning)
+                        : null);
+        this.uiService.register(machineUI);
+
+        // Experimental filter UI (T-203, opt-in via config flag).
+        if (getConfig().getBoolean("experimental.filter", false)) {
+            this.uiService.register(
+                    new dev.brmz.sapientia.core.ui.FilterDescriptor(messages));
+            getLogger().info("Experimental filter UI enabled (sapientia:filter).");
+        }
+
         getServer().getPluginManager().registerEvents(uiService, this);
         getServer().getPluginManager().registerEvents(chunkBlockIndex, this);
         getServer().getPluginManager().registerEvents(
@@ -352,5 +378,15 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
     @Override
     public @NotNull ContentOverrides overrides() {
         return overrideService;
+    }
+
+    @Override
+    public void openMachineUI(@NotNull Player player, @NotNull EnergyNode node) {
+        uiService.open(player, machineUI, node);
+    }
+
+    @Override
+    public void openUI(@NotNull Player player, @NotNull NamespacedKey key, @NotNull Object context) {
+        uiService.open(player, key, context);
     }
 }
