@@ -25,3 +25,6 @@ permissions:
   sapientia.command.pack:
     description: Allows building the Sapientia resource pack via /sapientia pack build.
     default: op
+  sapientia.command.logic:
+    description: Allows managing programmable-logic DAG programs via /sapientia logic.
+    default: op

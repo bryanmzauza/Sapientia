@@ -48,6 +48,10 @@ final class MigrationLoaderTest {
                 assertThat(rs.getInt(1)).isEqualTo(6);
                 assertThat(rs.getString(2)).isEqualTo("V006__fluid_nodes.sql");
 
+                assertThat(rs.next()).isTrue();
+                assertThat(rs.getInt(1)).isEqualTo(7);
+                assertThat(rs.getString(2)).isEqualTo("V007__logic_programs.sql");
+
                 assertThat(rs.next()).isFalse();
             }
         }
@@ -63,7 +67,7 @@ final class MigrationLoaderTest {
             try (Statement st = connection.createStatement();
                  ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM schema_version")) {
                 assertThat(rs.next()).isTrue();
-                assertThat(rs.getInt(1)).isEqualTo(6);
+                assertThat(rs.getInt(1)).isEqualTo(7);
             }
         }
     }

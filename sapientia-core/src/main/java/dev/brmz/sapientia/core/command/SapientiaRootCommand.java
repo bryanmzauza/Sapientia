@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+import dev.brmz.sapientia.api.logic.LogicProgram;
+import dev.brmz.sapientia.api.logic.LogicService;
 import dev.brmz.sapientia.api.overrides.ContentOverrides;
 import dev.brmz.sapientia.core.SapientiaPlugin;
 import dev.brmz.sapientia.core.i18n.Messages;
@@ -26,21 +28,25 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class SapientiaRootCommand implements TabExecutor {
 
-    private static final List<String> SUBCOMMANDS = List.of("help", "reload", "give", "pack", "logistics", "fluids");
+    private static final List<String> SUBCOMMANDS = List.of(
+            "help", "reload", "give", "pack", "logistics", "fluids", "logic");
 
     private final SapientiaPlugin plugin;
     private final ItemRegistry registry;
     private final ContentOverrides overrides;
     private final ResourcePackBuilder packBuilder;
+    private final LogicService logicService;
 
     public SapientiaRootCommand(@NotNull SapientiaPlugin plugin,
                                 @NotNull ItemRegistry registry,
                                 @NotNull ContentOverrides overrides,
-                                @NotNull ResourcePackBuilder packBuilder) {
+                                @NotNull ResourcePackBuilder packBuilder,
+                                @NotNull LogicService logicService) {
         this.plugin = plugin;
         this.registry = registry;
         this.overrides = overrides;
         this.packBuilder = packBuilder;
+        this.logicService = logicService;
     }
 
     @Override
@@ -60,6 +66,7 @@ public final class SapientiaRootCommand implements TabExecutor {
             case "pack" -> handlePack(sender, msg, args);
             case "logistics" -> handleLogistics(sender, msg, args);
             case "fluids" -> handleFluids(sender, msg, args);
+            case "logic" -> handleLogic(sender, msg, args);
             default -> sender.sendMessage(msg.component("command.unknown"));
         }
         return true;
@@ -75,6 +82,7 @@ public final class SapientiaRootCommand implements TabExecutor {
         sendHelpLine(sender, msg, "/sapientia pack build bedrock", "command.help.desc.pack-build-bedrock");
         sendHelpLine(sender, msg, "/sapientia pack build all", "command.help.desc.pack-build-all");
         sendHelpLine(sender, msg, "/sapientia logistics", "command.help.desc.logistics");
+        sendHelpLine(sender, msg, "/sapientia logic", "command.help.desc.logic");
     }
 
     private void sendHelpLine(CommandSender sender, Messages msg, String usage, String descKey) {
@@ -374,6 +382,142 @@ public final class SapientiaRootCommand implements TabExecutor {
         }
     }
 
+    private void handleLogic(CommandSender sender, Messages msg, String[] args) {
+        if (!sender.hasPermission("sapientia.command.logic")) {
+            sender.sendMessage(msg.component("command.no-permission"));
+            return;
+        }
+        if (args.length < 2) {
+            sender.sendMessage(msg.component("command.logic.usage"));
+            return;
+        }
+        String sub = args[1].toLowerCase(Locale.ROOT);
+        switch (sub) {
+            case "list" -> {
+                List<String> programs = logicService.list();
+                sender.sendMessage(msg.component("command.logic.list.header",
+                        Placeholder.parsed("count", Integer.toString(programs.size()))));
+                for (String name : programs) {
+                    sender.sendMessage(msg.component("command.logic.list.entry",
+                            Placeholder.parsed("name", name),
+                            Placeholder.parsed("enabled",
+                                    Boolean.toString(logicService.isEnabled(name)))));
+                }
+            }
+            case "info" -> {
+                if (args.length < 3) {
+                    sender.sendMessage(msg.component("command.logic.usage"));
+                    return;
+                }
+                String name = args[2];
+                logicService.get(name).ifPresentOrElse(program -> {
+                    sender.sendMessage(msg.component("command.logic.info.header",
+                            Placeholder.parsed("name", name),
+                            Placeholder.parsed("enabled",
+                                    Boolean.toString(logicService.isEnabled(name)))));
+                    sender.sendMessage(msg.component("command.logic.info.size",
+                            Placeholder.parsed("nodes", Integer.toString(program.nodes().size())),
+                            Placeholder.parsed("edges", Integer.toString(program.edges().size()))));
+                }, () -> sender.sendMessage(msg.component("command.logic.unknown",
+                        Placeholder.parsed("name", name))));
+            }
+            case "load" -> {
+                if (args.length < 3) {
+                    sender.sendMessage(msg.component("command.logic.usage"));
+                    return;
+                }
+                java.nio.file.Path source = plugin.getDataFolder().toPath()
+                        .resolve("logic").resolve(args[2]);
+                try {
+                    String yaml = java.nio.file.Files.readString(source);
+                    LogicProgram program = logicService.importYaml(yaml);
+                    logicService.register(program);
+                    sender.sendMessage(msg.component("command.logic.load.success",
+                            Placeholder.parsed("name", program.name()),
+                            Placeholder.parsed("file", source.getFileName().toString())));
+                } catch (java.io.IOException ex) {
+                    sender.sendMessage(msg.component("command.logic.load.io",
+                            Placeholder.parsed("error", String.valueOf(ex.getMessage()))));
+                } catch (RuntimeException ex) {
+                    sender.sendMessage(msg.component("command.logic.load.invalid",
+                            Placeholder.parsed("error", String.valueOf(ex.getMessage()))));
+                }
+            }
+            case "unload" -> {
+                if (args.length < 3) {
+                    sender.sendMessage(msg.component("command.logic.usage"));
+                    return;
+                }
+                logicService.unregister(args[2]);
+                sender.sendMessage(msg.component("command.logic.unload.success",
+                        Placeholder.parsed("name", args[2])));
+            }
+            case "enable", "disable" -> {
+                if (args.length < 3) {
+                    sender.sendMessage(msg.component("command.logic.usage"));
+                    return;
+                }
+                String name = args[2];
+                if (logicService.get(name).isEmpty()) {
+                    sender.sendMessage(msg.component("command.logic.unknown",
+                            Placeholder.parsed("name", name)));
+                    return;
+                }
+                boolean enable = sub.equals("enable");
+                logicService.setEnabled(name, enable);
+                sender.sendMessage(msg.component(enable
+                                ? "command.logic.enable.success"
+                                : "command.logic.disable.success",
+                        Placeholder.parsed("name", name)));
+            }
+            case "export" -> {
+                if (args.length < 3) {
+                    sender.sendMessage(msg.component("command.logic.usage"));
+                    return;
+                }
+                String name = args[2];
+                if (logicService.get(name).isEmpty()) {
+                    sender.sendMessage(msg.component("command.logic.unknown",
+                            Placeholder.parsed("name", name)));
+                    return;
+                }
+                java.nio.file.Path target = plugin.getDataFolder().toPath()
+                        .resolve("logic").resolve(name + ".yml");
+                try {
+                    java.nio.file.Files.createDirectories(target.getParent());
+                    java.nio.file.Files.writeString(target, logicService.exportYaml(name));
+                    sender.sendMessage(msg.component("command.logic.export.success",
+                            Placeholder.parsed("name", name),
+                            Placeholder.parsed("path", target.toString())));
+                } catch (java.io.IOException ex) {
+                    sender.sendMessage(msg.component("command.logic.export.io",
+                            Placeholder.parsed("error", String.valueOf(ex.getMessage()))));
+                }
+            }
+            case "tick" -> {
+                if (args.length < 3) {
+                    sender.sendMessage(msg.component("command.logic.usage"));
+                    return;
+                }
+                String name = args[2];
+                if (logicService.get(name).isEmpty()) {
+                    sender.sendMessage(msg.component("command.logic.unknown",
+                            Placeholder.parsed("name", name)));
+                    return;
+                }
+                try {
+                    logicService.runOnce(name);
+                    sender.sendMessage(msg.component("command.logic.tick.success",
+                            Placeholder.parsed("name", name)));
+                } catch (RuntimeException ex) {
+                    sender.sendMessage(msg.component("command.logic.tick.failure",
+                            Placeholder.parsed("error", String.valueOf(ex.getMessage()))));
+                }
+            }
+            default -> sender.sendMessage(msg.component("command.logic.usage"));
+        }
+    }
+
     private void handleGive(CommandSender sender, Messages msg, String[] args) {
         if (!sender.hasPermission("sapientia.command.give")) {
             sender.sendMessage(msg.component("command.no-permission"));
@@ -439,6 +583,15 @@ public final class SapientiaRootCommand implements TabExecutor {
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("fluids")) {
             return filter(List.of("info"), args[1]);
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("logic")) {
+            return filter(List.of("list", "info", "load", "unload", "enable", "disable", "export", "tick"), args[1]);
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("logic")) {
+            String sub = args[1].toLowerCase(Locale.ROOT);
+            if (List.of("info", "unload", "enable", "disable", "export", "tick").contains(sub)) {
+                return filter(logicService.list(), args[2]);
+            }
         }
         if (args.length == 3 && args[0].equalsIgnoreCase("logistics")) {
             String sub = args[1].toLowerCase(Locale.ROOT);

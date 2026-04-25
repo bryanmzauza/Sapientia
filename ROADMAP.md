@@ -176,12 +176,22 @@ Status legend:
 
 ---
 
-## 1.3.0 — Programmable logic ⏳
+## 1.3.0 — Programmable logic ✅
 
-- ⏳ T-302 Non-Turing rules compiled into a DAG
-- ⏳ In-game visual editor + YAML export
+- ✅ T-302a `LogicProgram` / `LogicNode` / `LogicEdge` / `LogicValue` records in `sapientia-api`
+- ✅ T-302b `LogicService` + `SapientiaLogicTickEvent` exposed via `SapientiaAPI#logic()`
+- ✅ T-302c `LogicCompiler` — Kahn's-algorithm topological sort with deterministic lex tie-break, cycle / unknown-node / port-collision rejection
+- ✅ T-302d `LogicRunner` — single-pass DAG evaluator bounded by `O(|V|+|E|)`
+- ✅ T-302e Built-in node kinds — `constant`, `add`/`sub`/`mul`, `compare`, `and`/`or`/`not`, `branch`, `memory_read`/`memory_write`, `tick_counter`, `log`, `noop`
+- ✅ T-302f `LogicYaml` round-trip serialiser (snakeyaml) covering all `LogicValueType`s
+- ✅ T-302g `LogicProgramStore` + V007 migration (`logic_programs` table, idempotent upsert)
+- ✅ T-302h `LogicServiceImpl` registers + persists + ticks every 5 ticks via `SapientiaScheduler`, fires cancellable `SapientiaLogicTickEvent`, auto-disables programs that throw
+- ✅ T-302i `/sapientia logic <list|info|load|unload|enable|disable|export|tick>` command + `sapientia.command.logic` permission + tab completion
+- ✅ T-302j i18n — full `command.logic.*` tree in `en.yml` + `pt_BR.yml` (verifyTranslations green)
+- ✅ T-302k Tests — `LogicCompilerTest`, `LogicRunnerTest`, `LogicYamlTest`, `MigrationLoaderTest` updated for V007
+- ⏳ T-302l Visual editor canvas — read-only inspection lands here via `/sapientia logic info`; full drag-and-drop editor is deferred to 1.9.0 where androids actually consume DAGs
 
-**Exit gate:** DAG runtime in `sapientia-core` consumes rule definitions, executes deterministically inside the tick bucketing budget, and gates the android workflows planned for 1.9.0.
+**Exit gate:** ✅ DAG runtime in `sapientia-core` consumes rule definitions, executes deterministically inside the tick bucketing budget (every 5 ticks), and gates the android workflows planned for 1.9.0. Verified by `./gradlew verifyTranslations test` (51/51 passing).
 
 ---
 

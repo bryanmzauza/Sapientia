@@ -24,6 +24,7 @@ command:
       pack-build-all: "Gera os packs Java e Bedrock de uma vez."
       logistics: "Inspeciona e gerencia redes de logistica de itens."
       fluids: "Inspeciona redes de fluidos do Sapientia."
+      logic: "Gerencia programas de logica programavel (DAG)."
   logistics:
     usage: "<red>Uso: /sapientia logistics <info|policy|filter></red>"
     info:
@@ -52,6 +53,31 @@ command:
       network: "<gray>Rede <white><network></white> · <count> no(s)</gray>"
       tank: "<gray>Tanque: <white><fluid></white> <amount>/<capacity> mB</gray>"
       empty: "<gray>(vazio)</gray>"
+  logic:
+    usage: "<red>Uso: /sapientia logic <list|info|load|unload|enable|disable|export|tick> [nome]</red>"
+    unknown: "<red>Programa de logica desconhecido: <white><name></white></red>"
+    list:
+      header: "<gold>Programas de logica (<white><count></white>):</gold>"
+      entry: "<gray>  <white><name></white> · ativo=<enabled></gray>"
+    info:
+      header: "<gold>Programa de logica <white><name></white></gold> <gray>ativo=<enabled></gray>"
+      size: "<gray>nos=<white><nodes></white> arestas=<white><edges></white></gray>"
+    load:
+      success: "<green>Programa <white><name></white> carregado de <white><file></white>.</green>"
+      io: "<red>Falha ao ler arquivo de logica: <white><error></white></red>"
+      invalid: "<red>Programa de logica invalido: <white><error></white></red>"
+    unload:
+      success: "<green>Programa <white><name></white> removido.</green>"
+    enable:
+      success: "<green>Programa <white><name></white> ativado.</green>"
+    disable:
+      success: "<green>Programa <white><name></white> desativado.</green>"
+    export:
+      success: "<green>Programa <white><name></white> exportado para <white><path></white>.</green>"
+      io: "<red>Falha ao gravar arquivo de logica: <white><error></white></red>"
+    tick:
+      success: "<green>Programa <white><name></white> executado uma vez.</green>"
+      failure: "<red>Falha ao executar programa: <white><error></white></red>"
   give:
     usage: "<red>Uso: /sapientia give <jogador> <id> [quantidade]</red>"
     success: "<green>Entregue <white><amount></white> x <white><id></white> para <white><player></white>.</green>"

@@ -10,6 +10,7 @@ import dev.brmz.sapientia.api.fluids.FluidService;
 import dev.brmz.sapientia.api.guide.GuideService;
 import dev.brmz.sapientia.api.guide.UnlockService;
 import dev.brmz.sapientia.api.item.SapientiaItem;
+import dev.brmz.sapientia.api.logic.LogicService;
 import dev.brmz.sapientia.api.logistics.ItemService;
 import dev.brmz.sapientia.api.overrides.ContentOverrides;
 import org.bukkit.NamespacedKey;
@@ -63,6 +64,9 @@ public interface SapientiaAPI {
 
     /** Fluid logistics service entry point (T-301 / 1.2.0). */
     @NotNull FluidService fluids();
+
+    /** Programmable-logic DAG runtime entry point (T-302 / 1.3.0). */
+    @NotNull LogicService logic();
 
     /** Recipe registry entry point (T-131 / 0.4.0). */
     @NotNull RecipeRegistry recipes();

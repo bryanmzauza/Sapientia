@@ -24,6 +24,7 @@ command:
       pack-build-all: "Build both the Java pack and the Bedrock pack at once."
       logistics: "Inspect and manage item logistics networks."
       fluids: "Inspect Sapientia fluid logistics networks."
+      logic: "Manage programmable-logic DAG programs."
   logistics:
     usage: "<red>Usage: /sapientia logistics <info|policy|filter></red>"
     info:
@@ -52,6 +53,31 @@ command:
       network: "<gray>Network <white><network></white> · <count> node(s)</gray>"
       tank: "<gray>Tank: <white><fluid></white> <amount>/<capacity> mB</gray>"
       empty: "<gray>(empty)</gray>"
+  logic:
+    usage: "<red>Usage: /sapientia logic <list|info|load|unload|enable|disable|export|tick> [name]</red>"
+    unknown: "<red>Unknown logic program: <white><name></white></red>"
+    list:
+      header: "<gold>Logic programs (<white><count></white>):</gold>"
+      entry: "<gray>  <white><name></white> · enabled=<enabled></gray>"
+    info:
+      header: "<gold>Logic program <white><name></white></gold> <gray>enabled=<enabled></gray>"
+      size: "<gray>nodes=<white><nodes></white> edges=<white><edges></white></gray>"
+    load:
+      success: "<green>Loaded logic program <white><name></white> from <white><file></white>.</green>"
+      io: "<red>Could not read logic file: <white><error></white></red>"
+      invalid: "<red>Invalid logic program: <white><error></white></red>"
+    unload:
+      success: "<green>Unloaded logic program <white><name></white>.</green>"
+    enable:
+      success: "<green>Enabled logic program <white><name></white>.</green>"
+    disable:
+      success: "<green>Disabled logic program <white><name></white>.</green>"
+    export:
+      success: "<green>Exported logic program <white><name></white> to <white><path></white>.</green>"
+      io: "<red>Could not write logic file: <white><error></white></red>"
+    tick:
+      success: "<green>Logic program <white><name></white> ticked once.</green>"
+      failure: "<red>Logic tick failed: <white><error></white></red>"
   give:
     usage: "<red>Usage: /sapientia give <player> <id> [amount]</red>"
     success: "<green>Gave <white><amount></white> x <white><id></white> to <white><player></white>.</green>"

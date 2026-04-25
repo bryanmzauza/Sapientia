@@ -16,6 +16,7 @@ import dev.brmz.sapientia.api.guide.GuideService;
 import dev.brmz.sapientia.api.guide.UnlockService;
 import dev.brmz.sapientia.api.fluids.FluidService;
 import dev.brmz.sapientia.api.item.SapientiaItem;
+import dev.brmz.sapientia.api.logic.LogicService;
 import dev.brmz.sapientia.api.logistics.ItemService;
 import dev.brmz.sapientia.api.overrides.ContentOverrides;
 import dev.brmz.sapientia.bedrock.BedrockFormsUIProvider;
@@ -35,6 +36,8 @@ import dev.brmz.sapientia.core.fluids.FluidNetworkGraph;
 import dev.brmz.sapientia.core.fluids.FluidNodeStore;
 import dev.brmz.sapientia.core.fluids.FluidServiceImpl;
 import dev.brmz.sapientia.core.fluids.FluidSolver;
+import dev.brmz.sapientia.core.logic.LogicProgramStore;
+import dev.brmz.sapientia.core.logic.LogicServiceImpl;
 import dev.brmz.sapientia.core.logistics.ItemNetworkGraph;
 import dev.brmz.sapientia.core.logistics.ItemNodeStore;
 import dev.brmz.sapientia.core.logistics.ItemServiceImpl;
@@ -87,6 +90,7 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
     private ItemSolver logisticsSolver;
     private FluidServiceImpl fluidsService;
     private FluidSolver fluidsSolver;
+    private LogicServiceImpl logicService;
     private SapientiaRecipeRegistry recipeRegistry;
     private UnlockServiceImpl unlockService;
     private GuideServiceImpl guideService;
@@ -146,6 +150,11 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         this.fluidsService.registerType(BuiltinFluidTypes.MILK);
         this.fluidsSolver = new FluidSolver(fluidsGraph, fluidsService);
 
+        // Programmable-logic DAG runtime (T-302 / 1.3.0).
+        this.logicService = new LogicServiceImpl(
+                getLogger(), new LogicProgramStore(getLogger(), database.dataSource()));
+        this.logicService.hydrate();
+
         // Crafting + guide + unlocks (T-130 / T-131 / T-150 / T-151 / 0.4.0).
         this.recipeRegistry = new SapientiaRecipeRegistry(itemRegistry);
         this.unlockService = new UnlockServiceImpl(getLogger(), database.dataSource());
@@ -198,7 +207,7 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         PluginCommand rootCommand = getCommand("sapientia");
         if (rootCommand != null) {
             SapientiaRootCommand executor = new SapientiaRootCommand(
-                    this, itemRegistry, overrideService, resourcePackBuilder);
+                    this, itemRegistry, overrideService, resourcePackBuilder, logicService);
             rootCommand.setExecutor(executor);
             rootCommand.setTabCompleter(executor);
         }
@@ -282,6 +291,9 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
             fluidsSolver.tick();
             fluidsService.persistDirty();
         }, 7L, 5L);
+
+        // Logic tick — every 5 ticks (T-302, P-004 envelope; DAG worst-case is O(|V|+|E|)).
+        getServer().getScheduler().runTaskTimer(this, () -> logicService.tickAll(), 9L, 5L);
 
         getLogger().info(messages.plain("plugin.enabled",
                 Placeholder.parsed("version", getPluginMeta().getVersion())));
@@ -414,6 +426,11 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
     @Override
     public @NotNull FluidService fluids() {
         return fluidsService;
+    }
+
+    @Override
+    public @NotNull LogicService logic() {
+        return logicService;
     }
 
     @Override
