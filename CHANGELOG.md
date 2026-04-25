@@ -2,6 +2,111 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and SemVer.
 
+## [1.2.0] — Fluids 💧 ✅
+
+Continuous-volume fluid logistics. Mirrors the 1.1.0 graph contract over a
+new `FluidNetworkGraph` and adds a vanilla-aware solver that pumps from /
+drains to water and lava blocks plus water/lava cauldrons.
+
+### Added
+- **Fluids API** (T-301a) — `FluidNode`, `FluidNetwork`, `FluidService`,
+  `FluidNodeType` (`PIPE`/`PUMP`/`DRAIN`/`TANK`/`JUNCTION`), `FluidType`
+  (record: id, displayKey, color, density, hot), `FluidStack`,
+  `FluidSpecs.capacityMb` (4 000 / 16 000 / 64 000 / 256 000 mB) and
+  `FluidSpecs.throughputPerTick` (50 / 200 / 800 / 3 200 mB/tick). Public
+  events: `SapientiaFluidFlowEvent`, `SapientiaFluidTransferEvent`. Exposed
+  through `SapientiaAPI#fluids()`.
+- **Fluid graph + persistence** (T-301b/c) — `FluidNetworkGraph` (port of
+  `ItemNetworkGraph`), `SimpleFluidNode`, V006 migration with the
+  `fluid_nodes` table (chunk-indexed; tank contents = fluid type id +
+  amount). No mixing — tanks reject a second fluid type until drained.
+- **Fluid solver** (T-301d) — `FluidSolver`: per-network pump → tank →
+  drain pipeline running every 5 ticks, capped by per-tier throughput and
+  tank capacity; fires `SapientiaFluidTransferEvent` per move and
+  `SapientiaFluidFlowEvent` per active network.
+- **Vanilla bridge** (T-301e) — `AdjacentFluids` reads/writes vanilla:
+  consumes / fills water and lava cauldrons by `Levelled` level, removes
+  source water/lava blocks on extract, and places water/lava sources or
+  fills cauldrons on deposit.
+- **Built-in fluid registry** (T-301f) — `BuiltinFluidTypes` registers
+  `sapientia:water`, `sapientia:lava`, `sapientia:milk` at boot via
+  `FluidService#registerType` (Java-declared, per ADR-016 — supersedes the
+  pre-1.2.0 ROADMAP note about YAML-declared fluid types).
+- **Content blocks** (T-301g) — `SapientiaFluidPipe` (iron bars),
+  `SapientiaFluidPump` (blast furnace), `SapientiaFluidTank` (glass shell),
+  `SapientiaFluidDrain` (smoker) sharing `FluidsContentBlock` base.
+  Auto-registered bundled recipes under `GuideCategory.LOGISTICS`.
+- **Command** (T-301h) — `/sapientia fluids info` reports the targeted
+  node, its network and the live tank contents (`<fluid> <amount>/<capacity>
+  mB`). Permission `sapientia.command.fluids`.
+- **i18n** — added `block.fluid_pipe`, `block.fluid_pump`, `block.fluid_tank`,
+  `block.fluid_drain`, `fluid.water/lava/milk.name`, `command.fluids.*` and
+  `command.help.desc.fluids` to `en.yml` and `pt_BR.yml`. `verifyTranslations`
+  green at 118 keys.
+
+### Decisions
+- **ADR-015** — One fluid type per tank (no mixing). Trades realism for
+  determinism; matches the no-mixing rule already used by item filters.
+- **ADR-016** — Fluid types are Java-declared via `FluidService#registerType`.
+  Supersedes the pre-1.2.0 ROADMAP entry "Fluid types declarable via YAML"
+  in line with ADR-012 (Java-first content).
+
+## [1.1.0] — Item Logistics 📦 ✅
+
+First post-parity feature milestone. Introduces a fully wired item logistics
+network that mirrors the 0.3.0 energy graph: 6-neighbour BFS, split-on-removal,
+merge-on-add, per-tick solver, SQLite persistence and i18n-driven Java/Bedrock
+filter UIs.
+
+### Added
+- **Logistics API** (T-300a) — `ItemNode`, `ItemNetwork`, `ItemService`,
+  `ItemFilterRule`, `ItemFilterMode`, `ItemRoutingPolicy`, `ItemNodeType`,
+  `ItemSpecs.throughputPerTick(EnergyTier)` (64/256/1024/4096 items/tick).
+  Public events: `SapientiaItemFlowEvent`, `SapientiaItemFilterEvent`
+  (cancellable), `SapientiaItemRouteEvent`. Exposed through
+  `SapientiaAPI#logistics()`.
+- **Network graph + persistence** (T-300b/c) — `ItemNetworkGraph` (direct
+  port of `NetworkGraph`), `SimpleItemNode`, V005 migration with
+  `item_nodes` + `item_filter_rules` tables (chunk-indexed), `ItemNodeStore`
+  with `DELETE … RETURNING` rule cleanup.
+- **Routing solver** (T-300d) — `ItemSolver`: per-tick greedy round-robin /
+  priority / first-match policy; pulls/pushes via `AdjacentContainers`
+  (vanilla `BlockState` `Container` only — chests, barrels, hoppers,
+  dispensers, droppers, shulker boxes); fires `Filter`/`Route`/`Flow`
+  events; round-robin cursor map keyed by network UUID. Ford-Fulkerson
+  deferred to 1.4.0+.
+- **Filter rule matcher** (T-300e) — `ItemFilterRuleMatcher`: glob support
+  for `*`, `namespace:*`, exact `namespace:id`; BLACKLIST short-circuit;
+  WHITELIST gate.
+- **Content blocks** (T-300f) — `SapientiaItemCable` (iron bars),
+  `SapientiaItemProducer` (dropper), `SapientiaItemConsumer` (hopper),
+  `SapientiaItemFilter` (iron trapdoor) sharing `LogisticsContentBlock`
+  base. Auto-registered companion items + bundled recipes under
+  `GuideCategory.LOGISTICS`.
+- **Filter UI** (T-300g) — `FilterDescriptor` evolved from the 1.0.0
+  experimental stub: now `UIDescriptor<ItemNode>`, registered
+  unconditionally, renders the current rule list and routing policy on Java
+  (chest) and Bedrock (`SapientiaCustomForm` summary). Editing happens via
+  `/sapientia logistics filter add|remove|clear|list`. The
+  `experimental.filter` config flag is gone.
+- **`/sapientia logistics`** (T-300h) — `info` (raytraced node summary),
+  `policy <round_robin|priority|first_match>`, and
+  `filter <add|remove|clear|list>` subcommands with full tab-completion
+  and i18n keys in `en` + `pt_BR`.
+- **Wiring** (T-300i) — `SapientiaPlugin` now hosts an `ItemServiceImpl` +
+  `ItemSolver`, hydrates loaded chunks on startup, hooks chunk
+  load/unload, and ticks the solver every tick (energy stays at every 10).
+
+### Tests
+- `ItemNetworkGraphTest` — mirrors `NetworkGraphTest` for adjacent merge,
+  diagonal isolation, cable-split, network merge, default + mutable
+  routing policy. `MigrationLoaderTest` updated to assert V005.
+
+### Docs
+- `decision-log.md` — ADR-013 (item logistics reuses energy
+  `NetworkGraph` shape) and ADR-014 (per-network routing policy).
+- `ROADMAP.md` marked 1.1.0 ✅.
+
 ## [1.0.0] — Bedrock parity 📱 ✅
 
 Bedrock parity milestone. Floodgate-detected Bedrock players now get a UI

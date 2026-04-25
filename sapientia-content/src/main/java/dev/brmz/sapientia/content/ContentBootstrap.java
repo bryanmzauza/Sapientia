@@ -10,8 +10,16 @@ import dev.brmz.sapientia.content.energy.SapientiaCable;
 import dev.brmz.sapientia.content.energy.SapientiaCapacitor;
 import dev.brmz.sapientia.content.energy.SapientiaConsumer;
 import dev.brmz.sapientia.content.energy.SapientiaGenerator;
+import dev.brmz.sapientia.content.fluids.SapientiaFluidDrain;
+import dev.brmz.sapientia.content.fluids.SapientiaFluidPipe;
+import dev.brmz.sapientia.content.fluids.SapientiaFluidPump;
+import dev.brmz.sapientia.content.fluids.SapientiaFluidTank;
 import dev.brmz.sapientia.content.items.SapientiaGuide;
 import dev.brmz.sapientia.content.items.SapientiaWrench;
+import dev.brmz.sapientia.content.logistics.SapientiaItemCable;
+import dev.brmz.sapientia.content.logistics.SapientiaItemConsumer;
+import dev.brmz.sapientia.content.logistics.SapientiaItemFilter;
+import dev.brmz.sapientia.content.logistics.SapientiaItemProducer;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,6 +46,18 @@ public final class ContentBootstrap {
         api.registerBlock(new SapientiaCable(plugin));
         api.registerBlock(new SapientiaCapacitor(plugin));
         api.registerBlock(new SapientiaConsumer(plugin));
+
+        // Item logistics demo (T-300 / 1.1.0)
+        api.registerBlock(new SapientiaItemCable(plugin));
+        api.registerBlock(new SapientiaItemProducer(plugin));
+        api.registerBlock(new SapientiaItemConsumer(plugin));
+        api.registerBlock(new SapientiaItemFilter(plugin));
+
+        // Fluid logistics demo (T-301 / 1.2.0)
+        api.registerBlock(new SapientiaFluidPipe(plugin));
+        api.registerBlock(new SapientiaFluidPump(plugin));
+        api.registerBlock(new SapientiaFluidTank(plugin));
+        api.registerBlock(new SapientiaFluidDrain(plugin));
 
         // Crafting (T-130 / 0.4.0)
         api.registerBlock(new SapientiaWorkbench(plugin));

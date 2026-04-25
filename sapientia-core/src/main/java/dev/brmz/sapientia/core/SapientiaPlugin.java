@@ -14,7 +14,9 @@ import dev.brmz.sapientia.api.energy.EnergyService;
 import dev.brmz.sapientia.api.guide.GuideEntry;
 import dev.brmz.sapientia.api.guide.GuideService;
 import dev.brmz.sapientia.api.guide.UnlockService;
+import dev.brmz.sapientia.api.fluids.FluidService;
 import dev.brmz.sapientia.api.item.SapientiaItem;
+import dev.brmz.sapientia.api.logistics.ItemService;
 import dev.brmz.sapientia.api.overrides.ContentOverrides;
 import dev.brmz.sapientia.bedrock.BedrockFormsUIProvider;
 import dev.brmz.sapientia.core.block.BlockLifecycleListener;
@@ -28,6 +30,15 @@ import dev.brmz.sapientia.core.energy.EnergyNodeStore;
 import dev.brmz.sapientia.core.energy.EnergyServiceImpl;
 import dev.brmz.sapientia.core.energy.EnergySolver;
 import dev.brmz.sapientia.core.energy.NetworkGraph;
+import dev.brmz.sapientia.core.fluids.BuiltinFluidTypes;
+import dev.brmz.sapientia.core.fluids.FluidNetworkGraph;
+import dev.brmz.sapientia.core.fluids.FluidNodeStore;
+import dev.brmz.sapientia.core.fluids.FluidServiceImpl;
+import dev.brmz.sapientia.core.fluids.FluidSolver;
+import dev.brmz.sapientia.core.logistics.ItemNetworkGraph;
+import dev.brmz.sapientia.core.logistics.ItemNodeStore;
+import dev.brmz.sapientia.core.logistics.ItemServiceImpl;
+import dev.brmz.sapientia.core.logistics.ItemSolver;
 import dev.brmz.sapientia.core.guide.GuideServiceImpl;
 import dev.brmz.sapientia.core.guide.UnlockServiceImpl;
 import dev.brmz.sapientia.core.i18n.Messages;
@@ -72,6 +83,10 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
     private ChunkBlockIndex chunkBlockIndex;
     private EnergyServiceImpl energyService;
     private EnergySolver energySolver;
+    private ItemServiceImpl logisticsService;
+    private ItemSolver logisticsSolver;
+    private FluidServiceImpl fluidsService;
+    private FluidSolver fluidsSolver;
     private SapientiaRecipeRegistry recipeRegistry;
     private UnlockServiceImpl unlockService;
     private GuideServiceImpl guideService;
@@ -115,6 +130,22 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
                 energyGraph, new EnergyNodeStore(getLogger(), database.dataSource()));
         this.energySolver = new EnergySolver(energyGraph);
 
+        // Item logistics graph + solver (T-300 / 1.1.0).
+        ItemNetworkGraph logisticsGraph = new ItemNetworkGraph();
+        this.logisticsService = new ItemServiceImpl(
+                logisticsGraph, new ItemNodeStore(getLogger(), database.dataSource()));
+        this.logisticsSolver = new ItemSolver(
+                logisticsGraph, itemRegistry, logisticsService::getFilterRules);
+
+        // Fluid logistics graph + solver (T-301 / 1.2.0).
+        FluidNetworkGraph fluidsGraph = new FluidNetworkGraph();
+        this.fluidsService = new FluidServiceImpl(
+                getLogger(), fluidsGraph, new FluidNodeStore(getLogger(), database.dataSource()));
+        this.fluidsService.registerType(BuiltinFluidTypes.WATER);
+        this.fluidsService.registerType(BuiltinFluidTypes.LAVA);
+        this.fluidsService.registerType(BuiltinFluidTypes.MILK);
+        this.fluidsSolver = new FluidSolver(fluidsGraph, fluidsService);
+
         // Crafting + guide + unlocks (T-130 / T-131 / T-150 / T-151 / 0.4.0).
         this.recipeRegistry = new SapientiaRecipeRegistry(itemRegistry);
         this.unlockService = new UnlockServiceImpl(getLogger(), database.dataSource());
@@ -148,12 +179,8 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
                         : null);
         this.uiService.register(machineUI);
 
-        // Experimental filter UI (T-203, opt-in via config flag).
-        if (getConfig().getBoolean("experimental.filter", false)) {
-            this.uiService.register(
-                    new dev.brmz.sapientia.core.ui.FilterDescriptor(messages));
-            getLogger().info("Experimental filter UI enabled (sapientia:filter).");
-        }
+        // Item filter UI (T-300 / 1.1.0). Always-on now that the logistics solver is wired.
+        this.uiService.register(new dev.brmz.sapientia.core.ui.FilterDescriptor(messages));
 
         getServer().getPluginManager().registerEvents(uiService, this);
         getServer().getPluginManager().registerEvents(chunkBlockIndex, this);
@@ -213,20 +240,30 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
             for (org.bukkit.Chunk chunk : world.getLoadedChunks()) {
                 chunkBlockIndex.hydrate(world.getName(), chunk.getX(), chunk.getZ());
                 energyService.hydrateChunk(world.getName(), chunk.getX(), chunk.getZ());
+                logisticsService.hydrateChunk(world.getName(), chunk.getX(), chunk.getZ());
+                fluidsService.hydrateChunk(world.getName(), chunk.getX(), chunk.getZ());
             }
         }
 
-        // Energy chunk hooks.
+        // Energy + logistics chunk hooks.
         getServer().getPluginManager().registerEvents(
                 new org.bukkit.event.Listener() {
                     @org.bukkit.event.EventHandler
                     public void onChunkLoad(org.bukkit.event.world.ChunkLoadEvent event) {
                         energyService.hydrateChunk(
                                 event.getWorld().getName(), event.getChunk().getX(), event.getChunk().getZ());
+                        logisticsService.hydrateChunk(
+                                event.getWorld().getName(), event.getChunk().getX(), event.getChunk().getZ());
+                        fluidsService.hydrateChunk(
+                                event.getWorld().getName(), event.getChunk().getX(), event.getChunk().getZ());
                     }
                     @org.bukkit.event.EventHandler
                     public void onChunkUnload(org.bukkit.event.world.ChunkUnloadEvent event) {
                         energyService.unloadChunk(
+                                event.getWorld().getName(), event.getChunk().getX(), event.getChunk().getZ());
+                        logisticsService.unloadChunk(
+                                event.getWorld().getName(), event.getChunk().getX(), event.getChunk().getZ());
+                        fluidsService.unloadChunk(
                                 event.getWorld().getName(), event.getChunk().getX(), event.getChunk().getZ());
                     }
                 }, this);
@@ -236,6 +273,15 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
             energySolver.tick();
             energyService.persistDirty();
         }, 10L, 10L);
+
+        // Logistics tick — every tick (T-300, P-004 envelope).
+        getServer().getScheduler().runTaskTimer(this, () -> logisticsSolver.tick(), 5L, 1L);
+
+        // Fluid tick — every 5 ticks (T-301, P-004 envelope; per-tank persistence batched).
+        getServer().getScheduler().runTaskTimer(this, () -> {
+            fluidsSolver.tick();
+            fluidsService.persistDirty();
+        }, 7L, 5L);
 
         getLogger().info(messages.plain("plugin.enabled",
                 Placeholder.parsed("version", getPluginMeta().getVersion())));
@@ -358,6 +404,16 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
     @Override
     public @NotNull EnergyService energy() {
         return energyService;
+    }
+
+    @Override
+    public @NotNull ItemService logistics() {
+        return logisticsService;
+    }
+
+    @Override
+    public @NotNull FluidService fluids() {
+        return fluidsService;
     }
 
     @Override

@@ -6,9 +6,11 @@ import dev.brmz.sapientia.api.block.SapientiaBlock;
 import dev.brmz.sapientia.api.crafting.RecipeRegistry;
 import dev.brmz.sapientia.api.energy.EnergyService;
 import dev.brmz.sapientia.api.energy.EnergyNode;
+import dev.brmz.sapientia.api.fluids.FluidService;
 import dev.brmz.sapientia.api.guide.GuideService;
 import dev.brmz.sapientia.api.guide.UnlockService;
 import dev.brmz.sapientia.api.item.SapientiaItem;
+import dev.brmz.sapientia.api.logistics.ItemService;
 import dev.brmz.sapientia.api.overrides.ContentOverrides;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -55,6 +57,12 @@ public interface SapientiaAPI {
 
     /** Energy service entry point (T-140 / 0.3.0). */
     @NotNull EnergyService energy();
+
+    /** Item logistics service entry point (T-300 / 1.1.0). */
+    @NotNull ItemService logistics();
+
+    /** Fluid logistics service entry point (T-301 / 1.2.0). */
+    @NotNull FluidService fluids();
 
     /** Recipe registry entry point (T-131 / 0.4.0). */
     @NotNull RecipeRegistry recipes();

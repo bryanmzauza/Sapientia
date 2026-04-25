@@ -134,18 +134,45 @@ Status legend:
 
 ---
 
-## 1.1.0 — Item logistics ⏳
+## 1.1.0 — Item logistics ✅
 
-- ⏳ T-300 Item transport (cables + logistics graph, target P-004)
-- ⏳ Round-robin / priority / first-match filters
-- ⏳ Events and public API for addons
+- ✅ T-300a Public logistics API (`ItemNode`, `ItemNetwork`, `ItemService`, `ItemFilterRule`, `ItemRoutingPolicy`, events)
+- ✅ T-300b `ItemNetworkGraph` (6-neighbour BFS, split-on-removal, merge-on-add)
+- ✅ T-300c V005 migration + `ItemNodeStore` (chunk-indexed, rule-cascade)
+- ✅ T-300d `ItemSolver` per-tick greedy round-robin / priority / first-match
+- ✅ T-300e `ItemFilterRuleMatcher` (glob `*`, `namespace:*`, exact)
+- ✅ T-300f Demo blocks: `SapientiaItemCable` / `Producer` / `Consumer` / `Filter` (+ recipes)
+- ✅ T-300g `FilterDescriptor` (Java + Bedrock) wired to `ItemNode` context (replaces the 1.0.0 experimental stub; `experimental.filter` flag removed)
+- ✅ T-300h `/sapientia logistics info|policy|filter` with full tab-complete + i18n
+- ✅ T-300i `SapientiaPlugin` wiring, chunk hydrate/unload, per-tick scheduler
+- ✅ Round-robin / priority / first-match policies (per-network)
+- ✅ Events: `SapientiaItemFlowEvent`, `SapientiaItemFilterEvent` (cancellable), `SapientiaItemRouteEvent`
+- ⏳ Ford-Fulkerson hardening (deferred to 1.4.0+)
+
+**Exit gate:** `./gradlew build verifyTranslations` green with `ItemNetworkGraphTest` and updated `MigrationLoaderTest` passing.
 
 ---
 
-## 1.2.0 — Fluids ⏳
+## 1.2.0 — Fluids 💧 ✅
 
-- ⏳ T-301 Fluid transport (tanks + continuous volume)
-- ⏳ Fluid types declarable via YAML
+- ✅ T-301a Public fluids API (`FluidNode`, `FluidNetwork`, `FluidService`,
+  `FluidType`, `FluidStack`, `FluidNodeType`, `FluidSpecs`, events)
+- ✅ T-301b V006 migration — `fluid_nodes` table (chunk-indexed)
+- ✅ T-301c `FluidNetworkGraph` — 6-neighbour BFS, split-on-removal,
+  merge-on-add (port of `ItemNetworkGraph`)
+- ✅ T-301d `FluidSolver` — per-network pump → tank → drain pipeline,
+  per-tier throughput cap, no-mixing tank semantics
+- ✅ T-301e `AdjacentFluids` — vanilla bridge for water/lava blocks and
+  water/lava cauldrons (read & write)
+- ✅ T-301f `BuiltinFluidTypes` — Java-declared `sapientia:water`,
+  `sapientia:lava`, `sapientia:milk` (supersedes the previous "fluid types
+  declarable via YAML" line; see ADR-016)
+- ✅ T-301g Content blocks — `SapientiaFluidPipe`, `SapientiaFluidPump`,
+  `SapientiaFluidTank`, `SapientiaFluidDrain` + bundled recipes
+- ✅ T-301h `/sapientia fluids info` command + en/pt_BR i18n keys
+- ✅ T-301i Tests — `FluidNetworkGraphTest` (graph + capacity + no-mixing),
+  V006 migration coverage
+- ✅ ADR-015 (no fluid mixing per tank), ADR-016 (Java-declared fluid registry)
 
 ---
 
@@ -154,13 +181,190 @@ Status legend:
 - ⏳ T-302 Non-Turing rules compiled into a DAG
 - ⏳ In-game visual editor + YAML export
 
+**Exit gate:** DAG runtime in `sapientia-core` consumes rule definitions, executes deterministically inside the tick bucketing budget, and gates the android workflows planned for 1.9.0.
+
 ---
 
-## 1.4.0+ — Strategic backlog ⏳
+## Content milestones (1.4.0 — 2.1.0)
 
-- ⏳ T-303 Advanced tiers (nuclear, multi-block auto-crafting)
-- ⏳ T-304 Public progression/research API
+The next eight releases roll out the full content catalogue defined in [docs/content-catalog.md](docs/content-catalog.md). Each milestone delivers a vertical slice (items + machines + recipes + UI + i18n + Bedrock parity) and unlocks the next tier. Numerical specs (SU/t, throughput, recipe times) ship as `docs/content-spec-T-4xx.md` per milestone, before any implementation PR.
+
+Cross-cutting rules for every milestone below:
+- All new content is declared in Java under `sapientia-content` (ADR-012).
+- Every machine has a Java inventory UI **and** a Bedrock `CustomForm` renderer (parity gate).
+- Every user-facing string lands in both `en.yml` and `pt_BR.yml` (`verifyTranslations` blocks merge).
+- New blocks register through existing `EnergyService` / `ItemService` / `FluidService` — no new core subsystem unless a milestone explicitly calls one out.
+
+---
+
+## 1.4.0 — Metallurgy & MV tier ⏳
+
+**Goal.** Ship the bronze-to-steel pipeline and unlock MV. Establishes the tier model end-to-end (LV ⇆ MV transformer, MV cables, MV machines).
+
+- ⏳ T-400 Tier framework — `MachineTier` enum (LV/MV/HV/EV), voltage incompat policy (cable burn / machine pop), shared casing recipes
+- ⏳ T-401 New ores (world-gen) — `copper`, `tin`, `zinc`, `lead`, `silver`, `nickel` with Y-layer placement (catalogue §5.1)
+- ⏳ T-402 Item families — `_raw` / `_dust` / `_ingot` / `_block` / `_plate` / `_wire` / `_rod` / `_gear` / `_screw` for the six metals
+- ⏳ T-403 Alloys (LV) — bronze, brass, electrum via `mixer`
+- ⏳ T-404 LV/MV machines — `macerator`, `ore_washer`, `electric_furnace`, `mixer`, `compressor`, `bench_saw`, `plate_press`, `extractor`
+- ⏳ T-405 Multiblock — `induction_furnace_controller` (3×3×3 invar casing) producing steel, invar, kanthal
+- ⏳ T-406 Energy expansion — `cable_t2`, `capacitor_t2`, `transformer_lv_mv` (step-up + step-down)
+- ⏳ T-407 ADR — voltage incompatibility policy (cable burn vs silent clamp); seeds the realism stance for later tiers
+- ⏳ T-408 Content spec doc + recipes + guide entries
+- ⏳ T-409 Tests — tier compat unit tests; recipe round-trips; `MultiblockShapeValidator` (new helper)
+- ⏳ T-410 Benchmark P-015 — induction furnace recipe throughput on a 100-machine cluster
+
+**Exit gate:** ore → dust → ingot → alloy → MV cable powers a working MV macerator across server restart; `./gradlew build verifyTranslations` green; both Java and Bedrock UIs pass smoke checklist; ADR-017 (voltage policy) merged.
+
+---
+
+## 1.5.0 — Petroleum & basic chemistry ⏳
+
+**Goal.** Bring liquid fuels online; introduce the first multi-output multiblock and the first "process plant".
+
+- ⏳ T-411 New fluids (catalogue §12.1) — `crude_oil`, `diesel`, `gasoline`, `lubricant`, `nutrient_broth` registered through `BuiltinFluidTypes`
+- ⏳ T-412 Geo-extraction — `pumpjack` + underground `crude_oil` reservoirs (chunk-noise gen, depleting per ADR §25.4)
+- ⏳ T-413 Multiblock — `oil_refinery_controller` (5×5×7 stainless casing) splitting crude into 3 fractions + tar by-product
+- ⏳ T-414 Machines — `cracker`, `fermenter`, `still`, `bioreactor`
+- ⏳ T-415 Combustion — `combustion_gen` (MV) + `biogas_gen` (LV) consuming the new fluids
+- ⏳ T-416 ADR — geo-miner replenishment policy (finite vs slow-infinite vs chunk-decay)
+- ⏳ T-417 Content spec + recipes + guide entries
+- ⏳ T-418 Tests — refinery yield ratios; combustion energy balance; pumpjack reservoir depletion
+- ⏳ T-419 Benchmark P-016 — refinery 4-output throughput under fluid network pressure
+- ⏳ T-420 Bedrock parity smoke — refinery `CustomForm` with 4 fluid bars
+
+**Exit gate:** crude oil pumped → refined → diesel powers a combustion generator → output cable feeds an MV macerator. Refinery hot-reloads cleanly via `/sapientia reload content`.
+
+---
+
+## 1.6.0 — Electronics & HV ⏳
+
+**Goal.** Unlock processors, electrolysis and the HV tier — the foundation for everything endgame.
+
+- ⏳ T-421 New ores — `aluminum` (bauxite), `silicon`, `titanium`, `lithium` (catalogue §5.1)
+- ⏳ T-422 Component progression — `motor_t1..t3`, `circuit_t1..t3`, `processor_t1..t3`, `coil_t1..t3`, `ram_t2/t3`, `storage_hdd/ssd`
+- ⏳ T-423 Machines — `electrolyzer`, `rolling_mill`, `laser_cutter`, `chemical_reactor`
+- ⏳ T-424 Alloys (HV) — stainless steel, damascus steel, nichrome
+- ⏳ T-425 Energy — `cable_t3`, `capacitor_t3`, `transformer_mv_hv`, `geothermal_gen`, `gas_turbine`, `rtg`
+- ⏳ T-426 New gases — `hydrogen`, `oxygen_gas`, `nitrogen`, `chlorine`, `ethylene`, `compressed_air` plus `pressurized_pipe`, `gas_compressor`, `boiler`, `condenser`, `liquefier`, `phase_separator`
+- ⏳ T-427 ADR — vapour classification (gas vs fluid); seeds boiler/condenser semantics
+- ⏳ T-428 Content spec + recipes + guide entries
+- ⏳ T-429 Tests — electrolysis stoichiometry, gas-pipe pressure cap, cable-tier burn
+- ⏳ T-430 Benchmark P-017 — gas network throughput on 500-node mixed-tier graph
+
+**Exit gate:** silicon → wafer → processor T2 craftable; HV cable powers an HV laser cutter; H₂ from electrolysis fuels a gas turbine.
+
+---
+
+## 1.7.0 — Geo & atmosphere ⏳
+
+**Goal.** Industrial-scale resource gathering from world and air.
+
+- ⏳ T-431 Multiblock — `quarry_controller` (3×3×4 carbon-steel casing) with AABB selector via wrench
+- ⏳ T-432 Multiblock — `drill_rig_controller` (5×5×8 stainless casing) for sub-bedrock virtual mining
+- ⏳ T-433 Machines — `gas_extractor`, `atmospheric_collector`, `prospector` (GPS-style scan tool)
+- ⏳ T-434 Multiblock — `desalinator_controller` (5×3×3) consuming sea water → fresh water + rock salt
+- ⏳ T-435 Atmospheric gases — `argon`, `carbon_dioxide` registered; `liquid_oxygen` fluid for endgame combustion
+- ⏳ T-436 GPS infra — `gps_transmitter`, `gps_marker`, `gps_handheld_map` item
+- ⏳ T-437 Tests — quarry AABB serialization, drill-rig probability tables, GPS coverage radius
+- ⏳ T-438 Benchmark P-018 — quarry tick budget (must respect bucket P-007 envelope even at 32×32 footprint)
+- ⏳ T-439 Content spec + recipes
+- ⏳ T-440 Bedrock parity — quarry AABB selector via `CustomForm` numeric inputs
+
+**Exit gate:** quarry chews through a 16×16 zone in measured time without TPS regression; GPS handheld shows markers within transmitter coverage; both quarry and drill rig hot-reload across restart.
+
+---
+
+## 1.8.0 — Advanced logistics ⏳
+
+**Goal.** Industrial-grade item/fluid routing — buffer/splitter/conveyor + Ford-Fulkerson upgrade carried over from 1.1.0.
+
+- ⏳ T-441 Item logistics extras — `item_buffer`, `item_splitter`, `filter_chamber` (multi-pass), `overflow_module`, `comparator_sensor`, `packager`, `unpackager`
+- ⏳ T-442 `conveyor_belt` — visible item-on-belt rendering (display entity API on Java; static texture on Bedrock)
+- ⏳ T-443 Fluid logistics extras — `fluid_valve`, `fluid_level_sensor`, `phase_separator` (deeper recipes)
+- ⏳ T-444 Ford-Fulkerson hardening — replaces greedy solver in `ItemSolver` and `EnergySolver` for HV+ networks (carry-over from 1.1.0 deferred item)
+- ⏳ T-445 Routing improvements — explicit priority lanes per node (P0..P3), exposed via `/sapientia logistics policy`
+- ⏳ T-446 Tests — splitter ratio integrity, packager NBT round-trip, max-flow correctness vs reference
+- ⏳ T-447 Benchmark P-019 — Ford-Fulkerson on 1000-node item network (regression gate; must beat greedy or stay within +20 %)
+- ⏳ T-448 Content spec + recipes
+- ⏳ T-449 ADR — packager/unpackager NBT format (permanent contract; serialised in SQLite)
+- ⏳ T-450 `SapientiaItemPackagedEvent` (cancellable) for addon hooks
+
+**Exit gate:** complex routing (3 producers → splitter → 2 filtered consumers) survives restart; Ford-Fulkerson swap is opt-in via `network.solver: legacy|maxflow` config; benchmark P-019 within budget.
+
+---
+
+## 1.9.0 — Androids ⏳
+
+**Goal.** Programmable autonomous workers — the public face of T-302.
+
+> Hard dependency on 1.3.0 (DAG runtime). Cannot start until T-302 lands.
+
+- ⏳ T-451 Android base — `SapientiaAndroid` block-entity with bucketed instruction execution (1 instr/tick max per android)
+- ⏳ T-452 Android types — `farmer`, `lumberjack`, `miner`, `fisherman`, `butcher`, `builder`, `slayer`, `trader`
+- ⏳ T-453 Programming UI — DAG editor (Java inventory) + Bedrock fallback flat-list editor
+- ⏳ T-454 Upgrades — AI chip T1-T4 (radius), motor (speed), armour (HP), fuel module (biofuel ↔ SU)
+- ⏳ T-455 Loot simulation — slayer/butcher use simulated loot tables (no real mob spawn) — same approach as `mob_simulator`
+- ⏳ T-456 Caps — hard cap 4 androids/chunk + configurable server-wide cap (default 200)
+- ⏳ T-457 ADR — slayer melee policy (target real mobs in fixed radius vs purely simulated)
+- ⏳ T-458 Tests — DAG cycle detection rejection, instruction budget enforcement, chunk cap enforcement
+- ⏳ T-459 Benchmark P-020 — 200 androids/server-wide tick budget
+- ⏳ T-460 Content spec + recipes + guide entries
+
+**Exit gate:** 8 android types craftable, programmable and persistent; performance contract met with 200 active androids; Bedrock fallback editor functional.
+
+---
+
+## 2.0.0 — Nuclear ⏳
+
+**Goal.** First major version after MVP. Fission, radiation system and the recycling loop.
+
+- ⏳ T-500 New ore — `uranium`; new fluid — `sulfuric_acid`, `molten_salt`, `heavy_water`
+- ⏳ T-501 Multiblock — `fission_reactor_controller` (5×5×5 tungsten-carbide casing) consuming `fuel_cell_u`, producing `spent_fuel_cell` + heat + tritium gas
+- ⏳ T-502 Coolant pipeline — water/molten-salt/heavy-water as required inputs; meltdown on starvation
+- ⏳ T-503 Radiation system — choose between debuff-only MVP (Wither stack on contact) vs full dose-accumulation system (ADR T-507 decides)
+- ⏳ T-504 Hazmat & thermal armour sets — full 4-piece sets with effect immunities
+- ⏳ T-505 Reprocessing chain — `recycler` machine + `chemical_reactor` recipes producing plutonium + radioactive scrap
+- ⏳ T-506 EV groundwork — `cable_t4`, `capacitor_t4`, `transformer_hv_ev`, `processor_t4`
+- ⏳ T-507 ADR — radiation model (debuff stacks vs dose accumulation with decay)
+- ⏳ T-508 ADR — meltdown blast radius and chunk dead-zone duration
+- ⏳ T-509 Tests — meltdown trigger conditions, radiation immunity gate (hazmat/thermal), reprocessing yields
+- ⏳ T-510 Benchmark P-021 — fission reactor multiblock tick cost (with full coolant + 6 hatches active)
+
+**Exit gate:** fission reactor produces stable 1024 SU/t over a 10-minute server run with coolant; meltdown, recovery and dead-zone all reproducible; radiation effect (whichever ADR-T507 picks) reaches Bedrock players via Geyser status effects.
+
+---
+
+## 2.1.0 — Fusion & endgame ⏳
+
+**Goal.** Close the catalogue. Fusion power, replicator, satellite GPS and Quantum gear.
+
+- ⏳ T-511 New ores — `tungsten`, `iridium` (End); new alloys — hastelloy, tungsten-carbide
+- ⏳ T-512 Multiblock — `fusion_reactor_controller` (7×7×7 toroidal hastelloy casing) consuming `deuterium` + `tritium`
+- ⏳ T-513 Plasma + ignition — `liquid_oxygen`, `plasma`, `argon`; ignition requires one `fuel_cell_u` to bootstrap
+- ⏳ T-514 Multiblock — `replicator_controller` (7×7×3) consuming `uu_matter` + template item
+- ⏳ T-515 UU-matter pipeline — recycler scrap → fusion → uu-matter; blacklist of non-replicable items (per ADR T-518)
+- ⏳ T-516 GPS satellite — `gps_satellite_controller` multiblock for world-wide coverage; `item_teleporter` block
+- ⏳ T-517 Quantum gear — armour set, `jetpack_t4`, `drill_t4`, `chainsaw_t4`, `multitool_t4`
+- ⏳ T-518 ADR — replicator blacklist scope (uu-matter, fuel cells, processors T4 minimum)
+- ⏳ T-519 Endgame energy bridge (optional) — soft-dep adapter to expose Sapientia SU as FE/RF for downstream plugins (per §25.7)
+- ⏳ T-520 Tests — fusion ignition path, replicator blacklist enforcement, satellite coverage radius
+- ⏳ T-521 Benchmark P-022 — fusion reactor throughput on stable plasma (≥ 2048 SU/t sustained, ≤ 1.5 ms/tick)
+- ⏳ T-522 Content spec + recipes + final guide pass
+- ⏳ T-523 Tag — promote `1.0.0` and continue to `2.0.0` after this milestone (versioning per [README.md](README.md))
+- ⏳ T-524 Compatibility matrix — published list of Geyser/Floodgate/Paper versions tested with full catalogue
+- ⏳ T-525 Documentation pass — promote `docs/content-catalog.md` from `draft` to release status; freeze section IDs as a public contract
+
+**Exit gate:** entire catalogue defined in [docs/content-catalog.md](docs/content-catalog.md) is craftable, persisted, performance-bound and Bedrock-parity green; end-to-end progression playable from vanilla iron to fusion reactor on a single world without admin intervention.
+
+---
+
+## Strategic backlog (post-2.1.0) ⏳
+
+- ⏳ T-303 Public progression/research API — exposes the milestone-1.4.0 tier framework so addons can register their own tiers/research nodes
+- ⏳ T-304 Compatibility bridges — explicit FE/RF/EU adapters (formerly T-519 if not delivered with 2.1.0)
 - ⏳ T-305 **Sapientia Studio** — external authoring tool that generates Java addon scaffolding (separate project; not a YAML runtime — see ADR-012)
+- ⏳ T-306 Noise & pollution system — chunk-level industrial debuff (no villager spawn, fauna flees) — per catalogue §18.6
+- ⏳ T-307 Full radiation simulation — if 2.0.0 shipped the MVP debuff-only model, ship dose accumulation + Geiger counter here
 
 ---
 

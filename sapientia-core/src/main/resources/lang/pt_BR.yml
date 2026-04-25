@@ -22,6 +22,36 @@ command:
       pack-build: "Gera o resource pack Java em plugins/Sapientia/sapientia-resources.zip."
       pack-build-bedrock: "Gera o .mcpack e os mappings do Geyser em plugins/Sapientia/."
       pack-build-all: "Gera os packs Java e Bedrock de uma vez."
+      logistics: "Inspeciona e gerencia redes de logistica de itens."
+      fluids: "Inspeciona redes de fluidos do Sapientia."
+  logistics:
+    usage: "<red>Uso: /sapientia logistics <info|policy|filter></red>"
+    info:
+      none: "<yellow>Nenhum no de logistica de itens por perto.</yellow>"
+      header: "<gold>Filtro em <white><x>,<y>,<z></white></gold> <gray>node=<node></gray>"
+      network: "<gray>Rede <white><network></white> · <count> no(s) · politica <policy></gray>"
+      rule: "<gray>  <index>. <mode> <pattern></gray>"
+      empty: "<gray>  (sem regras — ACCEPT_ALL)</gray>"
+    policy:
+      usage: "<red>Uso: /sapientia logistics policy <round_robin|priority|first_match></red>"
+      success: "<green>Politica de roteamento ajustada para <white><policy></white>.</green>"
+      not-found: "<red>Voce precisa mirar em um bloco de logistica do Sapientia.</red>"
+    filter:
+      usage: "<red>Uso: /sapientia logistics filter <add|remove|clear|list> [args]</red>"
+      added: "<green>Regra adicionada: <mode> <pattern></green>"
+      removed: "<green>Regra <index> removida.</green>"
+      cleared: "<green>Todas as regras foram removidas.</green>"
+      not-filter: "<red>Mire em um filtro de itens Sapientia para editar regras.</red>"
+      bad-mode: "<red>O modo deve ser <white>whitelist</white> ou <white>blacklist</white>.</red>"
+      bad-index: "<red>Indice de regra invalido: <white><value></white></red>"
+  fluids:
+    usage: "<red>Uso: /sapientia fluids <info></red>"
+    info:
+      none: "<yellow>Nenhum no de fluido por perto.</yellow>"
+      header: "<gold>No de fluido em <white><x>,<y>,<z></white></gold> <gray>node=<node> tipo=<type></gray>"
+      network: "<gray>Rede <white><network></white> · <count> no(s)</gray>"
+      tank: "<gray>Tanque: <white><fluid></white> <amount>/<capacity> mB</gray>"
+      empty: "<gray>(vazio)</gray>"
   give:
     usage: "<red>Uso: /sapientia give <jogador> <id> [quantidade]</red>"
     success: "<green>Entregue <white><amount></white> x <white><id></white> para <white><player></white>.</green>"
@@ -75,6 +105,38 @@ block:
   workbench:
     name: "<gold>Bancada Sapientia</gold>"
     desc: "Grade 3x3 do Sapientia. Clique direito para abrir\ne montar as receitas empacotadas."
+  item_cable:
+    name: "<gray>Cabo de Itens Sapientia</gray>"
+    desc: "Liga nos de logistica. Forma uma unica rede unindo\ntodos os blocos de logistica adjacentes (6 vizinhos)."
+  item_producer:
+    name: "<yellow>Produtor de Itens Sapientia</yellow>"
+    desc: "Puxa itens a cada tick de um container vanilla\nadjacente (bau, barril, dispenser, ...)."
+  item_consumer:
+    name: "<aqua>Consumidor de Itens Sapientia</aqua>"
+    desc: "Empurra itens a cada tick para um container vanilla\nadjacente conectado a mesma rede de logistica."
+  item_filter:
+    name: "<gold>Filtro de Itens Sapientia</gold>"
+    desc: "Lista de permissao ou bloqueio por id de item.\nEdite via /sapientia logistics filter."
+  fluid_pipe:
+    name: "<gray>Tubulacao Sapientia</gray>"
+    desc: "Liga nos de fluidos. Forma uma unica rede unindo\ntodos os blocos de fluido adjacentes (6 vizinhos)."
+  fluid_pump:
+    name: "<yellow>Bomba Sapientia</yellow>"
+    desc: "Puxa fluido a cada tick de uma fonte vanilla\nadjacente (agua, lava, caldeirao)."
+  fluid_tank:
+    name: "<aqua>Tanque Sapientia</aqua>"
+    desc: "Armazena fluido para a rede. Guarda apenas um\ntipo de fluido — sem mistura."
+  fluid_drain:
+    name: "<gold>Dreno Sapientia</gold>"
+    desc: "Despeja fluido a cada tick em um destino vanilla\nadjacente (caldeirao ou bloco de ar substituivel)."
+
+fluid:
+  water:
+    name: "<aqua>Agua</aqua>"
+  lava:
+    name: "<gold>Lava</gold>"
+  milk:
+    name: "<white>Leite</white>"
 
 guide:
   title: "<gold>Guia Sapientia</gold>"
@@ -111,4 +173,8 @@ ui:
       toggle: "Em operação"
   filter:
     title: "<gold>Filtro de Itens</gold>"
-    experimental: "<gray>Experimental — integração chega em 1.x.</gray>"
+    empty: "<gray>Sem regras — aceitando todos os itens.</gray>"
+    help: "<dark_gray>Edite via /sapientia logistics filter.</dark_gray>"
+    policy: "<aqua>Roteamento:</aqua> <white><policy></white>"
+    rule:
+      line: "<gray><mode>:</gray> <white><pattern></white>"

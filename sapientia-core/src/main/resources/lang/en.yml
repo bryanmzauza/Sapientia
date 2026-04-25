@@ -22,6 +22,36 @@ command:
       pack-build: "Build the Java resource pack into plugins/Sapientia/sapientia-resources.zip."
       pack-build-bedrock: "Build the Bedrock .mcpack and Geyser mappings into plugins/Sapientia/."
       pack-build-all: "Build both the Java pack and the Bedrock pack at once."
+      logistics: "Inspect and manage item logistics networks."
+      fluids: "Inspect Sapientia fluid logistics networks."
+  logistics:
+    usage: "<red>Usage: /sapientia logistics <info|policy|filter></red>"
+    info:
+      none: "<yellow>No item logistics node nearby.</yellow>"
+      header: "<gold>Filter at <white><x>,<y>,<z></white></gold> <gray>node=<node></gray>"
+      network: "<gray>Network <white><network></white> · <count> node(s) · policy <policy></gray>"
+      rule: "<gray>  <index>. <mode> <pattern></gray>"
+      empty: "<gray>  (no rules — ACCEPT_ALL)</gray>"
+    policy:
+      usage: "<red>Usage: /sapientia logistics policy <round_robin|priority|first_match></red>"
+      success: "<green>Routing policy set to <white><policy></white>.</green>"
+      not-found: "<red>You must aim at a Sapientia logistics block.</red>"
+    filter:
+      usage: "<red>Usage: /sapientia logistics filter <add|remove|clear|list> [args]</red>"
+      added: "<green>Rule added: <mode> <pattern></green>"
+      removed: "<green>Removed rule <index>.</green>"
+      cleared: "<green>All rules cleared.</green>"
+      not-filter: "<red>Aim at a Sapientia item filter to edit rules.</red>"
+      bad-mode: "<red>Mode must be <white>whitelist</white> or <white>blacklist</white>.</red>"
+      bad-index: "<red>Invalid rule index: <white><value></white></red>"
+  fluids:
+    usage: "<red>Usage: /sapientia fluids <info></red>"
+    info:
+      none: "<yellow>No fluid logistics node nearby.</yellow>"
+      header: "<gold>Fluid node at <white><x>,<y>,<z></white></gold> <gray>node=<node> type=<type></gray>"
+      network: "<gray>Network <white><network></white> · <count> node(s)</gray>"
+      tank: "<gray>Tank: <white><fluid></white> <amount>/<capacity> mB</gray>"
+      empty: "<gray>(empty)</gray>"
   give:
     usage: "<red>Usage: /sapientia give <player> <id> [amount]</red>"
     success: "<green>Gave <white><amount></white> x <white><id></white> to <white><player></white>.</green>"
@@ -75,6 +105,38 @@ block:
   workbench:
     name: "<gold>Sapientia Workbench</gold>"
     desc: "Sapientia 3x3 crafting grid. Right-click to open\nand craft bundled Sapientia recipes."
+  item_cable:
+    name: "<gray>Sapientia Item Cable</gray>"
+    desc: "Links item logistics nodes. Forms a single network\nout of all adjacent (6-neighbour) logistics blocks."
+  item_producer:
+    name: "<yellow>Sapientia Item Producer</yellow>"
+    desc: "Pulls items each tick from an adjacent vanilla\ncontainer (chest, barrel, dispenser, ...)."
+  item_consumer:
+    name: "<aqua>Sapientia Item Consumer</aqua>"
+    desc: "Pushes items each tick into an adjacent vanilla\ncontainer connected to the same logistics network."
+  item_filter:
+    name: "<gold>Sapientia Item Filter</gold>"
+    desc: "Allow- or block-list items by id. Right-click to\nopen the filter summary; edit via /sapientia logistics filter."
+  fluid_pipe:
+    name: "<gray>Sapientia Fluid Pipe</gray>"
+    desc: "Links fluid logistics nodes. Forms a single network\nout of all adjacent (6-neighbour) fluid blocks."
+  fluid_pump:
+    name: "<yellow>Sapientia Fluid Pump</yellow>"
+    desc: "Pulls fluid each tick from an adjacent vanilla\nsource (water, lava, cauldron)."
+  fluid_tank:
+    name: "<aqua>Sapientia Fluid Tank</aqua>"
+    desc: "Buffers fluid for the network. Holds one fluid\ntype at a time — no mixing."
+  fluid_drain:
+    name: "<gold>Sapientia Fluid Drain</gold>"
+    desc: "Pushes fluid each tick into an adjacent vanilla\nsink (cauldron or replaceable air block)."
+
+fluid:
+  water:
+    name: "<aqua>Water</aqua>"
+  lava:
+    name: "<gold>Lava</gold>"
+  milk:
+    name: "<white>Milk</white>"
 
 guide:
   title: "<gold>Sapientia Guide</gold>"
@@ -111,4 +173,8 @@ ui:
       toggle: "Running"
   filter:
     title: "<gold>Item Filter</gold>"
-    experimental: "<gray>Experimental — wiring lands in 1.x.</gray>"
+    empty: "<gray>No rules — accepting every item.</gray>"
+    help: "<dark_gray>Edit via /sapientia logistics filter.</dark_gray>"
+    policy: "<aqua>Routing:</aqua> <white><policy></white>"
+    rule:
+      line: "<gray><mode>:</gray> <white><pattern></white>"

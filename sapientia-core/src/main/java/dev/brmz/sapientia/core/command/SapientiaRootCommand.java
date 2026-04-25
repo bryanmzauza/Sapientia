@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class SapientiaRootCommand implements TabExecutor {
 
-    private static final List<String> SUBCOMMANDS = List.of("help", "reload", "give", "pack");
+    private static final List<String> SUBCOMMANDS = List.of("help", "reload", "give", "pack", "logistics", "fluids");
 
     private final SapientiaPlugin plugin;
     private final ItemRegistry registry;
@@ -58,6 +58,8 @@ public final class SapientiaRootCommand implements TabExecutor {
             case "reload" -> handleReload(sender, msg, args);
             case "give" -> handleGive(sender, msg, args);
             case "pack" -> handlePack(sender, msg, args);
+            case "logistics" -> handleLogistics(sender, msg, args);
+            case "fluids" -> handleFluids(sender, msg, args);
             default -> sender.sendMessage(msg.component("command.unknown"));
         }
         return true;
@@ -72,6 +74,7 @@ public final class SapientiaRootCommand implements TabExecutor {
         sendHelpLine(sender, msg, "/sapientia pack build java", "command.help.desc.pack-build");
         sendHelpLine(sender, msg, "/sapientia pack build bedrock", "command.help.desc.pack-build-bedrock");
         sendHelpLine(sender, msg, "/sapientia pack build all", "command.help.desc.pack-build-all");
+        sendHelpLine(sender, msg, "/sapientia logistics", "command.help.desc.logistics");
     }
 
     private void sendHelpLine(CommandSender sender, Messages msg, String usage, String descKey) {
@@ -155,6 +158,222 @@ public final class SapientiaRootCommand implements TabExecutor {
         }
     }
 
+    private void handleLogistics(CommandSender sender, Messages msg, String[] args) {
+        if (!sender.hasPermission("sapientia.command.logistics")) {
+            sender.sendMessage(msg.component("command.no-permission"));
+            return;
+        }
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(msg.component("command.players-only"));
+            return;
+        }
+        if (args.length < 2) {
+            sender.sendMessage(msg.component("command.logistics.usage"));
+            return;
+        }
+        org.bukkit.block.Block target = player.getTargetBlockExact(8);
+        var logistics = dev.brmz.sapientia.api.Sapientia.get().logistics();
+        var nodeOpt = target == null ? java.util.Optional.<dev.brmz.sapientia.api.logistics.ItemNode>empty()
+                : logistics.nodeAt(target);
+        switch (args[1].toLowerCase(Locale.ROOT)) {
+            case "info" -> {
+                if (nodeOpt.isEmpty()) {
+                    sender.sendMessage(msg.component("command.logistics.info.none"));
+                    return;
+                }
+                var node = nodeOpt.get();
+                org.bukkit.block.Block b = node.block();
+                int x = b == null ? 0 : b.getX();
+                int y = b == null ? 0 : b.getY();
+                int z = b == null ? 0 : b.getZ();
+                sender.sendMessage(msg.component("command.logistics.info.header",
+                        Placeholder.parsed("x", Integer.toString(x)),
+                        Placeholder.parsed("y", Integer.toString(y)),
+                        Placeholder.parsed("z", Integer.toString(z)),
+                        Placeholder.parsed("node", node.nodeId().toString())));
+                logistics.networkOf(node).ifPresent(net ->
+                        sender.sendMessage(msg.component("command.logistics.info.network",
+                                Placeholder.parsed("network", net.networkId().toString()),
+                                Placeholder.parsed("count", Integer.toString(net.size())),
+                                Placeholder.parsed("policy", net.routingPolicy().name()))));
+                var rules = logistics.getFilterRules(node.nodeId());
+                if (rules.isEmpty()) {
+                    sender.sendMessage(msg.component("command.logistics.info.empty"));
+                } else {
+                    for (int i = 0; i < rules.size(); i++) {
+                        var rule = rules.get(i);
+                        sender.sendMessage(msg.component("command.logistics.info.rule",
+                                Placeholder.parsed("index", Integer.toString(i)),
+                                Placeholder.parsed("mode", rule.mode().name()),
+                                Placeholder.parsed("pattern", rule.pattern())));
+                    }
+                }
+            }
+            case "policy" -> {
+                if (args.length < 3) {
+                    sender.sendMessage(msg.component("command.logistics.policy.usage"));
+                    return;
+                }
+                if (nodeOpt.isEmpty()) {
+                    sender.sendMessage(msg.component("command.logistics.policy.not-found"));
+                    return;
+                }
+                dev.brmz.sapientia.api.logistics.ItemRoutingPolicy policy;
+                try {
+                    policy = dev.brmz.sapientia.api.logistics.ItemRoutingPolicy
+                            .valueOf(args[2].toUpperCase(Locale.ROOT));
+                } catch (IllegalArgumentException ex) {
+                    sender.sendMessage(msg.component("command.logistics.policy.usage"));
+                    return;
+                }
+                logistics.networkOf(nodeOpt.get()).ifPresent(net ->
+                        logistics.setRoutingPolicy(net.networkId(), policy));
+                sender.sendMessage(msg.component("command.logistics.policy.success",
+                        Placeholder.parsed("policy", policy.name())));
+            }
+            case "filter" -> handleLogisticsFilter(sender, msg, args, nodeOpt);
+            default -> sender.sendMessage(msg.component("command.logistics.usage"));
+        }
+    }
+
+    private void handleFluids(CommandSender sender, Messages msg, String[] args) {
+        if (!sender.hasPermission("sapientia.command.fluids")) {
+            sender.sendMessage(msg.component("command.no-permission"));
+            return;
+        }
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(msg.component("command.players-only"));
+            return;
+        }
+        if (args.length < 2) {
+            sender.sendMessage(msg.component("command.fluids.usage"));
+            return;
+        }
+        org.bukkit.block.Block target = player.getTargetBlockExact(8);
+        var fluids = dev.brmz.sapientia.api.Sapientia.get().fluids();
+        var nodeOpt = target == null ? java.util.Optional.<dev.brmz.sapientia.api.fluids.FluidNode>empty()
+                : fluids.nodeAt(target);
+        switch (args[1].toLowerCase(Locale.ROOT)) {
+            case "info" -> {
+                if (nodeOpt.isEmpty()) {
+                    sender.sendMessage(msg.component("command.fluids.info.none"));
+                    return;
+                }
+                var node = nodeOpt.get();
+                org.bukkit.block.Block b = node.block();
+                int x = b == null ? 0 : b.getX();
+                int y = b == null ? 0 : b.getY();
+                int z = b == null ? 0 : b.getZ();
+                sender.sendMessage(msg.component("command.fluids.info.header",
+                        Placeholder.parsed("x", Integer.toString(x)),
+                        Placeholder.parsed("y", Integer.toString(y)),
+                        Placeholder.parsed("z", Integer.toString(z)),
+                        Placeholder.parsed("node", node.nodeId().toString()),
+                        Placeholder.parsed("type", node.type().name())));
+                fluids.networkOf(node).ifPresent(net ->
+                        sender.sendMessage(msg.component("command.fluids.info.network",
+                                Placeholder.parsed("network", net.networkId().toString()),
+                                Placeholder.parsed("count", Integer.toString(net.size())))));
+                var contents = node.contents();
+                if (contents == null || contents.isEmpty()) {
+                    sender.sendMessage(msg.component("command.fluids.info.empty"));
+                } else {
+                    sender.sendMessage(msg.component("command.fluids.info.tank",
+                            Placeholder.parsed("fluid", contents.type().id().toString()),
+                            Placeholder.parsed("amount", Long.toString(contents.amountMb())),
+                            Placeholder.parsed("capacity", Long.toString(node.capacityMb()))));
+                }
+            }
+            default -> sender.sendMessage(msg.component("command.fluids.usage"));
+        }
+    }
+
+    private void handleLogisticsFilter(CommandSender sender, Messages msg, String[] args,
+                                       java.util.Optional<dev.brmz.sapientia.api.logistics.ItemNode> nodeOpt) {
+        var logistics = dev.brmz.sapientia.api.Sapientia.get().logistics();
+        if (args.length < 3) {
+            sender.sendMessage(msg.component("command.logistics.filter.usage"));
+            return;
+        }
+        if (nodeOpt.isEmpty() || nodeOpt.get().type()
+                != dev.brmz.sapientia.api.logistics.ItemNodeType.FILTER) {
+            sender.sendMessage(msg.component("command.logistics.filter.not-filter"));
+            return;
+        }
+        var node = nodeOpt.get();
+        var rules = new ArrayList<>(logistics.getFilterRules(node.nodeId()));
+        switch (args[2].toLowerCase(Locale.ROOT)) {
+            case "list" -> {
+                if (rules.isEmpty()) {
+                    sender.sendMessage(msg.component("command.logistics.info.empty"));
+                } else {
+                    for (int i = 0; i < rules.size(); i++) {
+                        var rule = rules.get(i);
+                        sender.sendMessage(msg.component("command.logistics.info.rule",
+                                Placeholder.parsed("index", Integer.toString(i)),
+                                Placeholder.parsed("mode", rule.mode().name()),
+                                Placeholder.parsed("pattern", rule.pattern())));
+                    }
+                }
+            }
+            case "clear" -> {
+                logistics.setFilterRules(node.nodeId(), List.of());
+                sender.sendMessage(msg.component("command.logistics.filter.cleared"));
+            }
+            case "remove" -> {
+                if (args.length < 4) {
+                    sender.sendMessage(msg.component("command.logistics.filter.usage"));
+                    return;
+                }
+                int index;
+                try {
+                    index = Integer.parseInt(args[3]);
+                } catch (NumberFormatException ex) {
+                    sender.sendMessage(msg.component("command.logistics.filter.bad-index",
+                            Placeholder.parsed("value", args[3])));
+                    return;
+                }
+                if (index < 0 || index >= rules.size()) {
+                    sender.sendMessage(msg.component("command.logistics.filter.bad-index",
+                            Placeholder.parsed("value", args[3])));
+                    return;
+                }
+                rules.remove(index);
+                // Reindex.
+                List<dev.brmz.sapientia.api.logistics.ItemFilterRule> renum = new ArrayList<>(rules.size());
+                for (int i = 0; i < rules.size(); i++) {
+                    renum.add(new dev.brmz.sapientia.api.logistics.ItemFilterRule(
+                            i, rules.get(i).mode(), rules.get(i).pattern()));
+                }
+                logistics.setFilterRules(node.nodeId(), renum);
+                sender.sendMessage(msg.component("command.logistics.filter.removed",
+                        Placeholder.parsed("index", Integer.toString(index))));
+            }
+            case "add" -> {
+                if (args.length < 5) {
+                    sender.sendMessage(msg.component("command.logistics.filter.usage"));
+                    return;
+                }
+                dev.brmz.sapientia.api.logistics.ItemFilterMode mode;
+                try {
+                    mode = dev.brmz.sapientia.api.logistics.ItemFilterMode
+                            .valueOf(args[3].toUpperCase(Locale.ROOT));
+                } catch (IllegalArgumentException ex) {
+                    sender.sendMessage(msg.component("command.logistics.filter.bad-mode"));
+                    return;
+                }
+                String pattern = args[4];
+                rules.add(new dev.brmz.sapientia.api.logistics.ItemFilterRule(
+                        rules.size(), mode, pattern));
+                logistics.setFilterRules(node.nodeId(), rules);
+                sender.sendMessage(msg.component("command.logistics.filter.added",
+                        Placeholder.parsed("mode", mode.name()),
+                        Placeholder.parsed("pattern", pattern)));
+            }
+            default -> sender.sendMessage(msg.component("command.logistics.filter.usage"));
+        }
+    }
+
     private void handleGive(CommandSender sender, Messages msg, String[] args) {
         if (!sender.hasPermission("sapientia.command.give")) {
             sender.sendMessage(msg.component("command.no-permission"));
@@ -214,6 +433,25 @@ public final class SapientiaRootCommand implements TabExecutor {
         }
         if (args.length == 3 && args[0].equalsIgnoreCase("pack") && args[1].equalsIgnoreCase("build")) {
             return filter(List.of("java", "bedrock", "all"), args[2]);
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("logistics")) {
+            return filter(List.of("info", "policy", "filter"), args[1]);
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("fluids")) {
+            return filter(List.of("info"), args[1]);
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("logistics")) {
+            String sub = args[1].toLowerCase(Locale.ROOT);
+            if (sub.equals("policy")) {
+                return filter(List.of("round_robin", "priority", "first_match"), args[2]);
+            }
+            if (sub.equals("filter")) {
+                return filter(List.of("add", "remove", "clear", "list"), args[2]);
+            }
+        }
+        if (args.length == 4 && args[0].equalsIgnoreCase("logistics")
+                && args[1].equalsIgnoreCase("filter") && args[2].equalsIgnoreCase("add")) {
+            return filter(List.of("whitelist", "blacklist"), args[3]);
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("give")) {
             return filter(Bukkit.getOnlinePlayers().stream()

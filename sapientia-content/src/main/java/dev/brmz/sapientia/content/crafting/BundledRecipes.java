@@ -53,6 +53,81 @@ public final class BundledRecipes {
                         iron(), new RecipeIngredient.Vanilla(Material.REDSTONE_BLOCK, 1), iron()),
                 sapientiaStack(api, new NamespacedKey(plugin, "generator"), 1),
                 GuideCategory.ENERGY);
+
+        // Item logistics (T-300 / 1.1.0)
+        register(api,
+                new NamespacedKey(plugin, "recipe_item_cable"),
+                List.of(
+                        iron(),  redstone(), iron(),
+                        empty(), new RecipeIngredient.Vanilla(Material.IRON_BARS, 1), empty(),
+                        empty(), empty(),    empty()),
+                sapientiaStack(api, new NamespacedKey(plugin, "item_cable"), 4),
+                GuideCategory.LOGISTICS);
+
+        register(api,
+                new NamespacedKey(plugin, "recipe_item_producer"),
+                List.of(
+                        iron(), iron(),    iron(),
+                        iron(), new RecipeIngredient.Vanilla(Material.DROPPER, 1), iron(),
+                        iron(), redstone(), iron()),
+                sapientiaStack(api, new NamespacedKey(plugin, "item_producer"), 1),
+                GuideCategory.LOGISTICS);
+
+        register(api,
+                new NamespacedKey(plugin, "recipe_item_consumer"),
+                List.of(
+                        iron(), iron(),    iron(),
+                        iron(), new RecipeIngredient.Vanilla(Material.HOPPER, 1), iron(),
+                        iron(), redstone(), iron()),
+                sapientiaStack(api, new NamespacedKey(plugin, "item_consumer"), 1),
+                GuideCategory.LOGISTICS);
+
+        register(api,
+                new NamespacedKey(plugin, "recipe_item_filter"),
+                List.of(
+                        iron(),    redstone(), iron(),
+                        redstone(), new RecipeIngredient.Vanilla(Material.IRON_TRAPDOOR, 1), redstone(),
+                        iron(),    redstone(), iron()),
+                sapientiaStack(api, new NamespacedKey(plugin, "item_filter"), 1),
+                GuideCategory.LOGISTICS);
+
+        // Fluid logistics (T-301 / 1.2.0)
+        RecipeIngredient glass = RecipeIngredient.of(Material.GLASS);
+        register(api,
+                new NamespacedKey(plugin, "recipe_fluid_pipe"),
+                List.of(
+                        iron(),  glass,    iron(),
+                        empty(), new RecipeIngredient.Vanilla(Material.IRON_BARS, 1), empty(),
+                        empty(), empty(),  empty()),
+                sapientiaStack(api, new NamespacedKey(plugin, "fluid_pipe"), 4),
+                GuideCategory.LOGISTICS);
+
+        register(api,
+                new NamespacedKey(plugin, "recipe_fluid_pump"),
+                List.of(
+                        iron(),     redstone(), iron(),
+                        glass,      new RecipeIngredient.Vanilla(Material.BLAST_FURNACE, 1), glass,
+                        iron(),     redstone(), iron()),
+                sapientiaStack(api, new NamespacedKey(plugin, "fluid_pump"), 1),
+                GuideCategory.LOGISTICS);
+
+        register(api,
+                new NamespacedKey(plugin, "recipe_fluid_tank"),
+                List.of(
+                        iron(),  glass, iron(),
+                        glass,   glass, glass,
+                        iron(),  glass, iron()),
+                sapientiaStack(api, new NamespacedKey(plugin, "fluid_tank"), 1),
+                GuideCategory.LOGISTICS);
+
+        register(api,
+                new NamespacedKey(plugin, "recipe_fluid_drain"),
+                List.of(
+                        iron(),     redstone(), iron(),
+                        glass,      new RecipeIngredient.Vanilla(Material.SMOKER, 1), glass,
+                        iron(),     redstone(), iron()),
+                sapientiaStack(api, new NamespacedKey(plugin, "fluid_drain"), 1),
+                GuideCategory.LOGISTICS);
     }
 
     private static void register(
