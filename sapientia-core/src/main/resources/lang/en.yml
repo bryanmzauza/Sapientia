@@ -156,6 +156,49 @@ block:
     name: "<gold>Sapientia Fluid Drain</gold>"
     desc: "Pushes fluid each tick into an adjacent vanilla\nsink (cauldron or replaceable air block)."
 
+  cable_t2:
+    name: "<gold>MV Cable</gold>"
+    desc: "MV-tier energy cable. Carries up to 4x the throughput of the LV cable in the same network."
+  capacitor_t2:
+    name: "<gold>MV Capacitor</gold>"
+    desc: "MV-tier bulk energy buffer. 4x the capacity of the LV capacitor."
+  transformer_lv_mv:
+    name: "<gold>LV/MV Transformer</gold>"
+    desc: "Bridges an LV network to an MV network. Steps voltage up or down without burning cables."
+  machine_casing:
+    name: "<gold>Machine Casing</gold>"
+    desc: "Shared LV-tier casing. Used as the core ingredient in every LV machine recipe."
+  machine_casing_mv:
+    name: "<gold>MV Machine Casing</gold>"
+    desc: "Shared MV-tier casing. Used as the core ingredient in every MV machine recipe and the induction furnace."
+  macerator:
+    name: "<gold>Macerator</gold>"
+    desc: "LV-tier machine. Grinds raw ore into 2x dust."
+  ore_washer:
+    name: "<gold>Ore Washer</gold>"
+    desc: "LV-tier machine. Washes dust to remove impurities and recover byproducts."
+  electric_furnace:
+    name: "<gold>Electric Furnace</gold>"
+    desc: "LV-tier machine. Smelts dust into ingot at twice the speed of a vanilla furnace."
+  mixer:
+    name: "<gold>Mixer</gold>"
+    desc: "MV-tier machine. Combines two metal dusts into an alloy dust (bronze, brass, electrum)."
+  compressor:
+    name: "<gold>Compressor</gold>"
+    desc: "MV-tier machine. Compacts plates and dusts into denser forms."
+  bench_saw:
+    name: "<gold>Bench Saw</gold>"
+    desc: "LV-tier machine. Cuts rods into gears and screws."
+  plate_press:
+    name: "<gold>Plate Press</gold>"
+    desc: "MV-tier machine. Rolls ingots into plates."
+  extractor:
+    name: "<gold>Extractor</gold>"
+    desc: "MV-tier machine. Draws ingots into wire."
+  induction_furnace_controller:
+    name: "<gold>Induction Furnace Controller</gold>"
+    desc: "MV multiblock controller. Surround with a 3x3x3 shell of MV machine casing or smooth basalt to form the structure."
+
 fluid:
   water:
     name: "<aqua>Water</aqua>"
@@ -204,3 +247,161 @@ ui:
     policy: "<aqua>Routing:</aqua> <white><policy></white>"
     rule:
       line: "<gray><mode>:</gray> <white><pattern></white>"
+
+metal:
+  copper_raw:
+    name: "<gold>Raw Copper</gold>"
+  copper_dust:
+    name: "<gold>Copper Dust</gold>"
+  copper_ingot:
+    name: "<gold>Copper Ingot</gold>"
+  copper_block:
+    name: "<gold>Block of Copper</gold>"
+  copper_plate:
+    name: "<gold>Copper Plate</gold>"
+  copper_wire:
+    name: "<gold>Copper Wire</gold>"
+  copper_rod:
+    name: "<gold>Copper Rod</gold>"
+  copper_gear:
+    name: "<gold>Copper Gear</gold>"
+  copper_screw:
+    name: "<gold>Copper Screw</gold>"
+  tin_raw:
+    name: "<white>Raw Tin</white>"
+  tin_dust:
+    name: "<white>Tin Dust</white>"
+  tin_ingot:
+    name: "<white>Tin Ingot</white>"
+  tin_block:
+    name: "<white>Block of Tin</white>"
+  tin_plate:
+    name: "<white>Tin Plate</white>"
+  tin_wire:
+    name: "<white>Tin Wire</white>"
+  tin_rod:
+    name: "<white>Tin Rod</white>"
+  tin_gear:
+    name: "<white>Tin Gear</white>"
+  tin_screw:
+    name: "<white>Tin Screw</white>"
+  zinc_raw:
+    name: "<gray>Raw Zinc</gray>"
+  zinc_dust:
+    name: "<gray>Zinc Dust</gray>"
+  zinc_ingot:
+    name: "<gray>Zinc Ingot</gray>"
+  zinc_block:
+    name: "<gray>Block of Zinc</gray>"
+  zinc_plate:
+    name: "<gray>Zinc Plate</gray>"
+  zinc_wire:
+    name: "<gray>Zinc Wire</gray>"
+  zinc_rod:
+    name: "<gray>Zinc Rod</gray>"
+  zinc_gear:
+    name: "<gray>Zinc Gear</gray>"
+  zinc_screw:
+    name: "<gray>Zinc Screw</gray>"
+  lead_raw:
+    name: "<dark_gray>Raw Lead</dark_gray>"
+  lead_dust:
+    name: "<dark_gray>Lead Dust</dark_gray>"
+  lead_ingot:
+    name: "<dark_gray>Lead Ingot</dark_gray>"
+  lead_block:
+    name: "<dark_gray>Block of Lead</dark_gray>"
+  lead_plate:
+    name: "<dark_gray>Lead Plate</dark_gray>"
+  lead_wire:
+    name: "<dark_gray>Lead Wire</dark_gray>"
+  lead_rod:
+    name: "<dark_gray>Lead Rod</dark_gray>"
+  lead_gear:
+    name: "<dark_gray>Lead Gear</dark_gray>"
+  lead_screw:
+    name: "<dark_gray>Lead Screw</dark_gray>"
+  silver_raw:
+    name: "<white>Raw Silver</white>"
+  silver_dust:
+    name: "<white>Silver Dust</white>"
+  silver_ingot:
+    name: "<white>Silver Ingot</white>"
+  silver_block:
+    name: "<white>Block of Silver</white>"
+  silver_plate:
+    name: "<white>Silver Plate</white>"
+  silver_wire:
+    name: "<white>Silver Wire</white>"
+  silver_rod:
+    name: "<white>Silver Rod</white>"
+  silver_gear:
+    name: "<white>Silver Gear</white>"
+  silver_screw:
+    name: "<white>Silver Screw</white>"
+  nickel_raw:
+    name: "<yellow>Raw Nickel</yellow>"
+  nickel_dust:
+    name: "<yellow>Nickel Dust</yellow>"
+  nickel_ingot:
+    name: "<yellow>Nickel Ingot</yellow>"
+  nickel_block:
+    name: "<yellow>Block of Nickel</yellow>"
+  nickel_plate:
+    name: "<yellow>Nickel Plate</yellow>"
+  nickel_wire:
+    name: "<yellow>Nickel Wire</yellow>"
+  nickel_rod:
+    name: "<yellow>Nickel Rod</yellow>"
+  nickel_gear:
+    name: "<yellow>Nickel Gear</yellow>"
+  nickel_screw:
+    name: "<yellow>Nickel Screw</yellow>"
+  bronze_dust:
+    name: "<gold>Bronze Dust</gold>"
+  bronze_ingot:
+    name: "<gold>Bronze Ingot</gold>"
+  bronze_block:
+    name: "<gold>Block of Bronze</gold>"
+  bronze_plate:
+    name: "<gold>Bronze Plate</gold>"
+  bronze_wire:
+    name: "<gold>Bronze Wire</gold>"
+  bronze_rod:
+    name: "<gold>Bronze Rod</gold>"
+  bronze_gear:
+    name: "<gold>Bronze Gear</gold>"
+  bronze_screw:
+    name: "<gold>Bronze Screw</gold>"
+  brass_dust:
+    name: "<yellow>Brass Dust</yellow>"
+  brass_ingot:
+    name: "<yellow>Brass Ingot</yellow>"
+  brass_block:
+    name: "<yellow>Block of Brass</yellow>"
+  brass_plate:
+    name: "<yellow>Brass Plate</yellow>"
+  brass_wire:
+    name: "<yellow>Brass Wire</yellow>"
+  brass_rod:
+    name: "<yellow>Brass Rod</yellow>"
+  brass_gear:
+    name: "<yellow>Brass Gear</yellow>"
+  brass_screw:
+    name: "<yellow>Brass Screw</yellow>"
+  electrum_dust:
+    name: "<aqua>Electrum Dust</aqua>"
+  electrum_ingot:
+    name: "<aqua>Electrum Ingot</aqua>"
+  electrum_block:
+    name: "<aqua>Block of Electrum</aqua>"
+  electrum_plate:
+    name: "<aqua>Electrum Plate</aqua>"
+  electrum_wire:
+    name: "<aqua>Electrum Wire</aqua>"
+  electrum_rod:
+    name: "<aqua>Electrum Rod</aqua>"
+  electrum_gear:
+    name: "<aqua>Electrum Gear</aqua>"
+  electrum_screw:
+    name: "<aqua>Electrum Screw</aqua>"

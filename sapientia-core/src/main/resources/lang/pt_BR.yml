@@ -156,6 +156,49 @@ block:
     name: "<gold>Dreno Sapientia</gold>"
     desc: "Despeja fluido a cada tick em um destino vanilla\nadjacente (caldeirao ou bloco de ar substituivel)."
 
+  cable_t2:
+    name: "<gold>Cabo MV</gold>"
+    desc: "Cabo de energia tier MV. Carrega ate 4x a vazao do cabo LV na mesma rede."
+  capacitor_t2:
+    name: "<gold>Capacitor MV</gold>"
+    desc: "Buffer de energia em massa tier MV. 4x a capacidade do capacitor LV."
+  transformer_lv_mv:
+    name: "<gold>Transformador LV/MV</gold>"
+    desc: "Conecta uma rede LV a uma rede MV. Faz step-up ou step-down sem queimar cabos."
+  machine_casing:
+    name: "<gold>Carcaca de Maquina</gold>"
+    desc: "Carcaca compartilhada tier LV. Usada como nucleo em toda receita de maquina LV."
+  machine_casing_mv:
+    name: "<gold>Carcaca de Maquina MV</gold>"
+    desc: "Carcaca compartilhada tier MV. Nucleo de toda maquina MV e do forno de inducao."
+  macerator:
+    name: "<gold>Britador</gold>"
+    desc: "Maquina tier LV. Tritura minerio bruto em 2x po."
+  ore_washer:
+    name: "<gold>Lavador de Minerio</gold>"
+    desc: "Maquina tier LV. Lava o po removendo impurezas e recuperando subprodutos."
+  electric_furnace:
+    name: "<gold>Forno Eletrico</gold>"
+    desc: "Maquina tier LV. Funde po em lingote ao dobro da velocidade do forno vanilla."
+  mixer:
+    name: "<gold>Misturador</gold>"
+    desc: "Maquina tier MV. Combina dois pos metalicos em po de liga (bronze, latao, eletro)."
+  compressor:
+    name: "<gold>Compressor</gold>"
+    desc: "Maquina tier MV. Compacta placas e pos em formas mais densas."
+  bench_saw:
+    name: "<gold>Serra de Bancada</gold>"
+    desc: "Maquina tier LV. Corta hastes em engrenagens e parafusos."
+  plate_press:
+    name: "<gold>Prensa de Placas</gold>"
+    desc: "Maquina tier MV. Lamina lingotes em placas."
+  extractor:
+    name: "<gold>Extrusora</gold>"
+    desc: "Maquina tier MV. Extruda lingotes em fios."
+  induction_furnace_controller:
+    name: "<gold>Controlador do Forno de Inducao</gold>"
+    desc: "Controlador multibloco MV. Cerque com uma casca 3x3x3 de carcaca MV ou basalto liso para formar a estrutura."
+
 fluid:
   water:
     name: "<aqua>Agua</aqua>"
@@ -204,3 +247,161 @@ ui:
     policy: "<aqua>Roteamento:</aqua> <white><policy></white>"
     rule:
       line: "<gray><mode>:</gray> <white><pattern></white>"
+
+metal:
+  copper_raw:
+    name: "<gold>Cobre Bruto</gold>"
+  copper_dust:
+    name: "<gold>Po de Cobre</gold>"
+  copper_ingot:
+    name: "<gold>Lingote de Cobre</gold>"
+  copper_block:
+    name: "<gold>Bloco de Cobre</gold>"
+  copper_plate:
+    name: "<gold>Placa de Cobre</gold>"
+  copper_wire:
+    name: "<gold>Fio de Cobre</gold>"
+  copper_rod:
+    name: "<gold>Haste de Cobre</gold>"
+  copper_gear:
+    name: "<gold>Engrenagem de Cobre</gold>"
+  copper_screw:
+    name: "<gold>Parafuso de Cobre</gold>"
+  tin_raw:
+    name: "<white>Estanho Bruto</white>"
+  tin_dust:
+    name: "<white>Po de Estanho</white>"
+  tin_ingot:
+    name: "<white>Lingote de Estanho</white>"
+  tin_block:
+    name: "<white>Bloco de Estanho</white>"
+  tin_plate:
+    name: "<white>Placa de Estanho</white>"
+  tin_wire:
+    name: "<white>Fio de Estanho</white>"
+  tin_rod:
+    name: "<white>Haste de Estanho</white>"
+  tin_gear:
+    name: "<white>Engrenagem de Estanho</white>"
+  tin_screw:
+    name: "<white>Parafuso de Estanho</white>"
+  zinc_raw:
+    name: "<gray>Zinco Bruto</gray>"
+  zinc_dust:
+    name: "<gray>Po de Zinco</gray>"
+  zinc_ingot:
+    name: "<gray>Lingote de Zinco</gray>"
+  zinc_block:
+    name: "<gray>Bloco de Zinco</gray>"
+  zinc_plate:
+    name: "<gray>Placa de Zinco</gray>"
+  zinc_wire:
+    name: "<gray>Fio de Zinco</gray>"
+  zinc_rod:
+    name: "<gray>Haste de Zinco</gray>"
+  zinc_gear:
+    name: "<gray>Engrenagem de Zinco</gray>"
+  zinc_screw:
+    name: "<gray>Parafuso de Zinco</gray>"
+  lead_raw:
+    name: "<dark_gray>Chumbo Bruto</dark_gray>"
+  lead_dust:
+    name: "<dark_gray>Po de Chumbo</dark_gray>"
+  lead_ingot:
+    name: "<dark_gray>Lingote de Chumbo</dark_gray>"
+  lead_block:
+    name: "<dark_gray>Bloco de Chumbo</dark_gray>"
+  lead_plate:
+    name: "<dark_gray>Placa de Chumbo</dark_gray>"
+  lead_wire:
+    name: "<dark_gray>Fio de Chumbo</dark_gray>"
+  lead_rod:
+    name: "<dark_gray>Haste de Chumbo</dark_gray>"
+  lead_gear:
+    name: "<dark_gray>Engrenagem de Chumbo</dark_gray>"
+  lead_screw:
+    name: "<dark_gray>Parafuso de Chumbo</dark_gray>"
+  silver_raw:
+    name: "<white>Prata Bruto</white>"
+  silver_dust:
+    name: "<white>Po de Prata</white>"
+  silver_ingot:
+    name: "<white>Lingote de Prata</white>"
+  silver_block:
+    name: "<white>Bloco de Prata</white>"
+  silver_plate:
+    name: "<white>Placa de Prata</white>"
+  silver_wire:
+    name: "<white>Fio de Prata</white>"
+  silver_rod:
+    name: "<white>Haste de Prata</white>"
+  silver_gear:
+    name: "<white>Engrenagem de Prata</white>"
+  silver_screw:
+    name: "<white>Parafuso de Prata</white>"
+  nickel_raw:
+    name: "<yellow>Niquel Bruto</yellow>"
+  nickel_dust:
+    name: "<yellow>Po de Niquel</yellow>"
+  nickel_ingot:
+    name: "<yellow>Lingote de Niquel</yellow>"
+  nickel_block:
+    name: "<yellow>Bloco de Niquel</yellow>"
+  nickel_plate:
+    name: "<yellow>Placa de Niquel</yellow>"
+  nickel_wire:
+    name: "<yellow>Fio de Niquel</yellow>"
+  nickel_rod:
+    name: "<yellow>Haste de Niquel</yellow>"
+  nickel_gear:
+    name: "<yellow>Engrenagem de Niquel</yellow>"
+  nickel_screw:
+    name: "<yellow>Parafuso de Niquel</yellow>"
+  bronze_dust:
+    name: "<gold>Po de Bronze</gold>"
+  bronze_ingot:
+    name: "<gold>Lingote de Bronze</gold>"
+  bronze_block:
+    name: "<gold>Bloco de Bronze</gold>"
+  bronze_plate:
+    name: "<gold>Placa de Bronze</gold>"
+  bronze_wire:
+    name: "<gold>Fio de Bronze</gold>"
+  bronze_rod:
+    name: "<gold>Haste de Bronze</gold>"
+  bronze_gear:
+    name: "<gold>Engrenagem de Bronze</gold>"
+  bronze_screw:
+    name: "<gold>Parafuso de Bronze</gold>"
+  brass_dust:
+    name: "<yellow>Po de Latao</yellow>"
+  brass_ingot:
+    name: "<yellow>Lingote de Latao</yellow>"
+  brass_block:
+    name: "<yellow>Bloco de Latao</yellow>"
+  brass_plate:
+    name: "<yellow>Placa de Latao</yellow>"
+  brass_wire:
+    name: "<yellow>Fio de Latao</yellow>"
+  brass_rod:
+    name: "<yellow>Haste de Latao</yellow>"
+  brass_gear:
+    name: "<yellow>Engrenagem de Latao</yellow>"
+  brass_screw:
+    name: "<yellow>Parafuso de Latao</yellow>"
+  electrum_dust:
+    name: "<aqua>Po de Eletro</aqua>"
+  electrum_ingot:
+    name: "<aqua>Lingote de Eletro</aqua>"
+  electrum_block:
+    name: "<aqua>Bloco de Eletro</aqua>"
+  electrum_plate:
+    name: "<aqua>Placa de Eletro</aqua>"
+  electrum_wire:
+    name: "<aqua>Fio de Eletro</aqua>"
+  electrum_rod:
+    name: "<aqua>Haste de Eletro</aqua>"
+  electrum_gear:
+    name: "<aqua>Engrenagem de Eletro</aqua>"
+  electrum_screw:
+    name: "<aqua>Parafuso de Eletro</aqua>"
