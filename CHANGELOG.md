@@ -2,7 +2,41 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and SemVer.
 
-## [0.5.0] — YAML overrides & resource pack 🎛️ (in progress)
+## [1.0.0-beta] — Java MVP polish ⚡
+
+Sixth milestone. Release-grade quality: continuous benchmarking and a
+regression gate so performance targets from `docs/performance-contract.md`
+stay honest between releases.
+
+### Added
+- `sapientia-benchmarks` module with a JMH harness. Run via
+  `./gradlew :sapientia-benchmarks:jmh` (T-170).
+  - `NetworkGraphBenchmark.buildGraph500Nodes` — 500-node energy graph
+    rebuild, covering P-003 at the graph layer (current: ~78 µs/op, budget
+    5 ms).
+  - `TickBucketBenchmark.dispatchOneBucket` — 20 000 tickables across 20
+    buckets, covering P-007 (current: ~1.3 µs/op, budget 250 µs/bucket).
+- `compareToBaseline` Gradle task (T-171): reads the latest JMH JSON report
+  and fails the build when any benchmark regresses more than 10 % versus
+  `docs/benchmarks/baseline.json`. Missing-from-baseline benchmarks are
+  informational.
+- `saveBenchmarkBaseline` Gradle task: promotes the latest JMH result to the
+  committed baseline.
+- `TickBucketing#runOneTickForBenchmark()` — benchmark-only entry point
+  around `runOneTick()` so JMH can exercise the dispatcher without wiring a
+  Paper scheduler.
+- README "Running benchmarks" section (T-172).
+
+### Notes
+- Solver-level bench (`EnergySolver.tick`) deferred until the Bukkit
+  event-bus dependency is mockable; P-003 coverage retained at the graph
+  layer.
+- P-006 `WriteBehindQueue` bench deferred (requires in-memory DataSource
+  harness).
+- JMH's annotation processor emits JDK-25 bytecode, so the `:jmh` `JavaExec`
+  task pins its launcher to the Java 25 toolchain.
+
+## [0.5.0] — YAML overrides & resource pack 🎛️ ✅
 
 Fifth milestone. Operators can retune the Java-defined catalog at runtime via
 three focused YAML files and ship a Java resource pack without touching the

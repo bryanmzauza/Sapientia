@@ -79,6 +79,15 @@ public final class TickBucketing {
         return registry.size();
     }
 
+    /**
+     * Benchmark-only entry point that dispatches a single tick to the current
+     * bucket without requiring the background scheduler (T-170 / 1.0.0-beta).
+     * Runtime callers should use {@link #start()} instead.
+     */
+    public void runOneTickForBenchmark() {
+        runOneTick();
+    }
+
     private void runOneTick() {
         long tick = tickCounter++;
         int bucketIndex = (int) Math.floorMod(tick, BUCKET_COUNT);

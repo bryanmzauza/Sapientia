@@ -34,6 +34,16 @@ Created and maintained by **[BRMZ.dev](https://brmz.dev)**.
 
 The shadow JAR lands in `sapientia-core/build/libs/sapientia-core-<version>.jar`. Drop it into the server's `plugins/` folder.
 
+## Running benchmarks
+
+```powershell
+./gradlew :sapientia-benchmarks:jmh                    # runs the JMH harness
+./gradlew :sapientia-benchmarks:compareToBaseline       # fails if any bench regresses >10 % vs docs/benchmarks/baseline.json
+./gradlew :sapientia-benchmarks:saveBenchmarkBaseline   # promote the latest result to the committed baseline
+```
+
+Current benches cover P-003 (energy graph rebuild, 500 nodes) and P-007 (tick bucket dispatch, 20 000 tickables across 20 buckets). See [docs/performance-contract.md](docs/performance-contract.md).
+
 ## Layout
 
 ```
