@@ -726,3 +726,62 @@ component:
     name: "<gray>Hard Disk Drive</gray>"
   storage_ssd:
     name: "<aqua>Solid State Drive</aqua>"
+android:
+  block:
+    android_farmer:
+      name: "<green>Farmer Android</green>"
+      desc: "Programmable harvesting drone. Scans the surrounding chunk for mature crops on every tick of its DAG program (kinetic loop ships in 1.9.1)."
+    android_lumberjack:
+      name: "<dark_green>Lumberjack Android</dark_green>"
+      desc: "Fells trees and replants saplings. 1.9.0 ships the catalogue + caps; tree topology scan ships in 1.9.1."
+    android_miner:
+      name: "<gray>Miner Android</gray>"
+      desc: "Drills downward from its base block. Loot follows simulated tables driven by the assigned program."
+    android_fisherman:
+      name: "<aqua>Fisherman Android</aqua>"
+      desc: "Cast-and-reel automation against any adjacent water source."
+    android_butcher:
+      name: "<red>Butcher Android</red>"
+      desc: "Simulated mob loot generator. ADR-021 documents the no-real-mob policy."
+    android_builder:
+      name: "<gold>Builder Android</gold>"
+      desc: "Replays a saved schematic block by block."
+    android_slayer:
+      name: "<dark_red>Slayer Android</dark_red>"
+      desc: "Combat drone. Damage and loot are produced from simulated tables — no real mob targeting."
+    android_trader:
+      name: "<green>Trader Android</green>"
+      desc: "Configurable item exchange. Item sourcing wires through the logistics layer in 1.9.1."
+  upgrade:
+    ai_chip_t1:
+      name: "<gray>AI Chip T1</gray>"
+    ai_chip_t2:
+      name: "<yellow>AI Chip T2</yellow>"
+    ai_chip_t3:
+      name: "<aqua>AI Chip T3</aqua>"
+    ai_chip_t4:
+      name: "<light_purple>AI Chip T4</light_purple>"
+    motor_chip_t1:
+      name: "<gray>Motor Chip T1</gray>"
+    motor_chip_t2:
+      name: "<yellow>Motor Chip T2</yellow>"
+    motor_chip_t3:
+      name: "<aqua>Motor Chip T3</aqua>"
+    motor_chip_t4:
+      name: "<light_purple>Motor Chip T4</light_purple>"
+    armour_plate_t1:
+      name: "<gray>Armour Plate T1</gray>"
+    armour_plate_t2:
+      name: "<yellow>Armour Plate T2</yellow>"
+    armour_plate_t3:
+      name: "<aqua>Armour Plate T3</aqua>"
+    armour_plate_t4:
+      name: "<light_purple>Armour Plate T4</light_purple>"
+    fuel_module_t1:
+      name: "<gray>Fuel Module T1</gray>"
+    fuel_module_t2:
+      name: "<yellow>Fuel Module T2</yellow>"
+    fuel_module_t3:
+      name: "<aqua>Fuel Module T3</aqua>"
+    fuel_module_t4:
+      name: "<light_purple>Fuel Module T4</light_purple>"

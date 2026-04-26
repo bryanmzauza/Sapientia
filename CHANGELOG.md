@@ -2,6 +2,97 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and SemVer.
 
+## [1.9.0] — Androids 🤖 (catalogue) ✅
+
+Mirrors the 1.4.0 → 1.4.1, 1.5.0 → 1.5.1, 1.6.0 → 1.6.1, 1.7.0 → 1.7.1 and
+1.8.0 → 1.8.1 split convention. 1.9.0 ships the **catalogue + caps +
+persistence + event scaffolding** for the 8 androids; the kinetic AI loop
+(scan, replant, schematic playback, simulated loot, upgrade effects, full
+DAG editor UI, P-020 benchmark) is reserved for 1.9.1.
+
+### Added
+
+- **8 android blocks** (T-451 / T-452, `sapientia-content`):
+  `android_farmer`, `android_lumberjack`, `android_miner`,
+  `android_fisherman`, `android_butcher`, `android_builder`,
+  `android_slayer`, `android_trader`. Each is an `AndroidContentBlock`
+  that registers an `AndroidNode` with `AndroidService` on place and
+  removes it on break.
+- **16 android upgrade items** (T-454, `sapientia-content`):
+  `AndroidUpgradeItem` enum × `AndroidUpgradeContentItem` registered by
+  `AndroidUpgradeCatalog` — 4 kinds (`ai_chip`, `motor_chip`,
+  `armour_plate`, `fuel_module`) × 4 tiers. Craftable via
+  `AndroidRecipes`; behavioural effects light up in 1.9.1.
+- **Public API surface** (`sapientia-api`):
+  - `dev.brmz.sapientia.api.android.AndroidType` — 8-value enum with
+    stable `idBase()`.
+  - `AndroidUpgradeKind` — 4-value enum (`AI_CHIP`, `MOTOR`, `ARMOUR`,
+    `FUEL_MODULE`).
+  - `AndroidUpgrade` — `record(kind, tier)` validating tier ∈ [1, 4].
+  - `AndroidNode` + `AndroidService` —
+    `addNode` / `removeNode` / `nodeAt` / `all` / `countInChunk` /
+    `totalCount` / `assignProgram` / `clearProgram` / `setUpgrade` /
+    `chunkCap` / `serverCap`.
+  - `SapientiaAPI.androids()` returns the bound implementation.
+- **`SapientiaAndroidTickEvent`** (cancellable, `HandlerList`,
+  matching the `SapientiaItemPackagedEvent` pattern from 1.8.1) —
+  fired once per android per tick by the placeholder ticker so addons
+  can wire listeners ahead of the 1.9.1 kinetic loop.
+- **`AndroidServiceImpl` + `AndroidStore` + `AndroidTicker` +
+  `AndroidCapsListener`** (`sapientia-core`):
+  - V009 migration creates the `androids` table (composite PK
+    `world / x / y / z` + `idx_androids_chunk` per-chunk index).
+  - `AndroidConfig` (pure POJO) reads `androids.cap.server` from
+    `config.yml`, defaults to 200, clamps to `[1, 5_000]`.
+  - `AndroidCaps.CHUNK_CAP = 4` — locked invariant.
+  - `AndroidTicker.INSTRUCTIONS_PER_TICK_CAP = 1` — T-451 contract guard.
+  - `AndroidCapsListener` cancels `SapientiaBlockPlaceEvent` at
+    `EventPriority.HIGH` whenever the chunk or server cap is exhausted.
+- **i18n** — 24 new keys per locale (8 block names + 16 upgrade names)
+  under a dedicated `android:` top-level section in `en.yml` and
+  `pt_BR.yml`. `verifyTranslations` reports 446 keys aligned per locale.
+- **`docs/content-spec-T-45x.md`** — full catalogue, recipe summary, cap +
+  persistence contract, deferred 1.9.1 surface.
+- **ADR-021** (`docs/decision-log.md`) — slayer melee policy: loot
+  puramente simulado (alinhado com `mob_simulator`), sem mob real
+  targeting. Deixa a porta aberta para um flag opt-in
+  `androids.slayer.realmob: true` se a comunidade exigir.
+
+### Tests
+
+- `AndroidConfigTest` — defaults match spec, MIN/MAX clamping (mirrors
+  `LogisticsConfigTest` from 1.8.1).
+- `AndroidCapsTest` — `CHUNK_CAP == 4` invariant.
+- `AndroidTickerTest` — `INSTRUCTIONS_PER_TICK_CAP == 1` invariant.
+
+### Wiring
+
+- `SapientiaPlugin#onEnable()` instantiates `AndroidConfig`,
+  `AndroidStore`, `AndroidServiceImpl`, `AndroidTicker`; calls
+  `Sapientia.register(this)` first so that `Sapientia.get().androids()`
+  is available before `AndroidServiceImpl#hydrate()` and
+  `AndroidCapsListener` registration; schedules the ticker with offset
+  delay 21 ticks and period 1 tick.
+- `ContentBootstrap.registerAll` registers `AndroidUpgradeCatalog` first,
+  then the 8 android blocks, then `AndroidRecipes`.
+
+### Deferred to 1.9.1 (kinetic loop)
+
+- T-453 full DAG editor UI (Java inventory + Bedrock fallback flat-list).
+- T-454-effects — chip / motor / armour / fuel scaling becomes observable.
+- T-455 simulated loot tables for slayer / butcher.
+- Per-archetype kinetic behaviour (scan, replant, mine, schematic,
+  melee, trade).
+- T-459 P-020 benchmark — 200 androids / tick budget.
+- Comparator + fluid-level sensor logic-runtime read (originally deferred
+  from 1.8.1) — wires in as an instruction input source.
+
+### Build
+
+- `gradlew build verifyTranslations` BUILD SUCCESSFUL.
+
+---
+
 ## [1.8.1] — Advanced logistics kinetic loop 🔁 ✅
 
 Mirrors the 1.4.0 → 1.4.1, 1.5.0 → 1.5.1, 1.6.0 → 1.6.1 and 1.7.0 → 1.7.1 splits:

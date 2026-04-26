@@ -404,24 +404,40 @@ Cross-cutting rules for every milestone below:
 
 ---
 
-## 1.9.0 — Androids ⏳
+## 1.9.0 — Androids 🤖 (catálogo) ✅
 
-**Goal.** Programmable autonomous workers — the public face of T-302.
+**Goal.** Catálogo + caps + persistência + scaffolding de evento dos 8 androids. O loop cinético (loot real, schematic builder, melee, comércio, editor DAG) fica reservado para 1.9.1, espelhando o split 1.8.0/1.8.1.
 
-> Hard dependency on 1.3.0 (DAG runtime). Cannot start until T-302 lands.
+> Hard dependency on 1.3.0 (DAG runtime). Atendido.
 
-- ⏳ T-451 Android base — `SapientiaAndroid` block-entity with bucketed instruction execution (1 instr/tick max per android)
-- ⏳ T-452 Android types — `farmer`, `lumberjack`, `miner`, `fisherman`, `butcher`, `builder`, `slayer`, `trader`
-- ⏳ T-453 Programming UI — DAG editor (Java inventory) + Bedrock fallback flat-list editor
-- ⏳ T-454 Upgrades — AI chip T1-T4 (radius), motor (speed), armour (HP), fuel module (biofuel ↔ SU)
-- ⏳ T-455 Loot simulation — slayer/butcher use simulated loot tables (no real mob spawn) — same approach as `mob_simulator`
-- ⏳ T-456 Caps — hard cap 4 androids/chunk + configurable server-wide cap (default 200)
-- ⏳ T-457 ADR — slayer melee policy (target real mobs in fixed radius vs purely simulated)
-- ⏳ T-458 Tests — DAG cycle detection rejection, instruction budget enforcement, chunk cap enforcement
-- ⏳ T-459 Benchmark P-020 — 200 androids/server-wide tick budget
-- ⏳ T-460 Content spec + recipes + guide entries
+- ✅ T-451 Android base — `AndroidNode` + `AndroidServiceImpl` + `AndroidTicker` com `INSTRUCTIONS_PER_TICK_CAP = 1` (loop cinético em 1.9.1)
+- ✅ T-452 Android types — `farmer`, `lumberjack`, `miner`, `fisherman`, `butcher`, `builder`, `slayer`, `trader` (placement + persistência V009)
+- ⏳ T-453 Programming UI — DAG editor (Java inventory) + Bedrock fallback flat-list editor — *deferred to **1.9.1***
+- ✅ T-454 Upgrades — AI chip T1-T4, motor T1-T4, armour T1-T4, fuel module T1-T4 (16 itens craftáveis); efeitos vivos chegam em 1.9.1
+- ⏳ T-455 Loot simulation — slayer/butcher use simulated loot tables (no real mob spawn) — *deferred to **1.9.1**, política travada em ADR-021*
+- ✅ T-456 Caps — hard cap 4 androids/chunk (`AndroidCaps.CHUNK_CAP`) + configurable server-wide cap (`AndroidConfig`, default 200)
+- ✅ T-457 ADR-021 — slayer melee policy (loot puramente simulado, alinhado com `mob_simulator`)
+- ✅ T-458 Tests — `AndroidConfigTest`, `AndroidCapsTest`, `AndroidTickerTest` (rejection de ciclo DAG já coberta por `LogicCompilerTest` desde 1.3.0)
+- ⏳ T-459 Benchmark P-020 — 200 androids/server-wide tick budget — *deferred to **1.9.1** quando o tick real existe; placeholder em `sapientia-benchmarks`*
+- ✅ T-460 Content spec + recipes + guide entries — `docs/content-spec-T-45x.md`, `AndroidRecipes`, 24 chaves i18n por locale
 
-**Exit gate:** 8 android types craftable, programmable and persistent; performance contract met with 200 active androids; Bedrock fallback editor functional.
+**Exit gate:** ✅ `gradlew build verifyTranslations` BUILD SUCCESSFUL com 8 android blocks + 16 upgrade items registrados; V009 migra; `AndroidCapsListener` cancela placement acima dos caps; `SapientiaAndroidTickEvent` (cancellable) embarcado para addons.
+
+---
+
+## 1.9.1 — Androids kinetic loop 🤖 ⏳
+
+**Goal.** Acende o loop cinético dos androids: cada tipo passa a executar trabalho real (scan, replant, mineração, schematic, loot, troca), o editor DAG ganha UI completa e os upgrades passam a ter efeito mensurável. Mesma arquitetura de split usada em 1.8.0 → 1.8.1.
+
+- ⏳ T-453 Programming UI — DAG editor (Java inventory) + Bedrock fallback flat-list editor (canvas T-302l)
+- ⏳ T-455 Loot simulation — slayer/butcher rodam tabelas de loot simulado conforme ADR-021
+- ⏳ T-454-effects — AI chip aumenta raio de scan, motor reduz cooldown entre instruções, armour aplica HP e dano-resistido, fuel module troca biofuel/SU pelo buffer interno
+- ⏳ Farmer crop scan + replant; lumberjack tree-fell + replant; miner virtual mining loop; fisherman water-source loot loop; builder schematic playback; trader item-exchange loop
+- ⏳ T-459 Benchmark P-020 — 200 androids/server-wide tick budget (≥ 18 TPS)
+- ⏳ Comparator sensor + fluid level sensor logic-runtime read (deferred from 1.8.1) — vira input de instrução do android
+- ⏳ Hook do `SapientiaAndroidTickEvent` no loop real (já cancellable desde 1.9.0)
+
+**Exit gate:** 8 androids realizam trabalho determinista; editor DAG completo; P-020 verde; addons conseguem cancelar/instrumentar via `SapientiaAndroidTickEvent`.
 
 ---
 

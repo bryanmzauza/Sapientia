@@ -7,6 +7,7 @@ import dev.brmz.sapientia.api.PlatformType;
 import dev.brmz.sapientia.api.Sapientia;
 import dev.brmz.sapientia.api.SapientiaAPI;
 import dev.brmz.sapientia.api.Version;
+import dev.brmz.sapientia.api.android.AndroidService;
 import dev.brmz.sapientia.api.block.SapientiaBlock;
 import dev.brmz.sapientia.api.crafting.RecipeRegistry;
 import dev.brmz.sapientia.api.energy.EnergyNode;
@@ -106,6 +107,9 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
     private dev.brmz.sapientia.core.geo.GeoTicker geoTicker;
     private dev.brmz.sapientia.core.logistics.LogisticsTicker logisticsTicker;
     private dev.brmz.sapientia.core.logistics.LogisticsConfig logisticsConfig;
+    private dev.brmz.sapientia.core.android.AndroidServiceImpl androidService;
+    private dev.brmz.sapientia.core.android.AndroidTicker androidTicker;
+    private dev.brmz.sapientia.core.android.AndroidConfig androidConfig;
 
     @Override
     public void onEnable() {
@@ -201,6 +205,18 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
                 getLogger(), new LogicProgramStore(getLogger(), database.dataSource()));
         this.logicService.hydrate();
 
+        // Android service (T-451 / T-456 / 1.9.0). Hydrate is deferred until
+        // after Sapientia.register() so onPlace lookups via Sapientia.get()
+        // succeed for any chunk that was already loaded at enable time.
+        this.androidConfig  = dev.brmz.sapientia.core.android.AndroidConfig.from(getConfig());
+        this.androidService = new dev.brmz.sapientia.core.android.AndroidServiceImpl(
+                getLogger(),
+                new dev.brmz.sapientia.core.android.AndroidStore(getLogger(), database.dataSource()),
+                this.logicService,
+                this.androidConfig);
+        this.androidTicker = new dev.brmz.sapientia.core.android.AndroidTicker(
+                getLogger(), this.androidService);
+
         // Crafting + guide + unlocks (T-130 / T-131 / T-150 / T-151 / 0.4.0).
         this.recipeRegistry = new SapientiaRecipeRegistry(itemRegistry);
         this.unlockService = new UnlockServiceImpl(getLogger(), database.dataSource());
@@ -259,6 +275,12 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         }
 
         Sapientia.register(this);
+
+        // Now that the API is published, drain persisted androids and wire
+        // the cap listener (T-451 / T-456 / 1.9.0).
+        this.androidService.hydrate();
+        getServer().getPluginManager().registerEvents(
+                new dev.brmz.sapientia.core.android.AndroidCapsListener(this.androidService), this);
 
         // Guide service depends on UIService + UnlockService + Messages being up.
         this.guideService = new GuideServiceImpl(this, uiService, unlockService, messages);
@@ -355,6 +377,10 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
 
         // Advanced-logistics kinetic loop — every 10 ticks (T-450 / 1.8.1).
         getServer().getScheduler().runTaskTimer(this, () -> logisticsTicker.tick(), 19L, 10L);
+
+        // Android tick — every game tick, honouring the 1 instr/tick contract
+        // from T-451. Full kinetic AI behaviour ships in 1.9.1.
+        getServer().getScheduler().runTaskTimer(this, () -> androidTicker.tick(), 21L, 1L);
 
         getLogger().info(messages.plain("plugin.enabled",
                 Placeholder.parsed("version", getPluginMeta().getVersion())));
@@ -512,6 +538,11 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
     @Override
     public @NotNull LogicService logic() {
         return logicService;
+    }
+
+    @Override
+    public @NotNull AndroidService androids() {
+        return androidService;
     }
 
     @Override

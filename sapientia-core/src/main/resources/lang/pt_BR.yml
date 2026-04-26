@@ -726,3 +726,62 @@ component:
     name: "<gray>HD</gray>"
   storage_ssd:
     name: "<aqua>SSD</aqua>"
+android:
+  block:
+    android_farmer:
+      name: "<green>Android Fazendeiro</green>"
+      desc: "Drone programavel de colheita. Varre o chunk a cada tick do programa DAG (loop cinetico chega em 1.9.1)."
+    android_lumberjack:
+      name: "<dark_green>Android Lenhador</dark_green>"
+      desc: "Derruba arvores e replanta mudas. 1.9.0 traz catalogo + cap; varredura de copa chega em 1.9.1."
+    android_miner:
+      name: "<gray>Android Minerador</gray>"
+      desc: "Perfura para baixo a partir do bloco base. Loot segue tabelas simuladas conforme o programa."
+    android_fisherman:
+      name: "<aqua>Android Pescador</aqua>"
+      desc: "Lanca e recolhe automaticamente em qualquer fonte de agua adjacente."
+    android_butcher:
+      name: "<red>Android Acougueiro</red>"
+      desc: "Gera loot de mobs por simulacao. ADR-021 documenta a politica de nao-spawnar mobs."
+    android_builder:
+      name: "<gold>Android Construtor</gold>"
+      desc: "Reproduz um schematic salvo bloco a bloco."
+    android_slayer:
+      name: "<dark_red>Android Caçador</dark_red>"
+      desc: "Drone de combate. Dano e loot saem de tabelas simuladas — sem mira em mobs reais."
+    android_trader:
+      name: "<green>Android Comerciante</green>"
+      desc: "Tabela de troca configuravel. Roteamento de itens chega via logistica em 1.9.1."
+  upgrade:
+    ai_chip_t1:
+      name: "<gray>Chip de IA T1</gray>"
+    ai_chip_t2:
+      name: "<yellow>Chip de IA T2</yellow>"
+    ai_chip_t3:
+      name: "<aqua>Chip de IA T3</aqua>"
+    ai_chip_t4:
+      name: "<light_purple>Chip de IA T4</light_purple>"
+    motor_chip_t1:
+      name: "<gray>Chip Motor T1</gray>"
+    motor_chip_t2:
+      name: "<yellow>Chip Motor T2</yellow>"
+    motor_chip_t3:
+      name: "<aqua>Chip Motor T3</aqua>"
+    motor_chip_t4:
+      name: "<light_purple>Chip Motor T4</light_purple>"
+    armour_plate_t1:
+      name: "<gray>Placa de Blindagem T1</gray>"
+    armour_plate_t2:
+      name: "<yellow>Placa de Blindagem T2</yellow>"
+    armour_plate_t3:
+      name: "<aqua>Placa de Blindagem T3</aqua>"
+    armour_plate_t4:
+      name: "<light_purple>Placa de Blindagem T4</light_purple>"
+    fuel_module_t1:
+      name: "<gray>Modulo de Combustivel T1</gray>"
+    fuel_module_t2:
+      name: "<yellow>Modulo de Combustivel T2</yellow>"
+    fuel_module_t3:
+      name: "<aqua>Modulo de Combustivel T3</aqua>"
+    fuel_module_t4:
+      name: "<light_purple>Modulo de Combustivel T4</light_purple>"

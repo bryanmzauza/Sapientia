@@ -61,6 +61,15 @@ import dev.brmz.sapientia.content.machines.SapientiaOreWasher;
 import dev.brmz.sapientia.content.machines.SapientiaPlatePress;
 import dev.brmz.sapientia.content.machines.SapientiaRollingMill;
 import dev.brmz.sapientia.content.electronics.ComponentCatalog;
+import dev.brmz.sapientia.content.android.AndroidUpgradeCatalog;
+import dev.brmz.sapientia.content.android.SapientiaAndroidBuilder;
+import dev.brmz.sapientia.content.android.SapientiaAndroidButcher;
+import dev.brmz.sapientia.content.android.SapientiaAndroidFarmer;
+import dev.brmz.sapientia.content.android.SapientiaAndroidFisherman;
+import dev.brmz.sapientia.content.android.SapientiaAndroidLumberjack;
+import dev.brmz.sapientia.content.android.SapientiaAndroidMiner;
+import dev.brmz.sapientia.content.android.SapientiaAndroidSlayer;
+import dev.brmz.sapientia.content.android.SapientiaAndroidTrader;
 import dev.brmz.sapientia.content.gas.SapientiaBoiler;
 import dev.brmz.sapientia.content.gas.SapientiaCondenser;
 import dev.brmz.sapientia.content.gas.SapientiaGasCompressor;
@@ -224,6 +233,21 @@ public final class ContentBootstrap {
 
         // 1.8.0 recipes.
         dev.brmz.sapientia.content.crafting.LogisticsRecipes.registerAll(plugin, api);
+
+        // Android catalogue (T-451..T-454 / 1.9.0).
+        // Upgrades first so the AndroidRecipes can reference their NamespacedKeys.
+        AndroidUpgradeCatalog.registerAll(plugin, api);
+        api.registerBlock(new SapientiaAndroidFarmer(plugin));
+        api.registerBlock(new SapientiaAndroidLumberjack(plugin));
+        api.registerBlock(new SapientiaAndroidMiner(plugin));
+        api.registerBlock(new SapientiaAndroidFisherman(plugin));
+        api.registerBlock(new SapientiaAndroidButcher(plugin));
+        api.registerBlock(new SapientiaAndroidBuilder(plugin));
+        api.registerBlock(new SapientiaAndroidSlayer(plugin));
+        api.registerBlock(new SapientiaAndroidTrader(plugin));
+
+        // 1.9.0 recipes.
+        dev.brmz.sapientia.content.crafting.AndroidRecipes.registerAll(plugin, api);
 
         // Look-to-inspect loop for the wrench (action bar / boss bar)
         new EnergyInspector(plugin).start();
