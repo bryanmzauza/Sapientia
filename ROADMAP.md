@@ -441,6 +441,20 @@ Cross-cutting rules for every milestone below:
 
 ---
 
+## 1.10.0 — Guide polish & item discoverability 📖 ✅
+
+**Goal.** Polir a UX do `/sapientia guide` para escalar nas próximas duas milestones (Nuclear, Quantum) e tornar os itens mais opacos do catálogo (especialmente os 10 metais brutos) auto-explicativos quanto à aquisição. Não há mudança de conteúdo/API — apenas UI + i18n + uma correção de ordem de registro.
+
+- ✅ T-460 Guide pagination — `GuideServiceImpl` reescrito em 3 níveis (Index → Categoria → Detalhe); 28 entradas por página, prev/next slot row e back button por categoria. `INDEX_CATEGORY_SLOTS` define 6 botões fixos no menu raiz; `CATEGORY_ICONS` mapeia cada `GuideCategory` a um Material distinto.
+- ✅ T-461 Bedrock parity — `GuideIndexBedrockRenderer`, `GuideCategoryBedrockRenderer` e `GuideDetailBedrockRenderer` espelham a navegação Java em forms; back buttons reaproveitam o `CategoryView(category, page)` para devolver o jogador à página correta.
+- ✅ T-462 Item descriptions — `item.<id>.desc` adicionado para os 10 metais brutos (com aviso de que world-gen ore chega em 2.0.0 e o atalho atual é `/sapientia give <id>`), para `silicon_wafer` (receita workbench + uso downstream) e para os 6 lingotes de liga (rota Misturador → Fornalha Elétrica). en.yml ↔ pt_BR.yml em paridade estrita validada por `verifyTranslations`.
+- ✅ T-463 Component registration order — `ContentBootstrap.java` move `ComponentCatalog.registerAll` para antes de `MachineRecipeData.registerAll` para que a receita HV do `laser_cutter` possa referenciar `sapientia:silicon_wafer` sem crash.
+- ✅ Novas chaves i18n para navegação: `guide.category.{name,desc}` (6 categorias), `guide.page.{prev,next,indicator}`, `guide.entry.click`, `guide.index.button.count`, `guide.category.{title,back.*}`.
+
+**Exit gate:** ✅ `./gradlew build verifyTranslations` verde; ✅ guide abre Index → Categoria → Detalhe sem prender o jogador; ✅ Bedrock recebe forms equivalentes; ✅ jogador consegue descobrir como obter `aluminum_raw` lendo o próprio guia.
+
+---
+
 ## 2.0.0 — Nuclear ⏳
 
 **Goal.** First major version after MVP. Fission, radiation system and the recycling loop.

@@ -374,10 +374,45 @@ fluid:
 guide:
   title: "<gold>Sapientia Guide</gold>"
   locked: "<dark_gray>Locked</dark_gray>"
+  entry:
+    click: "<yellow>» Click for recipe</yellow>"
   index:
     header:
       name: "<gold><bold>Sapientia Guide</bold></gold>"
-      lore: "<gray>Click any entry to view its\nrecipe and detailed information.</gray>"
+      lore: "<gray>Pick a category to browse\nits items, blocks and machines.</gray>"
+    button:
+      count: "<dark_gray><count> entries</dark_gray>"
+  category:
+    title: "<gold>Guide</gold> <gray>·</gray> <white><category></white>"
+    back:
+      name: "<yellow>« Back to Categories</yellow>"
+      lore: "<gray>Return to the category list.</gray>"
+    material:
+      name: "<white>Materials</white>"
+      lore: "<gray>Ingots, dusts, plates and other\ncrafting components.</gray>"
+    tool:
+      name: "<white>Tools</white>"
+      lore: "<gray>Hand-held tools and utilities.</gray>"
+    machine:
+      name: "<white>Machines</white>"
+      lore: "<gray>Workbenches, processors and\ngeneration multiblocks.</gray>"
+    energy:
+      name: "<white>Energy</white>"
+      lore: "<gray>Generators, cables, capacitors\nand consumers.</gray>"
+    logistics:
+      name: "<white>Logistics</white>"
+      lore: "<gray>Item and fluid routing.</gray>"
+    misc:
+      name: "<white>Miscellaneous</white>"
+      lore: "<gray>Everything else.</gray>"
+  page:
+    indicator: "<dark_gray>Page <white><page></white>/<white><total></white></dark_gray>"
+    prev:
+      name: "<yellow>« Previous Page</yellow>"
+      lore: "<gray>Show the previous page.</gray>"
+    next:
+      name: "<yellow>Next Page »</yellow>"
+      lore: "<gray>Show the next page.</gray>"
   detail:
     title: "<gold>Guide</gold> <gray>·</gray> <white><name></white>"
     recipe:
@@ -386,8 +421,8 @@ guide:
     yields: "<gray>Yields <white><amount>x</white> per craft.</gray>"
     category: "<dark_gray>Category:</dark_gray> <gray><category></gray>"
     back:
-      name: "<yellow>« Back to Index</yellow>"
-      lore: "<gray>Return to the guide index.</gray>"
+      name: "<yellow>« Back to Category</yellow>"
+      lore: "<gray>Return to the category page.</gray>"
 
 ui:
   machine:
@@ -426,6 +461,7 @@ ui:
 metal:
   copper_raw:
     name: "<gold>Raw Copper</gold>"
+    desc: "Mined from vanilla copper ore (drops as raw copper).\nMacerate into copper dust, then smelt to ingot."
   copper_dust:
     name: "<gold>Copper Dust</gold>"
   copper_ingot:
@@ -444,6 +480,7 @@ metal:
     name: "<gold>Copper Screw</gold>"
   tin_raw:
     name: "<white>Raw Tin</white>"
+    desc: "Tin ore world-gen ships in 2.0.0; until then use\n/sapientia give. Macerate to tin dust, then smelt to ingot."
   tin_dust:
     name: "<white>Tin Dust</white>"
   tin_ingot:
@@ -462,6 +499,7 @@ metal:
     name: "<white>Tin Screw</white>"
   zinc_raw:
     name: "<gray>Raw Zinc</gray>"
+    desc: "Zinc ore world-gen ships in 2.0.0; until then use\n/sapientia give. Macerate to zinc dust, then smelt to ingot."
   zinc_dust:
     name: "<gray>Zinc Dust</gray>"
   zinc_ingot:
@@ -480,6 +518,7 @@ metal:
     name: "<gray>Zinc Screw</gray>"
   lead_raw:
     name: "<dark_gray>Raw Lead</dark_gray>"
+    desc: "Lead ore world-gen ships in 2.0.0; until then use\n/sapientia give. Macerate to lead dust, then smelt to ingot."
   lead_dust:
     name: "<dark_gray>Lead Dust</dark_gray>"
   lead_ingot:
@@ -498,6 +537,7 @@ metal:
     name: "<dark_gray>Lead Screw</dark_gray>"
   silver_raw:
     name: "<white>Raw Silver</white>"
+    desc: "Silver ore world-gen ships in 2.0.0; until then use\n/sapientia give. Macerate to silver dust, then smelt to ingot."
   silver_dust:
     name: "<white>Silver Dust</white>"
   silver_ingot:
@@ -516,6 +556,7 @@ metal:
     name: "<white>Silver Screw</white>"
   nickel_raw:
     name: "<yellow>Raw Nickel</yellow>"
+    desc: "Nickel ore world-gen ships in 2.0.0; until then use\n/sapientia give. Macerate to nickel dust, then smelt to ingot."
   nickel_dust:
     name: "<yellow>Nickel Dust</yellow>"
   nickel_ingot:
@@ -536,6 +577,7 @@ metal:
     name: "<gold>Bronze Dust</gold>"
   bronze_ingot:
     name: "<gold>Bronze Ingot</gold>"
+    desc: "Smelt bronze dust in the Electric Furnace.\nDust is mixed in the Mixer (3x copper + 1x tin)."
   bronze_block:
     name: "<gold>Block of Bronze</gold>"
   bronze_plate:
@@ -552,6 +594,7 @@ metal:
     name: "<yellow>Brass Dust</yellow>"
   brass_ingot:
     name: "<yellow>Brass Ingot</yellow>"
+    desc: "Smelt brass dust in the Electric Furnace.\nDust is mixed in the Mixer (3x copper + 1x zinc)."
   brass_block:
     name: "<yellow>Block of Brass</yellow>"
   brass_plate:
@@ -568,6 +611,7 @@ metal:
     name: "<aqua>Electrum Dust</aqua>"
   electrum_ingot:
     name: "<aqua>Electrum Ingot</aqua>"
+    desc: "Smelt electrum dust in the Electric Furnace.\nDust is mixed in the Mixer (silver + nickel/gold)."
   electrum_block:
     name: "<aqua>Block of Electrum</aqua>"
   electrum_plate:
@@ -583,6 +627,7 @@ metal:
 
   aluminum_raw:
     name: "<gray>Raw Aluminum</gray>"
+    desc: "Bauxite ore world-gen ships in 2.0.0; until then use\n/sapientia give aluminum_raw. Macerate to dust, smelt\nto ingot, then press into plates and wires for HV gear."
   aluminum_dust:
     name: "<gray>Aluminum Dust</gray>"
   aluminum_ingot:
@@ -601,6 +646,7 @@ metal:
     name: "<gray>Aluminum Screw</gray>"
   silicon_raw:
     name: "<dark_gray>Raw Silicon</dark_gray>"
+    desc: "Silicon ore world-gen ships in 2.0.0; until then use\n/sapientia give silicon_raw. Macerate to dust, smelt to\ningot, laser-cut into wafers for processors and circuits."
   silicon_dust:
     name: "<dark_gray>Silicon Dust</dark_gray>"
   silicon_ingot:
@@ -619,6 +665,7 @@ metal:
     name: "<dark_gray>Silicon Screw</dark_gray>"
   titanium_raw:
     name: "<white>Raw Titanium</white>"
+    desc: "Titanium ore world-gen ships in 2.0.0; until then use\n/sapientia give titanium_raw. Macerate to dust, smelt\nto ingot, press into plates for HV motors and casings."
   titanium_dust:
     name: "<white>Titanium Dust</white>"
   titanium_ingot:
@@ -637,6 +684,7 @@ metal:
     name: "<white>Titanium Screw</white>"
   lithium_raw:
     name: "<light_purple>Raw Lithium</light_purple>"
+    desc: "Lithium ore world-gen ships in 2.0.0; until then use\n/sapientia give lithium_raw. Macerate to dust, then\nsmelt to ingot for batteries and chemistry recipes."
   lithium_dust:
     name: "<light_purple>Lithium Dust</light_purple>"
   lithium_ingot:
@@ -657,6 +705,7 @@ metal:
     name: "<white>Stainless Steel Dust</white>"
   stainless_steel_ingot:
     name: "<white>Stainless Steel Ingot</white>"
+    desc: "HV alloy. Mix iron, nickel and chrome dusts in the Mixer\nthen smelt the dust in the Electric Furnace."
   stainless_steel_block:
     name: "<white>Block of Stainless Steel</white>"
   stainless_steel_plate:
@@ -673,6 +722,7 @@ metal:
     name: "<dark_gray>Damascus Steel Dust</dark_gray>"
   damascus_steel_ingot:
     name: "<dark_gray>Damascus Steel Ingot</dark_gray>"
+    desc: "HV alloy. Mix iron and steel dusts in the Mixer,\nthen smelt the resulting dust in the Electric Furnace."
   damascus_steel_block:
     name: "<dark_gray>Block of Damascus Steel</dark_gray>"
   damascus_steel_plate:
@@ -689,6 +739,7 @@ metal:
     name: "<gold>Nichrome Dust</gold>"
   nichrome_ingot:
     name: "<gold>Nichrome Ingot</gold>"
+    desc: "HV alloy. Mix nickel and chrome dusts in the Mixer,\nthen smelt the dust in the Electric Furnace. Used in HV wires/coils."
   nichrome_block:
     name: "<gold>Block of Nichrome</gold>"
   nichrome_plate:
@@ -705,6 +756,7 @@ metal:
 component:
   silicon_wafer:
     name: "<aqua>Silicon Wafer</aqua>"
+    desc: "Workbench: 8x silicon dust + 1x quartz -> 4 wafers.\nCore building block for HV processors, circuits and RAM."
   motor_t1:
     name: "<gray>LV Motor</gray>"
   motor_t2:

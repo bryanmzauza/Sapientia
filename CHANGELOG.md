@@ -2,6 +2,71 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and SemVer.
 
+## [1.10.0] — Guide polish & item discoverability ✅
+
+Quality-of-life pass over the player-facing guide and the i18n catalogue.
+Two themes ship together:
+
+1. The `/sapientia guide` UI now scales for the next two milestones
+   (Nuclear, Quantum) instead of cramming everything into one flat list.
+2. Players who picked up an unfamiliar item — most famously
+   `sapientia:aluminum_raw` — finally see *where it comes from* without
+   having to dig through the codebase.
+
+### Added
+
+- **Three-level guide navigation** (`GuideServiceImpl`,
+  `sapientia-core`): the index now lists categories
+  (`MATERIAL`, `TOOL`, `MACHINE`, `ENERGY`, `LOGISTICS`, `INFO`) instead
+  of every entry. Each category renders its own paginated detail view
+  (28 entries per page) with prev / next controls; the entry detail
+  back button returns to the originating category, not to the root
+  index. Bedrock parity preserved through `GuideIndexBedrockRenderer`,
+  `GuideCategoryBedrockRenderer` and `GuideDetailBedrockRenderer`.
+- **`item.<id>.desc` keys for opaque items** (`en.yml`, `pt_BR.yml`):
+  description lookup is automatic — every item whose `displayNameKey`
+  follows the `*.name` convention picks up `*.desc` if present (already
+  wired via `GuideServiceImpl#descriptionKeyFor`). New entries explain
+  acquisition for items the player cannot intuit:
+  - All 10 raw metals (`copper_raw`, `tin_raw`, `zinc_raw`, `lead_raw`,
+    `silver_raw`, `nickel_raw`, `aluminum_raw`, `silicon_raw`,
+    `titanium_raw`, `lithium_raw`) — call out that ore world-gen lands
+    in 2.0.0 and that `/sapientia give <id>` is the bridge until then.
+  - `silicon_wafer` — workbench recipe (8× silicon dust + 1× quartz →
+    4 wafers) and downstream usage (HV processors / circuits / RAM).
+  - 6 alloy ingots (`bronze`, `brass`, `electrum`, `stainless_steel`,
+    `damascus_steel`, `nichrome`) — Mixer + Electric Furnace path with
+    explicit dust ratios.
+- New i18n keys for guide navigation: `guide.category.*` (6 categories
+  × `name` + `desc`), `guide.page.{prev,next,indicator}.*`,
+  `guide.entry.click`, `guide.index.button.count`,
+  `guide.category.{title,back.*}`. en.yml and pt_BR.yml stay at strict
+  parity (verified by the `verifyTranslations` Gradle task).
+
+### Changed
+
+- The guide index is no longer a flat list. The previous 2-level
+  flow (Index → Detail) becomes 3-level (Index → Category → Detail).
+  No registry changes — only `UIService` descriptors and the Bedrock
+  renderer set were updated.
+
+### Fixed
+
+- **Component / recipe registration order** (`ContentBootstrap.java`):
+  `ComponentCatalog.registerAll` now runs *before*
+  `MachineRecipeData.registerAll` so the HV `laser_cutter` recipe can
+  reference `sapientia:silicon_wafer`. Previously crashed on plugin
+  enable with `IllegalStateException: Sapientia item not registered:
+  sapientia:silicon_wafer`.
+
+### Notes
+
+- No content / API breakage. The new `*.desc` keys are additive —
+  existing items without a description keep rendering fine (the guide
+  treats absent desc keys as "no description block").
+
+---
+
 ## [1.9.1] — Androids 🤖 (kinetic loop) ✅
 
 Activates the catalogue shipped in 1.9.0. The 8 androids now actually

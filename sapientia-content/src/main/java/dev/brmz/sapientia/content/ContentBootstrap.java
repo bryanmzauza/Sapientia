@@ -174,11 +174,12 @@ public final class ContentBootstrap {
         // 1.5.0 recipes.
         dev.brmz.sapientia.content.crafting.PetrochemRecipes.registerAll(plugin, api);
 
-        // Machine-recipe catalogue consumed by the kinetic loop (T-404 / 1.4.1 + 1.5.1).
-        dev.brmz.sapientia.content.crafting.MachineRecipeData.registerAll(plugin, api);
-
-        // Electronics components (T-422 / 1.6.0).
+        // Electronics components (T-422 / 1.6.0). Must come before MachineRecipeData
+        // because the HV laser_cutter recipe references silicon_wafer.
         ComponentCatalog.registerAll(plugin, api);
+
+        // Machine-recipe catalogue consumed by the kinetic loop (T-404 / 1.4.1 + 1.5.1 + 1.6.1).
+        dev.brmz.sapientia.content.crafting.MachineRecipeData.registerAll(plugin, api);
 
         // HV energy expansion (T-425 / 1.6.0).
         api.registerBlock(new SapientiaCableT3(plugin));

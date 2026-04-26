@@ -374,10 +374,45 @@ fluid:
 guide:
   title: "<gold>Guia Sapientia</gold>"
   locked: "<dark_gray>Bloqueado</dark_gray>"
+  entry:
+    click: "<yellow>» Clique para ver a receita</yellow>"
   index:
     header:
       name: "<gold><bold>Guia Sapientia</bold></gold>"
-      lore: "<gray>Clique em uma entrada para ver\nsua receita e informacoes detalhadas.</gray>"
+      lore: "<gray>Escolha uma categoria para\nnavegar pelos itens, blocos e maquinas.</gray>"
+    button:
+      count: "<dark_gray><count> entradas</dark_gray>"
+  category:
+    title: "<gold>Guia</gold> <gray>·</gray> <white><category></white>"
+    back:
+      name: "<yellow>« Voltar as Categorias</yellow>"
+      lore: "<gray>Retornar a lista de categorias.</gray>"
+    material:
+      name: "<white>Materiais</white>"
+      lore: "<gray>Lingotes, pos, placas e outros\ncomponentes de craft.</gray>"
+    tool:
+      name: "<white>Ferramentas</white>"
+      lore: "<gray>Ferramentas e utilitarios manuais.</gray>"
+    machine:
+      name: "<white>Maquinas</white>"
+      lore: "<gray>Bancadas, processadoras e\nmultiblocos de geracao.</gray>"
+    energy:
+      name: "<white>Energia</white>"
+      lore: "<gray>Geradores, cabos, capacitores\ne consumidores.</gray>"
+    logistics:
+      name: "<white>Logistica</white>"
+      lore: "<gray>Roteamento de itens e fluidos.</gray>"
+    misc:
+      name: "<white>Diversos</white>"
+      lore: "<gray>Tudo o que nao se encaixa em\nnenhuma outra categoria.</gray>"
+  page:
+    indicator: "<dark_gray>Pagina <white><page></white>/<white><total></white></dark_gray>"
+    prev:
+      name: "<yellow>« Pagina Anterior</yellow>"
+      lore: "<gray>Mostrar a pagina anterior.</gray>"
+    next:
+      name: "<yellow>Proxima Pagina »</yellow>"
+      lore: "<gray>Mostrar a proxima pagina.</gray>"
   detail:
     title: "<gold>Guia</gold> <gray>·</gray> <white><name></white>"
     recipe:
@@ -386,8 +421,8 @@ guide:
     yields: "<gray>Produz <white><amount>x</white> por craft.</gray>"
     category: "<dark_gray>Categoria:</dark_gray> <gray><category></gray>"
     back:
-      name: "<yellow>« Voltar ao Indice</yellow>"
-      lore: "<gray>Retornar ao indice do guia.</gray>"
+      name: "<yellow>« Voltar a Categoria</yellow>"
+      lore: "<gray>Retornar a pagina da categoria.</gray>"
 
 ui:
   machine:
@@ -426,6 +461,7 @@ ui:
 metal:
   copper_raw:
     name: "<gold>Cobre Bruto</gold>"
+    desc: "Minerado do minério de cobre vanilla (drop de cobre bruto).\nMacere para obter pó de cobre, depois funda em lingote."
   copper_dust:
     name: "<gold>Po de Cobre</gold>"
   copper_ingot:
@@ -444,6 +480,7 @@ metal:
     name: "<gold>Parafuso de Cobre</gold>"
   tin_raw:
     name: "<white>Estanho Bruto</white>"
+    desc: "O minério de estanho chega na 2.0.0; até lá use\n/sapientia give. Macere para virar pó, depois funda."
   tin_dust:
     name: "<white>Po de Estanho</white>"
   tin_ingot:
@@ -462,6 +499,7 @@ metal:
     name: "<white>Parafuso de Estanho</white>"
   zinc_raw:
     name: "<gray>Zinco Bruto</gray>"
+    desc: "O minério de zinco chega na 2.0.0; até lá use\n/sapientia give. Macere para virar pó, depois funda."
   zinc_dust:
     name: "<gray>Po de Zinco</gray>"
   zinc_ingot:
@@ -480,6 +518,7 @@ metal:
     name: "<gray>Parafuso de Zinco</gray>"
   lead_raw:
     name: "<dark_gray>Chumbo Bruto</dark_gray>"
+    desc: "O minério de chumbo chega na 2.0.0; até lá use\n/sapientia give. Macere para virar pó, depois funda."
   lead_dust:
     name: "<dark_gray>Po de Chumbo</dark_gray>"
   lead_ingot:
@@ -497,7 +536,8 @@ metal:
   lead_screw:
     name: "<dark_gray>Parafuso de Chumbo</dark_gray>"
   silver_raw:
-    name: "<white>Prata Bruto</white>"
+    name: "<white>Prata Bruta</white>"
+    desc: "O minério de prata chega na 2.0.0; até lá use\n/sapientia give. Macere para virar pó, depois funda."
   silver_dust:
     name: "<white>Po de Prata</white>"
   silver_ingot:
@@ -516,6 +556,7 @@ metal:
     name: "<white>Parafuso de Prata</white>"
   nickel_raw:
     name: "<yellow>Niquel Bruto</yellow>"
+    desc: "O minério de níquel chega na 2.0.0; até lá use\n/sapientia give. Macere para virar pó, depois funda."
   nickel_dust:
     name: "<yellow>Po de Niquel</yellow>"
   nickel_ingot:
@@ -536,6 +577,7 @@ metal:
     name: "<gold>Po de Bronze</gold>"
   bronze_ingot:
     name: "<gold>Lingote de Bronze</gold>"
+    desc: "Funda pó de bronze na Fornalha Elétrica.\nO pó vem do Misturador (3x cobre + 1x estanho)."
   bronze_block:
     name: "<gold>Bloco de Bronze</gold>"
   bronze_plate:
@@ -552,6 +594,7 @@ metal:
     name: "<yellow>Po de Latao</yellow>"
   brass_ingot:
     name: "<yellow>Lingote de Latao</yellow>"
+    desc: "Funda pó de latão na Fornalha Elétrica.\nO pó vem do Misturador (3x cobre + 1x zinco)."
   brass_block:
     name: "<yellow>Bloco de Latao</yellow>"
   brass_plate:
@@ -568,6 +611,7 @@ metal:
     name: "<aqua>Po de Eletro</aqua>"
   electrum_ingot:
     name: "<aqua>Lingote de Eletro</aqua>"
+    desc: "Funda pó de eletro na Fornalha Elétrica.\nO pó vem do Misturador (prata + níquel/ouro)."
   electrum_block:
     name: "<aqua>Bloco de Eletro</aqua>"
   electrum_plate:
@@ -583,6 +627,7 @@ metal:
 
   aluminum_raw:
     name: "<gray>Aluminio Bruto</gray>"
+    desc: "A bauxita chega na 2.0.0; até lá use\n/sapientia give aluminum_raw. Macere, funda e\nprense em chapas e fios para o tier HV."
   aluminum_dust:
     name: "<gray>Po de Aluminio</gray>"
   aluminum_ingot:
@@ -601,6 +646,7 @@ metal:
     name: "<gray>Parafuso de Aluminio</gray>"
   silicon_raw:
     name: "<dark_gray>Silicio Bruto</dark_gray>"
+    desc: "O minério de silício chega na 2.0.0; até lá use\n/sapientia give silicon_raw. Macere, funda em lingote\ne corte no laser para virar wafer (processadores/circuitos)."
   silicon_dust:
     name: "<dark_gray>Po de Silicio</dark_gray>"
   silicon_ingot:
@@ -619,6 +665,7 @@ metal:
     name: "<dark_gray>Parafuso de Silicio</dark_gray>"
   titanium_raw:
     name: "<white>Titanio Bruto</white>"
+    desc: "O minério de titânio chega na 2.0.0; até lá use\n/sapientia give titanium_raw. Macere, funda e prense\nem chapas para motores e carcaças HV."
   titanium_dust:
     name: "<white>Po de Titanio</white>"
   titanium_ingot:
@@ -637,6 +684,7 @@ metal:
     name: "<white>Parafuso de Titanio</white>"
   lithium_raw:
     name: "<light_purple>Litio Bruto</light_purple>"
+    desc: "O minério de lítio chega na 2.0.0; até lá use\n/sapientia give lithium_raw. Macere e funda em lingote\npara baterias e receitas químicas."
   lithium_dust:
     name: "<light_purple>Po de Litio</light_purple>"
   lithium_ingot:
@@ -657,6 +705,7 @@ metal:
     name: "<white>Po de Aco Inoxidavel</white>"
   stainless_steel_ingot:
     name: "<white>Lingote de Aco Inoxidavel</white>"
+    desc: "Liga HV. Misture pós de ferro, níquel e cromo no Misturador,\ndepois funda na Fornalha Elétrica."
   stainless_steel_block:
     name: "<white>Bloco de Aco Inoxidavel</white>"
   stainless_steel_plate:
@@ -673,6 +722,7 @@ metal:
     name: "<dark_gray>Po de Aco Damasco</dark_gray>"
   damascus_steel_ingot:
     name: "<dark_gray>Lingote de Aco Damasco</dark_gray>"
+    desc: "Liga HV. Misture pós de ferro e aço no Misturador,\ndepois funda o pó resultante na Fornalha Elétrica."
   damascus_steel_block:
     name: "<dark_gray>Bloco de Aco Damasco</dark_gray>"
   damascus_steel_plate:
@@ -689,6 +739,7 @@ metal:
     name: "<gold>Po de Nicromo</gold>"
   nichrome_ingot:
     name: "<gold>Lingote de Nicromo</gold>"
+    desc: "Liga HV. Misture pós de níquel e cromo no Misturador,\ndepois funda na Fornalha Elétrica. Usado em fios/bobinas HV."
   nichrome_block:
     name: "<gold>Bloco de Nicromo</gold>"
   nichrome_plate:
@@ -705,6 +756,7 @@ metal:
 component:
   silicon_wafer:
     name: "<aqua>Wafer de Silicio</aqua>"
+    desc: "Workbench: 8x pó de silício + 1x quartzo -> 4 wafers.\nBase de processadores, circuitos e RAM HV."
   motor_t1:
     name: "<gray>Motor LV</gray>"
   motor_t2:
