@@ -411,6 +411,17 @@ ui:
     policy: "<aqua>Routing:</aqua> <white><policy></white>"
     rule:
       line: "<gray><mode>:</gray> <white><pattern></white>"
+  android:
+    selector:
+      title: "<gold>Android Programs</gold>"
+      program: "<aqua><program></aqua>"
+      nodes: "<gray>Nodes: <white><count></white></gray>"
+      edges: "<gray>Edges: <white><count></white></gray>"
+      current: "<green>★ Currently active</green>"
+      clear: "<red>Clear program</red>"
+      assigned: "<green>Program <program> assigned.</green>"
+      cleared: "<yellow>Program detached.</yellow>"
+      failed: "<red>Could not assign program <program>.</red>"
 
 metal:
   copper_raw:

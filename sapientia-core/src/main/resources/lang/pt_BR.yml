@@ -411,6 +411,17 @@ ui:
     policy: "<aqua>Roteamento:</aqua> <white><policy></white>"
     rule:
       line: "<gray><mode>:</gray> <white><pattern></white>"
+  android:
+    selector:
+      title: "<gold>Programas do Android</gold>"
+      program: "<aqua><program></aqua>"
+      nodes: "<gray>Nós: <white><count></white></gray>"
+      edges: "<gray>Arestas: <white><count></white></gray>"
+      current: "<green>★ Atualmente ativo</green>"
+      clear: "<red>Limpar programa</red>"
+      assigned: "<green>Programa <program> atribuído.</green>"
+      cleared: "<yellow>Programa removido.</yellow>"
+      failed: "<red>Não foi possível atribuir o programa <program>.</red>"
 
 metal:
   copper_raw:

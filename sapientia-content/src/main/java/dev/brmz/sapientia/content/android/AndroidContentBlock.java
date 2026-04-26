@@ -64,8 +64,15 @@ public abstract class AndroidContentBlock implements SapientiaBlock {
 
     @Override
     public void onInteract(@NotNull SapientiaBlockInteractEvent event) {
-        // 1.9.0 ships a no-op interaction. The DAG editor UI (T-453) lands
-        // with the kinetic loop in 1.9.1 — see ROADMAP and the deferred
-        // T-302l visual editor canvas.
+        // Open the program selector UI (T-453 / 1.9.1). Right-clicking with
+        // an empty hand opens the chest; clicking a paper ticket assigns the
+        // chosen logic program. Bedrock players auto-fall-back through
+        // BedrockFormsUIProvider per docs/ui-strategy.md §3.2.
+        Player player = event.player();
+        if (Sapientia.get().androids().nodeAt(event.block()).isEmpty()) return;
+        Sapientia.get().openUI(
+                player,
+                org.bukkit.NamespacedKey.fromString("sapientia:android_program_selector"),
+                Sapientia.get().androids().nodeAt(event.block()).get());
     }
 }

@@ -253,6 +253,9 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         // Item filter UI (T-300 / 1.1.0). Always-on now that the logistics solver is wired.
         this.uiService.register(new dev.brmz.sapientia.core.ui.FilterDescriptor(messages));
 
+        // Android program selector UI (T-453 / 1.9.1).
+        this.uiService.register(new dev.brmz.sapientia.core.ui.AndroidProgramSelectorUI(messages));
+
         getServer().getPluginManager().registerEvents(uiService, this);
         getServer().getPluginManager().registerEvents(chunkBlockIndex, this);
         getServer().getPluginManager().registerEvents(

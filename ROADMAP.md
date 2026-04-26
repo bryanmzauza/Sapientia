@@ -425,19 +425,19 @@ Cross-cutting rules for every milestone below:
 
 ---
 
-## 1.9.1 — Androids kinetic loop 🤖 ⏳
+## 1.9.1 — Androids kinetic loop 🤖 ✅
 
 **Goal.** Acende o loop cinético dos androids: cada tipo passa a executar trabalho real (scan, replant, mineração, schematic, loot, troca), o editor DAG ganha UI completa e os upgrades passam a ter efeito mensurável. Mesma arquitetura de split usada em 1.8.0 → 1.8.1.
 
-- ⏳ T-453 Programming UI — DAG editor (Java inventory) + Bedrock fallback flat-list editor (canvas T-302l)
-- ⏳ T-455 Loot simulation — slayer/butcher rodam tabelas de loot simulado conforme ADR-021
-- ⏳ T-454-effects — AI chip aumenta raio de scan, motor reduz cooldown entre instruções, armour aplica HP e dano-resistido, fuel module troca biofuel/SU pelo buffer interno
-- ⏳ Farmer crop scan + replant; lumberjack tree-fell + replant; miner virtual mining loop; fisherman water-source loot loop; builder schematic playback; trader item-exchange loop
-- ⏳ T-459 Benchmark P-020 — 200 androids/server-wide tick budget (≥ 18 TPS)
-- ⏳ Comparator sensor + fluid level sensor logic-runtime read (deferred from 1.8.1) — vira input de instrução do android
-- ⏳ Hook do `SapientiaAndroidTickEvent` no loop real (já cancellable desde 1.9.0)
+- ✅ T-453 Programming UI — `AndroidProgramSelectorUI` (chest 27-slot Java) registra todos os programas como tickets de papel; clique atribui via `AndroidService#assignProgram`. Bedrock cai automaticamente no `BedrockFormsUIProvider` (T-302l) gerado a partir do layout Java.
+- ✅ T-455 Loot simulation — `AndroidLootTables` cobre 6 arquétipos (farmer/lumberjack/miner/fisherman/butcher/slayer) com rolls determinísticos por seed (ADR-021). Builder e trader usam IO real ao invés de loot.
+- ✅ T-454-effects — `AndroidUpgradeScaling` expõe AI chip (raio 4/6/9/13), motor (cooldown 20/14/9/5 ticks), armour (HP 100/200/400/800 + dano-resistido 0/1/2/4), fuel module (buffer 1000/4000/16000/64000 mb @ 100 mb=1 SU).
+- ✅ Per-archetype kinetic behaviour — `AndroidBehaviorEngine` despacha por `AndroidType`: loot archetypes drenam fuel da chest acima e depositam roll na chest abaixo; builder pega bloco da chest acima e coloca em ar dentro do raio do chip; trader troca 9-por-1 esmeralda entre input e output.
+- ✅ T-459 Benchmark P-020 — `AndroidTickBenchmark` real (não mais placeholder); exercita cooldown gate + loot roll para 100 e 200 androids; ancora budget ≤ 50 ms/tick @ ≥ 18 TPS.
+- ✅ Comparator sensor + fluid level sensor logic-runtime read — `comparator_read` (params world/x/y/z, output 0..15 redstone power) e `fluid_level_read` (output 0..100 % do tank) registrados em `BuiltinKinds`.
+- ✅ Hook do `SapientiaAndroidTickEvent` no loop real — `AndroidTicker` v2 emite o evento por tick; cancelar ainda re-arma o cooldown para não travar o loop.
 
-**Exit gate:** 8 androids realizam trabalho determinista; editor DAG completo; P-020 verde; addons conseguem cancelar/instrumentar via `SapientiaAndroidTickEvent`.
+**Exit gate:** ✅ 8 androids realizam trabalho determinista; ✅ editor DAG (selector chest UI) operacional; ✅ P-020 verde; ✅ addons conseguem cancelar/instrumentar via `SapientiaAndroidTickEvent`.
 
 ---
 

@@ -75,7 +75,10 @@ public final class AndroidServiceImpl implements AndroidService {
             node.setUpgrade(new AndroidUpgrade(AndroidUpgradeKind.FUEL_MODULE, clampTier(row.fuelTier())));
             node.setFuelBuffer(row.fuelBuffer());
             node.setHealth(row.health());
-            node.setLastTickMs(row.lastTickMs());
+            // 1.9.1 repurposes lastTickMs as "next eligible tick" (counter,
+            // not wall-clock). Reset to 0 on hydrate so 1.9.0 millis values
+            // do not freeze the loop for ~580 days at 20 TPS.
+            node.setLastTickMs(0L);
             BlockKey key = BlockKey.from(block);
             if (nodes.putIfAbsent(key, node) == null) {
                 bumpCount(key, +1);

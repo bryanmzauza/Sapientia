@@ -2,6 +2,73 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and SemVer.
 
+## [1.9.1] — Androids 🤖 (kinetic loop) ✅
+
+Activates the catalogue shipped in 1.9.0. The 8 androids now actually
+work: motor cooldown, AI chip scan radius, armour HP / damage shave and
+fuel buffer all gate the per-tick behaviour, and the program assignment
+UI lets a player pick a logic program at right-click. Mirrors the
+1.4.0 → 1.4.1, 1.5.0 → 1.5.1, 1.6.0 → 1.6.1, 1.7.0 → 1.7.1 and
+1.8.0 → 1.8.1 split convention.
+
+### Added
+
+- **`AndroidUpgradeScaling`** (T-454, `sapientia-core`): pure-POJO scaling
+  table for the 4 upgrade tiers. AI chip scan radius
+  `4/6/9/13` blocks; motor cooldown `20/14/9/5` ticks; armour HP
+  `100/200/400/800` + damage shave `0/1/2/4`; fuel buffer
+  `1000/4000/16000/64000` mb; biofuel ratio locked at `100 mb = 1 SU`.
+- **`AndroidLootTables`** (T-455, ADR-021): deterministic seeded loot
+  tables for the 6 loot-producing archetypes (farmer, lumberjack, miner,
+  fisherman, butcher, slayer). Builder + trader use the IO-driven
+  consume/exchange path instead and have no table.
+- **`AndroidBehaviorEngine`** (T-451, `sapientia-core`): per-archetype
+  kinetic behaviour. Loot archetypes pull fuel from the chest above and
+  deposit a rolled stack into the chest below; builder pulls a placeable
+  block and places it within the chip-tier scan radius; trader does a
+  fixed 9-for-1 emerald exchange between input and output chests.
+- **`AndroidIO`** helper (`sapientia-core`): reads `+Y` for input,
+  writes `-Y` for output, exposes `SOLID_FUEL` table
+  (`COAL=1000`, `CHARCOAL=800`, `BLAZE_POWDER=4000`, `BLAZE_ROD=8000` mb).
+- **`AndroidTicker` v2** (T-451 / T-459): wires the behaviour engine
+  behind the per-android motor cooldown gate. The
+  `INSTRUCTIONS_PER_TICK_CAP=1` contract still holds — motor tier
+  shortens the gap between ticks, never the per-tick budget. Cancelled
+  `SapientiaAndroidTickEvent`s still re-arm cooldown so misbehaving
+  listeners cannot starve the snapshot loop.
+- **Logic sensor kinds** (T-441 / T-442 / `sapientia-core` builtins):
+  - `comparator_read` — params `world/x/y/z`, output `out` ∈ `0..15`
+    (vanilla redstone power semantics).
+  - `fluid_level_read` — params `world/x/y/z`, output `out` ∈ `0..100`
+    (Sapientia tank fill ratio percentage).
+- **`AndroidProgramSelectorUI`** (T-453, `sapientia-core`): right-click
+  on any placed android opens a 27-slot chest listing every registered
+  logic program; clicking a paper ticket assigns it via
+  `AndroidService#assignProgram`. Slot 26 is a barrier "clear" button.
+  Bedrock players auto-fall-back through `BedrockFormsUIProvider`
+  (T-302l).
+- **`AndroidTickBenchmark` v2** (P-020 / T-459, `sapientia-benchmarks`):
+  real per-tick CPU benchmark — exercises the cooldown gate +
+  `AndroidLootTables.roll` for `100` and `200` androids, anchoring the
+  ≥ 18 TPS / ≤ 50 ms-per-tick budget contract.
+- **i18n** (`en.yml` + `pt_BR.yml`): 9 new keys under `ui.android.selector.*`.
+- **Tests**: `AndroidUpgradeScalingTest`, `AndroidLootTablesTest`.
+
+### Changed
+
+- `AndroidContentBlock#onInteract` opens the new program selector UI
+  instead of the 1.9.0 no-op stub.
+- `AndroidServiceImpl#hydrate` resets `lastTickMs` to `0` for all loaded
+  rows. The field is repurposed in 1.9.1 from "wall-clock millis of last
+  tick" to "next eligible tick counter" (motor cooldown gate). The
+  reset prevents 1.9.0 stored millis values from freezing the loop for
+  ~580 days at 20 TPS.
+
+### Migration
+
+- No schema migration (V010 not introduced). The repurpose of
+  `lastTickMs` is purely semantic; persisted values are reset at hydrate.
+
 ## [1.9.0] — Androids 🤖 (catalogue) ✅
 
 Mirrors the 1.4.0 → 1.4.1, 1.5.0 → 1.5.1, 1.6.0 → 1.6.1, 1.7.0 → 1.7.1 and
