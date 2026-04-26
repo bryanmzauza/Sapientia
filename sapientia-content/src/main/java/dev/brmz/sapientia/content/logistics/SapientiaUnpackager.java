@@ -1,28 +1,24 @@
 package dev.brmz.sapientia.content.logistics;
 
-import dev.brmz.sapientia.api.block.SapientiaBlock;
-import dev.brmz.sapientia.api.guide.GuideCategory;
+import dev.brmz.sapientia.api.energy.EnergyTier;
+import dev.brmz.sapientia.api.logistics.ItemNodeType;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Unpackager (T-441 / 1.8.0). Inverse of {@link SapientiaPackager}: explodes a
- * {@code packaged_bundle} back into its component stacks into an adjacent
- * container. Placement-only in 1.8.0; the actual NBT unpack tick lands with
- * the routing rework in 1.8.1.
+ * Unpackager (T-441 / 1.8.0; kinetic loop wired in T-450 / 1.8.1). Inverse of
+ * {@link SapientiaPackager}: explodes a {@code packaged_bundle} back into its
+ * component stacks into an adjacent container.
+ *
+ * <p>Registers as a {@link ItemNodeType#PRODUCER} node so the
+ * {@code LogisticsTicker} (1.8.1) picks it up. NBT layout is locked by
+ * ADR-020.
  */
-public final class SapientiaUnpackager implements SapientiaBlock {
-
-    private final NamespacedKey id;
+public final class SapientiaUnpackager extends LogisticsContentBlock {
 
     public SapientiaUnpackager(@NotNull Plugin plugin) {
-        this.id = new NamespacedKey(plugin, "unpackager");
+        super(plugin, "unpackager", Material.DISPENSER, "block.unpackager.name",
+                ItemNodeType.PRODUCER, EnergyTier.LOW, 0);
     }
-
-    @Override public @NotNull NamespacedKey id() { return id; }
-    @Override public @NotNull Material baseMaterial() { return Material.DISPENSER; }
-    @Override public @NotNull String displayNameKey() { return "block.unpackager.name"; }
-    @Override public @NotNull GuideCategory guideCategory() { return GuideCategory.LOGISTICS; }
 }

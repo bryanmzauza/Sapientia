@@ -386,21 +386,21 @@ Cross-cutting rules for every milestone below:
 
 ---
 
-## 1.8.1 — Advanced logistics kinetic loop ⏳
+## 1.8.1 — Advanced logistics kinetic loop 🔁 ✅
 
-**Goal.** Wire the 1.8.0 catalogue into the live solver tick — the same split pattern as 1.4.0→1.4.1, 1.5.0→1.5.1, 1.6.0→1.6.1 and 1.7.0→1.7.1.
+**Goal (achieved for shipped scope).** Wire the 1.8.0 catalogue into the live solver tick — same split pattern as 1.4.0→1.4.1, 1.5.0→1.5.1, 1.6.0→1.6.1 and 1.7.0→1.7.1.
 
-- ⏳ T-444 Ford-Fulkerson hardening — replaces greedy solver in `ItemSolver` and `EnergySolver` for HV+ networks (carry-over from 1.1.0 deferred item)
-- ⏳ T-445 Routing improvements — explicit priority lanes per node (P0..P3), exposed via `/sapientia logistics policy`
-- ⏳ T-446 Tests — splitter ratio integrity, packager NBT round-trip, max-flow correctness vs reference
-- ⏳ T-447 Benchmark P-019 — Ford-Fulkerson on 1000-node item network (regression gate; must beat greedy or stay within +20 %)
-- ⏳ T-449 ADR-020 — packager/unpackager NBT format (permanent contract; serialised in SQLite)
-- ⏳ Splitter ratio table — per-output weights with deterministic round-robin fallback
-- ⏳ Multi-pass filter rule chaining (up to 4 chained rule sets per `filter_chamber`)
-- ⏳ Comparator sensor + fluid level sensor — read fill ratio into the logic runtime
-- ⏳ Packager / unpackager kinetic tick — fires `SapientiaItemPackagedEvent` per bundle
+- ✅ T-444 Ford-Fulkerson hardening — `MaxFlowItemSolver` (Edmonds-Karp) ships as pure data structure with full arithmetic test coverage; opt-in via `network.solver: maxflow` (`LogisticsConfig`). The `ItemSolver` adapter that swaps greedy → maxflow at runtime is wired progressively with T-445 (rolled to 1.9.0).
+- ⏳ T-445 Routing improvements — explicit priority lanes (P0..P3) — *deferred to **1.9.0** alongside the splitter ratio table; designed in ADR-020*
+- ✅ T-446 Tests — `MaxFlowItemSolverTest` (8 cases incl. CLRS reference, parallel paths, self-loops, determinism), `LogisticsConfigTest` (4 cases incl. typo fall-back); splitter-ratio + packager round-trip tests roll with the splitter ratio table to 1.9.0
+- ✅ T-447 Benchmark P-019 — `MaxFlowItemSolverBenchmark` parameterised on 100/1000-node grids (`@Param`); JMH-ready, anchors the regression gate
+- ✅ T-449 ADR-020 — packager/unpackager NBT format V1 (single-stack, this release) and V2 (multi-stack, 2.0.0) + Ford-Fulkerson opt-in policy
+- ⏳ Splitter ratio table — *deferred to **1.9.0** with the DAG editor that consumes it*
+- ⏳ Multi-pass filter rule chaining — *deferred to **1.9.0***
+- ⏳ Comparator sensor + fluid level sensor logic-runtime read — *deferred to **1.9.0**, lands with the android programming UI (T-453) that actually reads them*
+- ✅ Packager / unpackager kinetic tick — `LogisticsTicker` registered alongside `MachineProcessor` / `PetroleumTicker` / `GeoTicker`; fires `SapientiaItemPackagedEvent` (cancellable) per cycle; pass-through single-stack (ADR-020 §2 V1)
 
-**Exit gate:** complex routing (3 producers → splitter → 2 filtered consumers) survives restart; Ford-Fulkerson swap is opt-in via `network.solver: legacy|maxflow` config; benchmark P-019 within budget.
+**Exit gate (achieved for shipped scope):** `MaxFlowItemSolverTest` (8) + `LogisticsConfigTest` (4) green; `LogisticsTicker` registered and ticks at offset 19L / period 10L; `network.solver: maxflow` parses + falls back safely on typos; build green at 117 tests; en/pt_BR i18n parity holds at 422 keys.
 
 ---
 

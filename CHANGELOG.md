@@ -2,6 +2,77 @@
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and SemVer.
 
+## [1.8.1] — Advanced logistics kinetic loop 🔁 ✅
+
+Mirrors the 1.4.0 → 1.4.1, 1.5.0 → 1.5.1, 1.6.0 → 1.6.1 and 1.7.0 → 1.7.1 splits:
+1.8.0 shipped the catalogue; 1.8.1 wires the kinetic loop. The packager /
+unpackager pair now actually fires `SapientiaItemPackagedEvent`, the
+Edmonds-Karp max-flow solver lands as opt-in data structure, and ADR-020
+locks both the bundle NBT format (V1 single-stack now / V2 multi-stack in
+2.0.0) and the `network.solver: legacy|maxflow` policy.
+
+### Added
+
+- `dev.brmz.sapientia.core.logistics.MaxFlowItemSolver` — pure-data
+  Edmonds-Karp implementation operating on a `long[][]` capacity matrix
+  (T-444). Time complexity `O(V·E²)`. Resets the residual graph on every
+  call so results are deterministic across invocations. Backed by 8
+  arithmetic invariants in `MaxFlowItemSolverTest` covering the canonical
+  CLRS 6-node example (max flow = 23), self-loops, disconnected sinks,
+  parallel paths, single-edge networks and rejection of negative /
+  non-square inputs.
+- `LogisticsConfig` + `LogisticsConfig.Solver` — operator-facing parser for
+  `network.solver` (T-444 / T-445). Aliases `maxflow` / `max-flow` /
+  `max_flow`; unknown values fall back to `LEGACY` so a typo never breaks
+  routing. Pure POJO with 4 invariants in `LogisticsConfigTest`.
+- `LogisticsTicker` — per-cycle (every 10 ticks) driver registered alongside
+  `MachineProcessor` / `PetroleumTicker` / `ElectronicsTicker` / `GeoTicker`
+  (T-450). Pulls one stack per packager from the chest above, wraps it as a
+  Sapientia bundle (`Material.BUNDLE` proxy, ADR-020 §2 V1 layout), fires
+  `SapientiaItemPackagedEvent`, and on success deposits the bundle into the
+  chest below. Symmetrical inverse path for the unpackager.
+- `MaxFlowItemSolverBenchmark` — JMH harness for **P-019**, parameterised
+  on 100 / 1000-node grid networks. Anchors the regression gate from ADR-020
+  (≥ 20 % regression blocks merge — same policy as T-171).
+
+### Changed
+
+- `SapientiaPackager` and `SapientiaUnpackager` — promoted from
+  placement-only stubs to `LogisticsContentBlock` subclasses. They now
+  register as `ItemNodeType.CONSUMER` / `PRODUCER` nodes (priority 0, LOW
+  tier) so the new `LogisticsTicker` picks them up via the existing
+  `ItemNetworkGraph` traversal.
+- `SapientiaPlugin` — new fields `logisticsTicker` and `logisticsConfig`,
+  initialised right after `geoTicker`; scheduled at offset 19L / period
+  10L mirroring the 1.7.1 cadence.
+
+### Decision records
+
+- **ADR-020** — Packager NBT format (V1 single-stack now / V2 multi-stack
+  in 2.0.0) + Ford-Fulkerson opt-in policy. Default solver remains `legacy`
+  to preserve world-state determinism for existing servers; `maxflow` is
+  an explicit opt-in for HV+ networks (≥ 1000 nodes).
+
+### Deferred to later milestones
+
+- **T-445** explicit priority-lane API exposed via `/sapientia logistics
+  policy` — designed in ADR-020 but lands once the splitter ratio table
+  goes live (1.9.0).
+- **Splitter ratio table** + **multi-pass filter rule chaining** — both
+  rolled to 1.9.0 alongside the android programming UI (T-453) which is the
+  natural consumer.
+- **Comparator sensor** + **fluid level sensor** logic-runtime read — lands
+  with T-453 (the DAG editor that consumes their values).
+- **Conveyor belt** visible item-on-belt rendering — display-entity work
+  rolled to 1.9.0 with the android pose / animation pass.
+- **Multi-stack bundle layout (ADR-020 §3 V2)** — ships with the dedicated
+  `packaged_bundle` content item in 2.0.0.
+
+### i18n
+
+- No new keys; parity holds at **422**. The kinetic loop reuses the 1.8.0
+  catalogue strings.
+
 ## [1.8.0] — Advanced logistics 📦 ✅
 
 Catalogue release for industrial-grade item / fluid routing. Adds eight new
