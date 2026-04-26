@@ -8,14 +8,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.gradleup.shadow:shadow-gradle-plugin:8.3.5")
-    // Shadow 8.3.5 bundles ASM 9.7.1, which doesn't recognise Java 25 class files
-    // (major version 69). Force the plugin classpath to a newer ASM until we can
-    // upgrade to Shadow 9.x (which requires Kotlin 2.2+ and therefore Gradle 9).
-    constraints {
-        implementation("org.ow2.asm:asm:9.8")
-        implementation("org.ow2.asm:asm-commons:9.8")
-        implementation("org.ow2.asm:asm-tree:9.8")
-        implementation("org.ow2.asm:asm-analysis:9.8")
-    }
+    implementation("com.gradleup.shadow:shadow-gradle-plugin:9.4.1")
+    // Shadow 9.x rewrote RelocatorRemapper in Kotlin and bundles a current ASM,
+    // fixing the `mapValue(Handle)` MissingMethodException triggered by
+    // invokedynamic + StringConcatFactory on Java 25 class files.
 }
