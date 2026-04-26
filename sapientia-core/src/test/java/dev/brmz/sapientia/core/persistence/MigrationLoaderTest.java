@@ -32,6 +32,30 @@ final class MigrationLoaderTest {
                 assertThat(rs.getInt(1)).isEqualTo(2);
                 assertThat(rs.getString(2)).isEqualTo("V002__player_platform_cache.sql");
 
+                assertThat(rs.next()).isTrue();
+                assertThat(rs.getInt(1)).isEqualTo(3);
+                assertThat(rs.getString(2)).isEqualTo("V003__energy_nodes.sql");
+
+                assertThat(rs.next()).isTrue();
+                assertThat(rs.getInt(1)).isEqualTo(4);
+                assertThat(rs.getString(2)).isEqualTo("V004__unlocked_content.sql");
+
+                assertThat(rs.next()).isTrue();
+                assertThat(rs.getInt(1)).isEqualTo(5);
+                assertThat(rs.getString(2)).isEqualTo("V005__item_nodes.sql");
+
+                assertThat(rs.next()).isTrue();
+                assertThat(rs.getInt(1)).isEqualTo(6);
+                assertThat(rs.getString(2)).isEqualTo("V006__fluid_nodes.sql");
+
+                assertThat(rs.next()).isTrue();
+                assertThat(rs.getInt(1)).isEqualTo(7);
+                assertThat(rs.getString(2)).isEqualTo("V007__logic_programs.sql");
+
+                assertThat(rs.next()).isTrue();
+                assertThat(rs.getInt(1)).isEqualTo(8);
+                assertThat(rs.getString(2)).isEqualTo("V008__crude_oil_reservoirs.sql");
+
                 assertThat(rs.next()).isFalse();
             }
         }
@@ -47,7 +71,7 @@ final class MigrationLoaderTest {
             try (Statement st = connection.createStatement();
                  ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM schema_version")) {
                 assertThat(rs.next()).isTrue();
-                assertThat(rs.getInt(1)).isEqualTo(2);
+                assertThat(rs.getInt(1)).isEqualTo(8);
             }
         }
     }

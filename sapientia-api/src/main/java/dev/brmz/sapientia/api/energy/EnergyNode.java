@@ -13,6 +13,11 @@ public interface EnergyNode {
 
     EnergyNodeType type();
 
+    /** Throughput tier of this node. Defaults to {@link EnergyTier#LOW}. */
+    default EnergyTier tier() {
+        return EnergyTier.LOW;
+    }
+
     /** Current energy held, in energy units (E). */
     long bufferCurrent();
 

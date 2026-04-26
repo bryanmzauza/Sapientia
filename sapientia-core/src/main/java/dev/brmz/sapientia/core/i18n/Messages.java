@@ -94,6 +94,21 @@ public final class Messages {
                 || catalogs.getOrDefault(DEFAULT_LOCALE, Collections.emptyMap()).containsKey(key);
     }
 
+    /** Returns the locales that currently have at least one entry loaded. */
+    public @NotNull java.util.Set<String> loadedLocales() {
+        return java.util.Collections.unmodifiableSet(catalogs.keySet());
+    }
+
+    /**
+     * Returns the flattened key/value catalog for the given locale, or an empty map
+     * if the locale is not loaded. Used by the resource pack pipeline to derive
+     * Bedrock {@code .lang} files from the same source as the Java strings.
+     */
+    public @NotNull Map<String, String> catalogFor(@NotNull String locale) {
+        return java.util.Collections.unmodifiableMap(
+                catalogs.getOrDefault(locale, Collections.emptyMap()));
+    }
+
     private @NotNull String resolve(@NotNull String key) {
         Map<String, String> primary = catalogs.getOrDefault(activeLocale, Collections.emptyMap());
         String value = primary.get(key);

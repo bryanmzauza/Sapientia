@@ -5,3 +5,19 @@ locale: en
 persistence:
   # Hikari pool size for SQLite. Writes serialise regardless; more only helps reads.
   pool-size: 4
+
+resource-pack:
+  # Pack format embedded in the generated pack.mcmeta (T-164 / 0.5.0).
+  # Align with the server's Minecraft version; adjust if the pack fails to load.
+  pack-format: 32
+
+# Live readout rendered while a player aims at a Sapientia energy block
+# holding the wrench. Costs one ray-trace + one packet per wrench holder per
+# interval-ticks; negligible for typical player counts.
+inspector:
+  # Display mode. Values: actionbar | bossbar | off.
+  display: actionbar
+  # Max distance (in blocks) the wrench can inspect from.
+  range: 6
+  # How often the look-scan runs, in server ticks (20 ticks = 1 s).
+  interval-ticks: 10

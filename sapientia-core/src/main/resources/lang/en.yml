@@ -17,13 +17,712 @@ command:
     desc:
       help: "Show this help message."
       reload: "Reload configuration and catalogs."
+      reload-content: "Reload YAML overrides without restarting the server."
       give: "Give a Sapientia item to a player."
+      pack-build: "Build the Java resource pack into plugins/Sapientia/sapientia-resources.zip."
+      pack-build-bedrock: "Build the Bedrock .mcpack and Geyser mappings into plugins/Sapientia/."
+      pack-build-all: "Build both the Java pack and the Bedrock pack at once."
+      logistics: "Inspect and manage item logistics networks."
+      fluids: "Inspect Sapientia fluid logistics networks."
+      logic: "Manage programmable-logic DAG programs."
+  logistics:
+    usage: "<red>Usage: /sapientia logistics <info|policy|filter></red>"
+    info:
+      none: "<yellow>No item logistics node nearby.</yellow>"
+      header: "<gold>Filter at <white><x>,<y>,<z></white></gold> <gray>node=<node></gray>"
+      network: "<gray>Network <white><network></white> · <count> node(s) · policy <policy></gray>"
+      rule: "<gray>  <index>. <mode> <pattern></gray>"
+      empty: "<gray>  (no rules — ACCEPT_ALL)</gray>"
+    policy:
+      usage: "<red>Usage: /sapientia logistics policy <round_robin|priority|first_match></red>"
+      success: "<green>Routing policy set to <white><policy></white>.</green>"
+      not-found: "<red>You must aim at a Sapientia logistics block.</red>"
+    filter:
+      usage: "<red>Usage: /sapientia logistics filter <add|remove|clear|list> [args]</red>"
+      added: "<green>Rule added: <mode> <pattern></green>"
+      removed: "<green>Removed rule <index>.</green>"
+      cleared: "<green>All rules cleared.</green>"
+      not-filter: "<red>Aim at a Sapientia item filter to edit rules.</red>"
+      bad-mode: "<red>Mode must be <white>whitelist</white> or <white>blacklist</white>.</red>"
+      bad-index: "<red>Invalid rule index: <white><value></white></red>"
+  fluids:
+    usage: "<red>Usage: /sapientia fluids <info></red>"
+    info:
+      none: "<yellow>No fluid logistics node nearby.</yellow>"
+      header: "<gold>Fluid node at <white><x>,<y>,<z></white></gold> <gray>node=<node> type=<type></gray>"
+      network: "<gray>Network <white><network></white> · <count> node(s)</gray>"
+      tank: "<gray>Tank: <white><fluid></white> <amount>/<capacity> mB</gray>"
+      empty: "<gray>(empty)</gray>"
+  logic:
+    usage: "<red>Usage: /sapientia logic <list|info|load|unload|enable|disable|export|tick> [name]</red>"
+    unknown: "<red>Unknown logic program: <white><name></white></red>"
+    list:
+      header: "<gold>Logic programs (<white><count></white>):</gold>"
+      entry: "<gray>  <white><name></white> · enabled=<enabled></gray>"
+    info:
+      header: "<gold>Logic program <white><name></white></gold> <gray>enabled=<enabled></gray>"
+      size: "<gray>nodes=<white><nodes></white> edges=<white><edges></white></gray>"
+    load:
+      success: "<green>Loaded logic program <white><name></white> from <white><file></white>.</green>"
+      io: "<red>Could not read logic file: <white><error></white></red>"
+      invalid: "<red>Invalid logic program: <white><error></white></red>"
+    unload:
+      success: "<green>Unloaded logic program <white><name></white>.</green>"
+    enable:
+      success: "<green>Enabled logic program <white><name></white>.</green>"
+    disable:
+      success: "<green>Disabled logic program <white><name></white>.</green>"
+    export:
+      success: "<green>Exported logic program <white><name></white> to <white><path></white>.</green>"
+      io: "<red>Could not write logic file: <white><error></white></red>"
+    tick:
+      success: "<green>Logic program <white><name></white> ticked once.</green>"
+      failure: "<red>Logic tick failed: <white><error></white></red>"
   give:
     usage: "<red>Usage: /sapientia give <player> <id> [amount]</red>"
     success: "<green>Gave <white><amount></white> x <white><id></white> to <white><player></white>.</green>"
     unknown-item: "<red>Unknown item id: <white><id></white></red>"
     invalid-amount: "<red>Invalid amount: <white><value></white></red>"
     player-not-found: "<red>Player not found: <white><name></white></red>"
+  reload:
+    content:
+      success: "<green>Overrides reloaded in <white><ms>ms</white> <gray>(items=<items> blocks=<blocks> recipes=<recipes>)</gray>.</green>"
+      issues: "<yellow><count> validation issue(s) logged; check the server log.</yellow>"
+  pack:
+    usage: "<red>Usage: /sapientia pack build <java|bedrock|all></red>"
+    success: "<green>Resource pack written to <white><path></white>.</green>"
+    failure: "<red>Pack build failed: <white><error></white></red>"
+    bedrock:
+      success: "<green>Bedrock pack written to <white><pack></white>; mappings under <white><mappings></white>.</green>"
+      unsupported: "<red>Unknown pack target. Use <white>java</white>, <white>bedrock</white> or <white>all</white>.</red>"
 
 error:
   internal: "<red>An internal error occurred. Check the server log.</red>"
+
+item:
+  wrench:
+    name: "<aqua>Sapientia Wrench</aqua>"
+    lore: "<gray>Right-click to inspect Sapientia blocks.</gray>"
+    desc: "Aim at an energy block while holding the wrench to see a live\nbuffer + network readout. No click needed."
+  guide:
+    name: "<gold>Sapientia Guide</gold>"
+    lore: "<gray>Right-click to open the in-game guide.</gray>"
+    desc: "Your field manual. Opens a chest UI listing every\nSapientia item, block and recipe you have unlocked."
+  prospector:
+    name: "<aqua>Prospector</aqua>"
+    lore: "<gray>Right-click to scan the chunk for ore signals.</gray>"
+    desc: "GPS-style scan tool. Surveys the surrounding chunks for sub-bedrock ore reservoirs (active in 1.7.1)."
+  gps_handheld_map:
+    name: "<aqua>GPS Handheld Map</aqua>"
+    lore: "<gray>Right-click inside transmitter coverage to view markers.</gray>"
+    desc: "Renders nearby GPS markers when the player is inside a transmitter's coverage radius (active in 1.7.1)."
+
+block:
+  pedestal:
+    name: "<white>Sapientia Pedestal</white>"
+    desc: "Decorative display block. Useful for showcasing\nitems or marking important locations."
+  console:
+    name: "<gold>Sapientia Console</gold>"
+    desc: "Interactive demo block. Reserved for upcoming\nautomation and scripting UIs."
+  generator:
+    name: "<yellow>Sapientia Generator</yellow>"
+    desc: "Produces energy each tick. Connect it to cables to\npower capacitors and consumers in the same network."
+  cable:
+    name: "<gray>Sapientia Cable</gray>"
+    desc: "Links energy nodes. Forms a single network out of\nall adjacent (6-neighbour) Sapientia energy blocks."
+  capacitor:
+    name: "<aqua>Sapientia Capacitor</aqua>"
+    desc: "Bulk energy buffer. Smooths spikes in generation\nand demand so consumers keep running."
+  consumer:
+    name: "<red>Sapientia Consumer</red>"
+    desc: "Drains energy each tick. Demo sink used to verify\nthat your network is producing and delivering power."
+  workbench:
+    name: "<gold>Sapientia Workbench</gold>"
+    desc: "Sapientia 3x3 crafting grid. Right-click to open\nand craft bundled Sapientia recipes."
+  item_cable:
+    name: "<gray>Sapientia Item Cable</gray>"
+    desc: "Links item logistics nodes. Forms a single network\nout of all adjacent (6-neighbour) logistics blocks."
+  item_producer:
+    name: "<yellow>Sapientia Item Producer</yellow>"
+    desc: "Pulls items each tick from an adjacent vanilla\ncontainer (chest, barrel, dispenser, ...)."
+  item_consumer:
+    name: "<aqua>Sapientia Item Consumer</aqua>"
+    desc: "Pushes items each tick into an adjacent vanilla\ncontainer connected to the same logistics network."
+  item_filter:
+    name: "<gold>Sapientia Item Filter</gold>"
+    desc: "Allow- or block-list items by id. Right-click to\nopen the filter summary; edit via /sapientia logistics filter."
+  fluid_pipe:
+    name: "<gray>Sapientia Fluid Pipe</gray>"
+    desc: "Links fluid logistics nodes. Forms a single network\nout of all adjacent (6-neighbour) fluid blocks."
+  fluid_pump:
+    name: "<yellow>Sapientia Fluid Pump</yellow>"
+    desc: "Pulls fluid each tick from an adjacent vanilla\nsource (water, lava, cauldron)."
+  fluid_tank:
+    name: "<aqua>Sapientia Fluid Tank</aqua>"
+    desc: "Buffers fluid for the network. Holds one fluid\ntype at a time — no mixing."
+  fluid_drain:
+    name: "<gold>Sapientia Fluid Drain</gold>"
+    desc: "Pushes fluid each tick into an adjacent vanilla\nsink (cauldron or replaceable air block)."
+
+  cable_t2:
+    name: "<gold>MV Cable</gold>"
+    desc: "MV-tier energy cable. Carries up to 4x the throughput of the LV cable in the same network."
+  capacitor_t2:
+    name: "<gold>MV Capacitor</gold>"
+    desc: "MV-tier bulk energy buffer. 4x the capacity of the LV capacitor."
+  transformer_lv_mv:
+    name: "<gold>LV/MV Transformer</gold>"
+    desc: "Bridges an LV network to an MV network. Steps voltage up or down without burning cables."
+  machine_casing:
+    name: "<gold>Machine Casing</gold>"
+    desc: "Shared LV-tier casing. Used as the core ingredient in every LV machine recipe."
+  machine_casing_mv:
+    name: "<gold>MV Machine Casing</gold>"
+    desc: "Shared MV-tier casing. Used as the core ingredient in every MV machine recipe and the induction furnace."
+  macerator:
+    name: "<gold>Macerator</gold>"
+    desc: "LV-tier machine. Grinds raw ore into 2x dust."
+  ore_washer:
+    name: "<gold>Ore Washer</gold>"
+    desc: "LV-tier machine. Washes dust to remove impurities and recover byproducts."
+  electric_furnace:
+    name: "<gold>Electric Furnace</gold>"
+    desc: "LV-tier machine. Smelts dust into ingot at twice the speed of a vanilla furnace."
+  mixer:
+    name: "<gold>Mixer</gold>"
+    desc: "MV-tier machine. Combines two metal dusts into an alloy dust (bronze, brass, electrum)."
+  compressor:
+    name: "<gold>Compressor</gold>"
+    desc: "MV-tier machine. Compacts plates and dusts into denser forms."
+  bench_saw:
+    name: "<gold>Bench Saw</gold>"
+    desc: "LV-tier machine. Cuts rods into gears and screws."
+  plate_press:
+    name: "<gold>Plate Press</gold>"
+    desc: "MV-tier machine. Rolls ingots into plates."
+  extractor:
+    name: "<gold>Extractor</gold>"
+    desc: "MV-tier machine. Draws ingots into wire."
+  induction_furnace_controller:
+    name: "<gold>Induction Furnace Controller</gold>"
+    desc: "MV multiblock controller. Surround with a 3x3x3 shell of MV machine casing or smooth basalt to form the structure."
+  stainless_steel_casing:
+    name: "<gold>Stainless Steel Casing</gold>"
+    desc: "Refinery-grade casing. Used as the shell of the 5x5x7 oil refinery multiblock."
+  pumpjack:
+    name: "<gold>Pumpjack</gold>"
+    desc: "MV-tier geo-extractor. Pulls crude oil from the chunk reservoir below."
+  combustion_gen:
+    name: "<gold>Combustion Generator</gold>"
+    desc: "MV-tier generator. Burns diesel or gasoline into structured units of energy."
+  biogas_gen:
+    name: "<gold>Biogas Generator</gold>"
+    desc: "LV-tier generator. Burns nutrient broth into a steady trickle of energy."
+  cracker:
+    name: "<gold>Cracker</gold>"
+    desc: "MV-tier machine. Cracks heavy petroleum fractions into lighter ones."
+  fermenter:
+    name: "<gold>Fermenter</gold>"
+    desc: "MV-tier machine. Ferments nutrient broth into biogas precursors."
+  still:
+    name: "<gold>Still</gold>"
+    desc: "MV-tier machine. Distills fermented mash into purified fluids."
+  bioreactor:
+    name: "<gold>Bioreactor</gold>"
+    desc: "LV-tier machine. Cultures organics into nutrient broth."
+  oil_refinery_controller:
+    name: "<gold>Oil Refinery Controller</gold>"
+    desc: "Multiblock head of the 5x5x7 oil refinery. Splits crude oil into diesel, gasoline, lubricant and tar."
+  cable_t3:
+    name: "<aqua>HV Cable</aqua>"
+    desc: "High-voltage cable. Carries up to 4096 J/t between HV machines."
+  capacitor_t3:
+    name: "<aqua>HV Capacitor</aqua>"
+    desc: "High-voltage energy buffer. Stores massive amounts of energy."
+  transformer_mv_hv:
+    name: "<aqua>MV \u2194 HV Transformer</aqua>"
+    desc: "Steps voltage between the MV and HV grids."
+  geothermal_gen:
+    name: "<aqua>Geothermal Generator</aqua>"
+    desc: "HV generator. Extracts heat from nearby lava sources."
+  gas_turbine:
+    name: "<aqua>Gas Turbine</aqua>"
+    desc: "HV generator. Burns combustible gases for steady power."
+  rtg:
+    name: "<aqua>RTG</aqua>"
+    desc: "Radioisotope thermoelectric generator. Trickle HV power that never stops."
+  electrolyzer:
+    name: "<aqua>Electrolyzer</aqua>"
+    desc: "HV machine. Splits fluids into their component gases."
+  rolling_mill:
+    name: "<aqua>Rolling Mill</aqua>"
+    desc: "HV machine. Rolls ingots into plates and wires."
+  laser_cutter:
+    name: "<aqua>Laser Cutter</aqua>"
+    desc: "HV machine. Cuts silicon wafers and precision parts."
+  chemical_reactor:
+    name: "<aqua>Chemical Reactor</aqua>"
+    desc: "HV machine. Reacts gases and liquids under pressure."
+  pressurized_pipe:
+    name: "<aqua>Pressurized Pipe</aqua>"
+    desc: "HV pipe. Routes high-pressure gases between machines."
+  gas_compressor:
+    name: "<gold>Gas Compressor</gold>"
+    desc: "MV machine. Compresses atmospheric gases into stored mB."
+  boiler:
+    name: "<gold>Boiler</gold>"
+    desc: "MV machine. Boils liquids into gases."
+  condenser:
+    name: "<gold>Condenser</gold>"
+    desc: "MV machine. Condenses gases back into liquids."
+  liquefier:
+    name: "<aqua>Liquefier</aqua>"
+    desc: "HV machine. Liquefies cryogenic gases."
+  phase_separator:
+    name: "<aqua>Phase Separator</aqua>"
+    desc: "HV machine. Splits multi-phase fluid mixtures into pure outputs."
+
+  quarry_controller:
+    name: "<aqua>Quarry Controller</aqua>"
+    desc: "Multiblock head of a 3x3x4 quarry. Mines a configurable AABB beneath the structure (active in 1.7.1)."
+  drill_rig_controller:
+    name: "<aqua>Drill Rig Controller</aqua>"
+    desc: "Multiblock head of a 5x5x8 drill rig. Performs sub-bedrock virtual mining via probability tables (active in 1.7.1)."
+  desalinator_controller:
+    name: "<aqua>Desalinator Controller</aqua>"
+    desc: "Multiblock head of a 5x3x3 desalinator. Splits sea water into fresh water + rock salt (active in 1.7.1)."
+  gas_extractor:
+    name: "<gold>Gas Extractor</gold>"
+    desc: "MV machine. Pulls underground gas pockets into the fluid network (active in 1.7.1)."
+  atmospheric_collector:
+    name: "<gold>Atmospheric Collector</gold>"
+    desc: "MV machine. Samples the world atmosphere into nitrogen, argon and CO2 gas tanks (active in 1.7.1)."
+  gps_transmitter:
+    name: "<aqua>GPS Transmitter</aqua>"
+    desc: "Broadcasts a coverage signal that lights up the handheld map. Stub in 1.7.0; coverage scan in 1.7.1."
+  gps_marker:
+    name: "<aqua>GPS Marker</aqua>"
+    desc: "A passive way-point inside transmitter coverage. Renders on the handheld map (active in 1.7.1)."
+
+  item_buffer:
+    name: "<aqua>Item Buffer</aqua>"
+    desc: "High-priority sink that smooths bursty producer chains. Pulls items from the network into an adjacent vanilla container."
+  item_splitter:
+    name: "<gold>Item Splitter</gold>"
+    desc: "Distributes items across outgoing neighbours. Ratio table arrives with the routing rework in 1.8.1."
+  filter_chamber:
+    name: "<gold>Filter Chamber</gold>"
+    desc: "Multi-pass filter that chains up to four rule sets. 1.8.0 ships single-pass parity with item_filter."
+  overflow_module:
+    name: "<yellow>Overflow Module</yellow>"
+    desc: "Routing safety valve. Last-resort sink the solver only fills when every other consumer is saturated."
+  comparator_sensor:
+    name: "<gray>Comparator Sensor</gray>"
+    desc: "Reads the fill level of an adjacent container into the logic runtime. Active in 1.8.1."
+  packager:
+    name: "<aqua>Packager</aqua>"
+    desc: "Bundles the contents of an adjacent container into a single packaged_bundle stack. Active in 1.8.1."
+  unpackager:
+    name: "<aqua>Unpackager</aqua>"
+    desc: "Inverse of the packager: explodes a packaged_bundle back into its component stacks. Active in 1.8.1."
+  conveyor_belt:
+    name: "<gray>Conveyor Belt</gray>"
+    desc: "Junction that routes items along its line. Visible item-on-belt rendering arrives in 1.8.1."
+  fluid_valve:
+    name: "<gray>Fluid Valve</gray>"
+    desc: "Junction that gates flow between its two ends. Manual + logic-driven toggle arrives in 1.8.1."
+  fluid_level_sensor:
+    name: "<gray>Fluid Level Sensor</gray>"
+    desc: "Reads the fill ratio of an adjacent fluid_tank into the logic runtime. Active in 1.8.1."
+
+fluid:
+  water:
+    name: "<aqua>Water</aqua>"
+  lava:
+    name: "<gold>Lava</gold>"
+  milk:
+    name: "<white>Milk</white>"
+  crude_oil:
+    name: "<dark_gray>Crude Oil</dark_gray>"
+  diesel:
+    name: "<gold>Diesel</gold>"
+  gasoline:
+    name: "<yellow>Gasoline</yellow>"
+  lubricant:
+    name: "<dark_red>Lubricant</dark_red>"
+  nutrient_broth:
+    name: "<green>Nutrient Broth</green>"
+  hydrogen:
+    name: "<aqua>Hydrogen</aqua>"
+  oxygen_gas:
+    name: "<blue>Oxygen</blue>"
+  nitrogen:
+    name: "<gray>Nitrogen</gray>"
+  chlorine:
+    name: "<green>Chlorine</green>"
+  ethylene:
+    name: "<white>Ethylene</white>"
+  compressed_air:
+    name: "<aqua>Compressed Air</aqua>"
+  argon:
+    name: "<light_purple>Argon</light_purple>"
+  carbon_dioxide:
+    name: "<gray>Carbon Dioxide</gray>"
+  liquid_oxygen:
+    name: "<aqua>Liquid Oxygen</aqua>"
+
+guide:
+  title: "<gold>Sapientia Guide</gold>"
+  locked: "<dark_gray>Locked</dark_gray>"
+  index:
+    header:
+      name: "<gold><bold>Sapientia Guide</bold></gold>"
+      lore: "<gray>Click any entry to view its\nrecipe and detailed information.</gray>"
+  detail:
+    title: "<gold>Guide</gold> <gray>·</gray> <white><name></white>"
+    recipe:
+      header: "<aqua><bold>Recipe</bold></aqua>"
+      none: "<gray>This item has no crafting recipe.\nObtain it from world drops, the\n/sapientia give command, or admins.</gray>"
+    yields: "<gray>Yields <white><amount>x</white> per craft.</gray>"
+    category: "<dark_gray>Category:</dark_gray> <gray><category></gray>"
+    back:
+      name: "<yellow>« Back to Index</yellow>"
+      lore: "<gray>Return to the guide index.</gray>"
+
+ui:
+  machine:
+    title: "<gold>Sapientia Machine</gold>"
+    energy:
+      title: "<aqua>Energy Buffer</aqua>"
+      value: "<gray><current>/<max> E</gray>"
+      percent: "<gray><percent>%</percent></gray>"
+    running: "<green>Running</green>"
+    stopped: "<red>Stopped</red>"
+    click:
+      start: "<gray>Click to start.</gray>"
+      stop: "<gray>Click to stop.</gray>"
+    bedrock:
+      content: "<current>/<max> E (<percent>%)"
+      toggle: "Running"
+  filter:
+    title: "<gold>Item Filter</gold>"
+    empty: "<gray>No rules — accepting every item.</gray>"
+    help: "<dark_gray>Edit via /sapientia logistics filter.</dark_gray>"
+    policy: "<aqua>Routing:</aqua> <white><policy></white>"
+    rule:
+      line: "<gray><mode>:</gray> <white><pattern></white>"
+
+metal:
+  copper_raw:
+    name: "<gold>Raw Copper</gold>"
+  copper_dust:
+    name: "<gold>Copper Dust</gold>"
+  copper_ingot:
+    name: "<gold>Copper Ingot</gold>"
+  copper_block:
+    name: "<gold>Block of Copper</gold>"
+  copper_plate:
+    name: "<gold>Copper Plate</gold>"
+  copper_wire:
+    name: "<gold>Copper Wire</gold>"
+  copper_rod:
+    name: "<gold>Copper Rod</gold>"
+  copper_gear:
+    name: "<gold>Copper Gear</gold>"
+  copper_screw:
+    name: "<gold>Copper Screw</gold>"
+  tin_raw:
+    name: "<white>Raw Tin</white>"
+  tin_dust:
+    name: "<white>Tin Dust</white>"
+  tin_ingot:
+    name: "<white>Tin Ingot</white>"
+  tin_block:
+    name: "<white>Block of Tin</white>"
+  tin_plate:
+    name: "<white>Tin Plate</white>"
+  tin_wire:
+    name: "<white>Tin Wire</white>"
+  tin_rod:
+    name: "<white>Tin Rod</white>"
+  tin_gear:
+    name: "<white>Tin Gear</white>"
+  tin_screw:
+    name: "<white>Tin Screw</white>"
+  zinc_raw:
+    name: "<gray>Raw Zinc</gray>"
+  zinc_dust:
+    name: "<gray>Zinc Dust</gray>"
+  zinc_ingot:
+    name: "<gray>Zinc Ingot</gray>"
+  zinc_block:
+    name: "<gray>Block of Zinc</gray>"
+  zinc_plate:
+    name: "<gray>Zinc Plate</gray>"
+  zinc_wire:
+    name: "<gray>Zinc Wire</gray>"
+  zinc_rod:
+    name: "<gray>Zinc Rod</gray>"
+  zinc_gear:
+    name: "<gray>Zinc Gear</gray>"
+  zinc_screw:
+    name: "<gray>Zinc Screw</gray>"
+  lead_raw:
+    name: "<dark_gray>Raw Lead</dark_gray>"
+  lead_dust:
+    name: "<dark_gray>Lead Dust</dark_gray>"
+  lead_ingot:
+    name: "<dark_gray>Lead Ingot</dark_gray>"
+  lead_block:
+    name: "<dark_gray>Block of Lead</dark_gray>"
+  lead_plate:
+    name: "<dark_gray>Lead Plate</dark_gray>"
+  lead_wire:
+    name: "<dark_gray>Lead Wire</dark_gray>"
+  lead_rod:
+    name: "<dark_gray>Lead Rod</dark_gray>"
+  lead_gear:
+    name: "<dark_gray>Lead Gear</dark_gray>"
+  lead_screw:
+    name: "<dark_gray>Lead Screw</dark_gray>"
+  silver_raw:
+    name: "<white>Raw Silver</white>"
+  silver_dust:
+    name: "<white>Silver Dust</white>"
+  silver_ingot:
+    name: "<white>Silver Ingot</white>"
+  silver_block:
+    name: "<white>Block of Silver</white>"
+  silver_plate:
+    name: "<white>Silver Plate</white>"
+  silver_wire:
+    name: "<white>Silver Wire</white>"
+  silver_rod:
+    name: "<white>Silver Rod</white>"
+  silver_gear:
+    name: "<white>Silver Gear</white>"
+  silver_screw:
+    name: "<white>Silver Screw</white>"
+  nickel_raw:
+    name: "<yellow>Raw Nickel</yellow>"
+  nickel_dust:
+    name: "<yellow>Nickel Dust</yellow>"
+  nickel_ingot:
+    name: "<yellow>Nickel Ingot</yellow>"
+  nickel_block:
+    name: "<yellow>Block of Nickel</yellow>"
+  nickel_plate:
+    name: "<yellow>Nickel Plate</yellow>"
+  nickel_wire:
+    name: "<yellow>Nickel Wire</yellow>"
+  nickel_rod:
+    name: "<yellow>Nickel Rod</yellow>"
+  nickel_gear:
+    name: "<yellow>Nickel Gear</yellow>"
+  nickel_screw:
+    name: "<yellow>Nickel Screw</yellow>"
+  bronze_dust:
+    name: "<gold>Bronze Dust</gold>"
+  bronze_ingot:
+    name: "<gold>Bronze Ingot</gold>"
+  bronze_block:
+    name: "<gold>Block of Bronze</gold>"
+  bronze_plate:
+    name: "<gold>Bronze Plate</gold>"
+  bronze_wire:
+    name: "<gold>Bronze Wire</gold>"
+  bronze_rod:
+    name: "<gold>Bronze Rod</gold>"
+  bronze_gear:
+    name: "<gold>Bronze Gear</gold>"
+  bronze_screw:
+    name: "<gold>Bronze Screw</gold>"
+  brass_dust:
+    name: "<yellow>Brass Dust</yellow>"
+  brass_ingot:
+    name: "<yellow>Brass Ingot</yellow>"
+  brass_block:
+    name: "<yellow>Block of Brass</yellow>"
+  brass_plate:
+    name: "<yellow>Brass Plate</yellow>"
+  brass_wire:
+    name: "<yellow>Brass Wire</yellow>"
+  brass_rod:
+    name: "<yellow>Brass Rod</yellow>"
+  brass_gear:
+    name: "<yellow>Brass Gear</yellow>"
+  brass_screw:
+    name: "<yellow>Brass Screw</yellow>"
+  electrum_dust:
+    name: "<aqua>Electrum Dust</aqua>"
+  electrum_ingot:
+    name: "<aqua>Electrum Ingot</aqua>"
+  electrum_block:
+    name: "<aqua>Block of Electrum</aqua>"
+  electrum_plate:
+    name: "<aqua>Electrum Plate</aqua>"
+  electrum_wire:
+    name: "<aqua>Electrum Wire</aqua>"
+  electrum_rod:
+    name: "<aqua>Electrum Rod</aqua>"
+  electrum_gear:
+    name: "<aqua>Electrum Gear</aqua>"
+  electrum_screw:
+    name: "<aqua>Electrum Screw</aqua>"
+
+  aluminum_raw:
+    name: "<gray>Raw Aluminum</gray>"
+  aluminum_dust:
+    name: "<gray>Aluminum Dust</gray>"
+  aluminum_ingot:
+    name: "<gray>Aluminum Ingot</gray>"
+  aluminum_block:
+    name: "<gray>Block of Aluminum</gray>"
+  aluminum_plate:
+    name: "<gray>Aluminum Plate</gray>"
+  aluminum_wire:
+    name: "<gray>Aluminum Wire</gray>"
+  aluminum_rod:
+    name: "<gray>Aluminum Rod</gray>"
+  aluminum_gear:
+    name: "<gray>Aluminum Gear</gray>"
+  aluminum_screw:
+    name: "<gray>Aluminum Screw</gray>"
+  silicon_raw:
+    name: "<dark_gray>Raw Silicon</dark_gray>"
+  silicon_dust:
+    name: "<dark_gray>Silicon Dust</dark_gray>"
+  silicon_ingot:
+    name: "<dark_gray>Silicon Ingot</dark_gray>"
+  silicon_block:
+    name: "<dark_gray>Block of Silicon</dark_gray>"
+  silicon_plate:
+    name: "<dark_gray>Silicon Plate</dark_gray>"
+  silicon_wire:
+    name: "<dark_gray>Silicon Wire</dark_gray>"
+  silicon_rod:
+    name: "<dark_gray>Silicon Rod</dark_gray>"
+  silicon_gear:
+    name: "<dark_gray>Silicon Gear</dark_gray>"
+  silicon_screw:
+    name: "<dark_gray>Silicon Screw</dark_gray>"
+  titanium_raw:
+    name: "<white>Raw Titanium</white>"
+  titanium_dust:
+    name: "<white>Titanium Dust</white>"
+  titanium_ingot:
+    name: "<white>Titanium Ingot</white>"
+  titanium_block:
+    name: "<white>Block of Titanium</white>"
+  titanium_plate:
+    name: "<white>Titanium Plate</white>"
+  titanium_wire:
+    name: "<white>Titanium Wire</white>"
+  titanium_rod:
+    name: "<white>Titanium Rod</white>"
+  titanium_gear:
+    name: "<white>Titanium Gear</white>"
+  titanium_screw:
+    name: "<white>Titanium Screw</white>"
+  lithium_raw:
+    name: "<light_purple>Raw Lithium</light_purple>"
+  lithium_dust:
+    name: "<light_purple>Lithium Dust</light_purple>"
+  lithium_ingot:
+    name: "<light_purple>Lithium Ingot</light_purple>"
+  lithium_block:
+    name: "<light_purple>Block of Lithium</light_purple>"
+  lithium_plate:
+    name: "<light_purple>Lithium Plate</light_purple>"
+  lithium_wire:
+    name: "<light_purple>Lithium Wire</light_purple>"
+  lithium_rod:
+    name: "<light_purple>Lithium Rod</light_purple>"
+  lithium_gear:
+    name: "<light_purple>Lithium Gear</light_purple>"
+  lithium_screw:
+    name: "<light_purple>Lithium Screw</light_purple>"
+  stainless_steel_dust:
+    name: "<white>Stainless Steel Dust</white>"
+  stainless_steel_ingot:
+    name: "<white>Stainless Steel Ingot</white>"
+  stainless_steel_block:
+    name: "<white>Block of Stainless Steel</white>"
+  stainless_steel_plate:
+    name: "<white>Stainless Steel Plate</white>"
+  stainless_steel_wire:
+    name: "<white>Stainless Steel Wire</white>"
+  stainless_steel_rod:
+    name: "<white>Stainless Steel Rod</white>"
+  stainless_steel_gear:
+    name: "<white>Stainless Steel Gear</white>"
+  stainless_steel_screw:
+    name: "<white>Stainless Steel Screw</white>"
+  damascus_steel_dust:
+    name: "<dark_gray>Damascus Steel Dust</dark_gray>"
+  damascus_steel_ingot:
+    name: "<dark_gray>Damascus Steel Ingot</dark_gray>"
+  damascus_steel_block:
+    name: "<dark_gray>Block of Damascus Steel</dark_gray>"
+  damascus_steel_plate:
+    name: "<dark_gray>Damascus Steel Plate</dark_gray>"
+  damascus_steel_wire:
+    name: "<dark_gray>Damascus Steel Wire</dark_gray>"
+  damascus_steel_rod:
+    name: "<dark_gray>Damascus Steel Rod</dark_gray>"
+  damascus_steel_gear:
+    name: "<dark_gray>Damascus Steel Gear</dark_gray>"
+  damascus_steel_screw:
+    name: "<dark_gray>Damascus Steel Screw</dark_gray>"
+  nichrome_dust:
+    name: "<gold>Nichrome Dust</gold>"
+  nichrome_ingot:
+    name: "<gold>Nichrome Ingot</gold>"
+  nichrome_block:
+    name: "<gold>Block of Nichrome</gold>"
+  nichrome_plate:
+    name: "<gold>Nichrome Plate</gold>"
+  nichrome_wire:
+    name: "<gold>Nichrome Wire</gold>"
+  nichrome_rod:
+    name: "<gold>Nichrome Rod</gold>"
+  nichrome_gear:
+    name: "<gold>Nichrome Gear</gold>"
+  nichrome_screw:
+    name: "<gold>Nichrome Screw</gold>"
+
+component:
+  silicon_wafer:
+    name: "<aqua>Silicon Wafer</aqua>"
+  motor_t1:
+    name: "<gray>LV Motor</gray>"
+  motor_t2:
+    name: "<yellow>MV Motor</yellow>"
+  motor_t3:
+    name: "<aqua>HV Motor</aqua>"
+  circuit_t1:
+    name: "<gray>LV Circuit</gray>"
+  circuit_t2:
+    name: "<yellow>MV Circuit</yellow>"
+  circuit_t3:
+    name: "<aqua>HV Circuit</aqua>"
+  processor_t1:
+    name: "<gray>Processor T1</gray>"
+  processor_t2:
+    name: "<yellow>Processor T2</yellow>"
+  processor_t3:
+    name: "<aqua>Processor T3</aqua>"
+  coil_t1:
+    name: "<gray>LV Coil</gray>"
+  coil_t2:
+    name: "<yellow>MV Coil</yellow>"
+  coil_t3:
+    name: "<aqua>HV Coil</aqua>"
+  ram_t2:
+    name: "<yellow>RAM Module T2</yellow>"
+  ram_t3:
+    name: "<aqua>RAM Module T3</aqua>"
+  storage_hdd:
+    name: "<gray>Hard Disk Drive</gray>"
+  storage_ssd:
+    name: "<aqua>Solid State Drive</aqua>"

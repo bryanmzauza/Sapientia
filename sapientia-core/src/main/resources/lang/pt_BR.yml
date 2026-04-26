@@ -17,13 +17,712 @@ command:
     desc:
       help: "Mostra esta mensagem de ajuda."
       reload: "Recarrega configuração e catálogos."
+      reload-content: "Recarrega os YAMLs de override sem reiniciar o servidor."
       give: "Dá um item do Sapientia a um jogador."
+      pack-build: "Gera o resource pack Java em plugins/Sapientia/sapientia-resources.zip."
+      pack-build-bedrock: "Gera o .mcpack e os mappings do Geyser em plugins/Sapientia/."
+      pack-build-all: "Gera os packs Java e Bedrock de uma vez."
+      logistics: "Inspeciona e gerencia redes de logistica de itens."
+      fluids: "Inspeciona redes de fluidos do Sapientia."
+      logic: "Gerencia programas de logica programavel (DAG)."
+  logistics:
+    usage: "<red>Uso: /sapientia logistics <info|policy|filter></red>"
+    info:
+      none: "<yellow>Nenhum no de logistica de itens por perto.</yellow>"
+      header: "<gold>Filtro em <white><x>,<y>,<z></white></gold> <gray>node=<node></gray>"
+      network: "<gray>Rede <white><network></white> · <count> no(s) · politica <policy></gray>"
+      rule: "<gray>  <index>. <mode> <pattern></gray>"
+      empty: "<gray>  (sem regras — ACCEPT_ALL)</gray>"
+    policy:
+      usage: "<red>Uso: /sapientia logistics policy <round_robin|priority|first_match></red>"
+      success: "<green>Politica de roteamento ajustada para <white><policy></white>.</green>"
+      not-found: "<red>Voce precisa mirar em um bloco de logistica do Sapientia.</red>"
+    filter:
+      usage: "<red>Uso: /sapientia logistics filter <add|remove|clear|list> [args]</red>"
+      added: "<green>Regra adicionada: <mode> <pattern></green>"
+      removed: "<green>Regra <index> removida.</green>"
+      cleared: "<green>Todas as regras foram removidas.</green>"
+      not-filter: "<red>Mire em um filtro de itens Sapientia para editar regras.</red>"
+      bad-mode: "<red>O modo deve ser <white>whitelist</white> ou <white>blacklist</white>.</red>"
+      bad-index: "<red>Indice de regra invalido: <white><value></white></red>"
+  fluids:
+    usage: "<red>Uso: /sapientia fluids <info></red>"
+    info:
+      none: "<yellow>Nenhum no de fluido por perto.</yellow>"
+      header: "<gold>No de fluido em <white><x>,<y>,<z></white></gold> <gray>node=<node> tipo=<type></gray>"
+      network: "<gray>Rede <white><network></white> · <count> no(s)</gray>"
+      tank: "<gray>Tanque: <white><fluid></white> <amount>/<capacity> mB</gray>"
+      empty: "<gray>(vazio)</gray>"
+  logic:
+    usage: "<red>Uso: /sapientia logic <list|info|load|unload|enable|disable|export|tick> [nome]</red>"
+    unknown: "<red>Programa de logica desconhecido: <white><name></white></red>"
+    list:
+      header: "<gold>Programas de logica (<white><count></white>):</gold>"
+      entry: "<gray>  <white><name></white> · ativo=<enabled></gray>"
+    info:
+      header: "<gold>Programa de logica <white><name></white></gold> <gray>ativo=<enabled></gray>"
+      size: "<gray>nos=<white><nodes></white> arestas=<white><edges></white></gray>"
+    load:
+      success: "<green>Programa <white><name></white> carregado de <white><file></white>.</green>"
+      io: "<red>Falha ao ler arquivo de logica: <white><error></white></red>"
+      invalid: "<red>Programa de logica invalido: <white><error></white></red>"
+    unload:
+      success: "<green>Programa <white><name></white> removido.</green>"
+    enable:
+      success: "<green>Programa <white><name></white> ativado.</green>"
+    disable:
+      success: "<green>Programa <white><name></white> desativado.</green>"
+    export:
+      success: "<green>Programa <white><name></white> exportado para <white><path></white>.</green>"
+      io: "<red>Falha ao gravar arquivo de logica: <white><error></white></red>"
+    tick:
+      success: "<green>Programa <white><name></white> executado uma vez.</green>"
+      failure: "<red>Falha ao executar programa: <white><error></white></red>"
   give:
     usage: "<red>Uso: /sapientia give <jogador> <id> [quantidade]</red>"
     success: "<green>Entregue <white><amount></white> x <white><id></white> para <white><player></white>.</green>"
     unknown-item: "<red>Item desconhecido: <white><id></white></red>"
     invalid-amount: "<red>Quantidade inválida: <white><value></white></red>"
     player-not-found: "<red>Jogador não encontrado: <white><name></white></red>"
+  reload:
+    content:
+      success: "<green>Overrides recarregados em <white><ms>ms</white> <gray>(itens=<items> blocos=<blocks> receitas=<recipes>)</gray>.</green>"
+      issues: "<yellow><count> problema(s) de validação registrados; veja o log do servidor.</yellow>"
+  pack:
+    usage: "<red>Uso: /sapientia pack build <java|bedrock|all></red>"
+    success: "<green>Resource pack gerado em <white><path></white>.</green>"
+    failure: "<red>Falha ao gerar o pack: <white><error></white></red>"
+    bedrock:
+      success: "<green>Pack Bedrock gerado em <white><pack></white>; mappings em <white><mappings></white>.</green>"
+      unsupported: "<red>Alvo de pack desconhecido. Use <white>java</white>, <white>bedrock</white> ou <white>all</white>.</red>"
 
 error:
   internal: "<red>Ocorreu um erro interno. Consulte o log do servidor.</red>"
+
+item:
+  wrench:
+    name: "<aqua>Chave Sapientia</aqua>"
+    lore: "<gray>Clique direito para inspecionar blocos Sapientia.</gray>"
+    desc: "Mire em um bloco de energia segurando a chave para ver\no buffer e o resumo da rede em tempo real. Sem clicar."
+  guide:
+    name: "<gold>Guia Sapientia</gold>"
+    lore: "<gray>Clique direito para abrir o guia.</gray>"
+    desc: "Seu manual de campo. Abre uma UI em bau listando todos\nos itens, blocos e receitas Sapientia desbloqueados."
+  prospector:
+    name: "<aqua>Prospector</aqua>"
+    lore: "<gray>Clique direito para escanear o chunk em busca de minerios.</gray>"
+    desc: "Ferramenta de prospeccao GPS. Procura por reservatorios sub-bedrock nos chunks vizinhos (ativo em 1.7.1)."
+  gps_handheld_map:
+    name: "<aqua>Mapa GPS</aqua>"
+    lore: "<gray>Clique direito dentro da cobertura do transmissor para ver os marcadores.</gray>"
+    desc: "Mostra os marcadores GPS proximos quando o jogador esta na area de cobertura de um transmissor (ativo em 1.7.1)."
+
+block:
+  pedestal:
+    name: "<white>Pedestal Sapientia</white>"
+    desc: "Bloco decorativo para exibir itens ou marcar\nlocais importantes."
+  console:
+    name: "<gold>Console Sapientia</gold>"
+    desc: "Bloco interativo de demonstracao. Reservado para\nUIs de automacao e scripting que virao a seguir."
+  generator:
+    name: "<yellow>Gerador Sapientia</yellow>"
+    desc: "Produz energia a cada tick. Conecte com cabos para\nalimentar capacitores e consumidores na mesma rede."
+  cable:
+    name: "<gray>Cabo Sapientia</gray>"
+    desc: "Liga nos de energia. Forma uma unica rede unindo\ntodos os blocos Sapientia adjacentes (6 vizinhos)."
+  capacitor:
+    name: "<aqua>Capacitor Sapientia</aqua>"
+    desc: "Buffer de energia em massa. Suaviza picos de\ngeracao e demanda para os consumidores seguirem ativos."
+  consumer:
+    name: "<red>Consumidor Sapientia</red>"
+    desc: "Consome energia a cada tick. Usado para verificar\nse sua rede esta gerando e entregando energia."
+  workbench:
+    name: "<gold>Bancada Sapientia</gold>"
+    desc: "Grade 3x3 do Sapientia. Clique direito para abrir\ne montar as receitas empacotadas."
+  item_cable:
+    name: "<gray>Cabo de Itens Sapientia</gray>"
+    desc: "Liga nos de logistica. Forma uma unica rede unindo\ntodos os blocos de logistica adjacentes (6 vizinhos)."
+  item_producer:
+    name: "<yellow>Produtor de Itens Sapientia</yellow>"
+    desc: "Puxa itens a cada tick de um container vanilla\nadjacente (bau, barril, dispenser, ...)."
+  item_consumer:
+    name: "<aqua>Consumidor de Itens Sapientia</aqua>"
+    desc: "Empurra itens a cada tick para um container vanilla\nadjacente conectado a mesma rede de logistica."
+  item_filter:
+    name: "<gold>Filtro de Itens Sapientia</gold>"
+    desc: "Lista de permissao ou bloqueio por id de item.\nEdite via /sapientia logistics filter."
+  fluid_pipe:
+    name: "<gray>Tubulacao Sapientia</gray>"
+    desc: "Liga nos de fluidos. Forma uma unica rede unindo\ntodos os blocos de fluido adjacentes (6 vizinhos)."
+  fluid_pump:
+    name: "<yellow>Bomba Sapientia</yellow>"
+    desc: "Puxa fluido a cada tick de uma fonte vanilla\nadjacente (agua, lava, caldeirao)."
+  fluid_tank:
+    name: "<aqua>Tanque Sapientia</aqua>"
+    desc: "Armazena fluido para a rede. Guarda apenas um\ntipo de fluido — sem mistura."
+  fluid_drain:
+    name: "<gold>Dreno Sapientia</gold>"
+    desc: "Despeja fluido a cada tick em um destino vanilla\nadjacente (caldeirao ou bloco de ar substituivel)."
+
+  cable_t2:
+    name: "<gold>Cabo MV</gold>"
+    desc: "Cabo de energia tier MV. Carrega ate 4x a vazao do cabo LV na mesma rede."
+  capacitor_t2:
+    name: "<gold>Capacitor MV</gold>"
+    desc: "Buffer de energia em massa tier MV. 4x a capacidade do capacitor LV."
+  transformer_lv_mv:
+    name: "<gold>Transformador LV/MV</gold>"
+    desc: "Conecta uma rede LV a uma rede MV. Faz step-up ou step-down sem queimar cabos."
+  machine_casing:
+    name: "<gold>Carcaca de Maquina</gold>"
+    desc: "Carcaca compartilhada tier LV. Usada como nucleo em toda receita de maquina LV."
+  machine_casing_mv:
+    name: "<gold>Carcaca de Maquina MV</gold>"
+    desc: "Carcaca compartilhada tier MV. Nucleo de toda maquina MV e do forno de inducao."
+  macerator:
+    name: "<gold>Britador</gold>"
+    desc: "Maquina tier LV. Tritura minerio bruto em 2x po."
+  ore_washer:
+    name: "<gold>Lavador de Minerio</gold>"
+    desc: "Maquina tier LV. Lava o po removendo impurezas e recuperando subprodutos."
+  electric_furnace:
+    name: "<gold>Forno Eletrico</gold>"
+    desc: "Maquina tier LV. Funde po em lingote ao dobro da velocidade do forno vanilla."
+  mixer:
+    name: "<gold>Misturador</gold>"
+    desc: "Maquina tier MV. Combina dois pos metalicos em po de liga (bronze, latao, eletro)."
+  compressor:
+    name: "<gold>Compressor</gold>"
+    desc: "Maquina tier MV. Compacta placas e pos em formas mais densas."
+  bench_saw:
+    name: "<gold>Serra de Bancada</gold>"
+    desc: "Maquina tier LV. Corta hastes em engrenagens e parafusos."
+  plate_press:
+    name: "<gold>Prensa de Placas</gold>"
+    desc: "Maquina tier MV. Lamina lingotes em placas."
+  extractor:
+    name: "<gold>Extrusora</gold>"
+    desc: "Maquina tier MV. Extruda lingotes em fios."
+  induction_furnace_controller:
+    name: "<gold>Controlador do Forno de Inducao</gold>"
+    desc: "Controlador multibloco MV. Cerque com uma casca 3x3x3 de carcaca MV ou basalto liso para formar a estrutura."
+  stainless_steel_casing:
+    name: "<gold>Carcaca de Aco Inoxidavel</gold>"
+    desc: "Carcaca de qualidade de refinaria. Usada como casca do multibloco 5x5x7 da refinaria de petroleo."
+  pumpjack:
+    name: "<gold>Bomba de Petroleo</gold>"
+    desc: "Geoextrator tier MV. Puxa petroleo bruto do reservatorio do chunk abaixo."
+  combustion_gen:
+    name: "<gold>Gerador de Combustao</gold>"
+    desc: "Gerador tier MV. Queima diesel ou gasolina em unidades estruturadas de energia."
+  biogas_gen:
+    name: "<gold>Gerador de Biogas</gold>"
+    desc: "Gerador tier LV. Queima caldo nutritivo num fluxo lento e constante de energia."
+  cracker:
+    name: "<gold>Craqueador</gold>"
+    desc: "Maquina tier MV. Craqueia fracoes pesadas de petroleo em fracoes mais leves."
+  fermenter:
+    name: "<gold>Fermentador</gold>"
+    desc: "Maquina tier MV. Fermenta caldo nutritivo em precursores de biogas."
+  still:
+    name: "<gold>Alambique</gold>"
+    desc: "Maquina tier MV. Destila mosto fermentado em fluidos purificados."
+  bioreactor:
+    name: "<gold>Biorreator</gold>"
+    desc: "Maquina tier LV. Cultiva organicos em caldo nutritivo."
+  oil_refinery_controller:
+    name: "<gold>Controlador da Refinaria de Petroleo</gold>"
+    desc: "Cabecalho multibloco da refinaria 5x5x7. Separa petroleo bruto em diesel, gasolina, lubrificante e alcatrao."
+  cable_t3:
+    name: "<aqua>Cabo HV</aqua>"
+    desc: "Cabo de alta tensao. Conduz ate 4096 J/t entre maquinas HV."
+  capacitor_t3:
+    name: "<aqua>Capacitor HV</aqua>"
+    desc: "Buffer de energia HV. Armazena grandes quantidades de energia."
+  transformer_mv_hv:
+    name: "<aqua>Transformador MV \u2194 HV</aqua>"
+    desc: "Converte tensao entre as redes MV e HV."
+  geothermal_gen:
+    name: "<aqua>Gerador Geotermico</aqua>"
+    desc: "Gerador HV. Extrai calor de fontes de lava proximas."
+  gas_turbine:
+    name: "<aqua>Turbina a Gas</aqua>"
+    desc: "Gerador HV. Queima gases combustiveis para producao continua."
+  rtg:
+    name: "<aqua>RTG</aqua>"
+    desc: "Gerador termoeletrico de radioisotopo. Energia HV constante e perpetua."
+  electrolyzer:
+    name: "<aqua>Eletrolisador</aqua>"
+    desc: "Maquina HV. Decompoe fluidos em seus gases componentes."
+  rolling_mill:
+    name: "<aqua>Laminador</aqua>"
+    desc: "Maquina HV. Lamina lingotes em chapas e fios."
+  laser_cutter:
+    name: "<aqua>Cortador a Laser</aqua>"
+    desc: "Maquina HV. Corta wafers de silicio e pecas de precisao."
+  chemical_reactor:
+    name: "<aqua>Reator Quimico</aqua>"
+    desc: "Maquina HV. Reage gases e liquidos sob pressao."
+  pressurized_pipe:
+    name: "<aqua>Tubo Pressurizado</aqua>"
+    desc: "Tubo HV. Conduz gases de alta pressao entre maquinas."
+  gas_compressor:
+    name: "<gold>Compressor de Gas</gold>"
+    desc: "Maquina MV. Comprime gases atmosfericos em mB armazenado."
+  boiler:
+    name: "<gold>Caldeira</gold>"
+    desc: "Maquina MV. Vaporiza liquidos em gases."
+  condenser:
+    name: "<gold>Condensador</gold>"
+    desc: "Maquina MV. Condensa gases de volta a liquidos."
+  liquefier:
+    name: "<aqua>Liquefator</aqua>"
+    desc: "Maquina HV. Liquefaz gases criogenicos."
+  phase_separator:
+    name: "<aqua>Separador de Fases</aqua>"
+    desc: "Maquina HV. Separa misturas multifasicas em saidas puras."
+
+  quarry_controller:
+    name: "<aqua>Controlador de Pedreira</aqua>"
+    desc: "Cabeca multibloco de pedreira 3x3x4. Mina uma AABB configuravel abaixo da estrutura (ativo em 1.7.1)."
+  drill_rig_controller:
+    name: "<aqua>Controlador de Sonda</aqua>"
+    desc: "Cabeca multibloco de sonda 5x5x8. Realiza mineracao virtual sub-bedrock via tabelas de probabilidade (ativo em 1.7.1)."
+  desalinator_controller:
+    name: "<aqua>Controlador de Dessalinizador</aqua>"
+    desc: "Cabeca multibloco de dessalinizador 5x3x3. Separa agua do mar em agua doce + sal-gema (ativo em 1.7.1)."
+  gas_extractor:
+    name: "<gold>Extrator de Gas</gold>"
+    desc: "Maquina MV. Puxa bolsas de gas subterraneas para a rede de fluidos (ativo em 1.7.1)."
+  atmospheric_collector:
+    name: "<gold>Coletor Atmosferico</gold>"
+    desc: "Maquina MV. Coleta a atmosfera do mundo em tanques de nitrogenio, argonio e CO2 (ativo em 1.7.1)."
+  gps_transmitter:
+    name: "<aqua>Transmissor GPS</aqua>"
+    desc: "Emite o sinal de cobertura que ilumina o mapa portatil. Stub em 1.7.0; varredura em 1.7.1."
+  gps_marker:
+    name: "<aqua>Marcador GPS</aqua>"
+    desc: "Ponto de referencia passivo dentro da cobertura do transmissor. Aparece no mapa portatil (ativo em 1.7.1)."
+
+  item_buffer:
+    name: "<aqua>Buffer de Itens</aqua>"
+    desc: "Dreno de alta prioridade que suaviza picos de producao. Puxa itens da rede para um container adjacente."
+  item_splitter:
+    name: "<gold>Divisor de Itens</gold>"
+    desc: "Distribui itens entre vizinhos de saida. A tabela de proporcoes chega com a refatoracao de roteamento em 1.8.1."
+  filter_chamber:
+    name: "<gold>Camara de Filtros</gold>"
+    desc: "Filtro de multiplas passadas com ate quatro conjuntos de regras encadeados. Em 1.8.0 funciona em paridade com item_filter."
+  overflow_module:
+    name: "<yellow>Modulo de Transbordo</yellow>"
+    desc: "Valvula de seguranca do roteamento. Ultimo recurso que so e preenchido quando todos os outros consumidores estao saturados."
+  comparator_sensor:
+    name: "<gray>Sensor Comparador</gray>"
+    desc: "Le o nivel de um container adjacente para o runtime de logica. Ativo em 1.8.1."
+  packager:
+    name: "<aqua>Empacotador</aqua>"
+    desc: "Empacota o conteudo de um container adjacente em uma unica stack packaged_bundle. Ativo em 1.8.1."
+  unpackager:
+    name: "<aqua>Desempacotador</aqua>"
+    desc: "Inverso do empacotador: explode um packaged_bundle de volta em suas stacks. Ativo em 1.8.1."
+  conveyor_belt:
+    name: "<gray>Esteira Transportadora</gray>"
+    desc: "Junction que roteia itens ao longo da linha. Renderizacao visivel do item sobre a esteira chega em 1.8.1."
+  fluid_valve:
+    name: "<gray>Valvula de Fluido</gray>"
+    desc: "Junction que controla fluxo entre suas duas extremidades. Toggle manual e via logica chegam em 1.8.1."
+  fluid_level_sensor:
+    name: "<gray>Sensor de Nivel de Fluido</gray>"
+    desc: "Le a proporcao de preenchimento de um fluid_tank adjacente para o runtime de logica. Ativo em 1.8.1."
+
+fluid:
+  water:
+    name: "<aqua>Agua</aqua>"
+  lava:
+    name: "<gold>Lava</gold>"
+  milk:
+    name: "<white>Leite</white>"
+  crude_oil:
+    name: "<dark_gray>Petroleo Bruto</dark_gray>"
+  diesel:
+    name: "<gold>Diesel</gold>"
+  gasoline:
+    name: "<yellow>Gasolina</yellow>"
+  lubricant:
+    name: "<dark_red>Lubrificante</dark_red>"
+  nutrient_broth:
+    name: "<green>Caldo Nutritivo</green>"
+  hydrogen:
+    name: "<aqua>Hidrogenio</aqua>"
+  oxygen_gas:
+    name: "<blue>Oxigenio</blue>"
+  nitrogen:
+    name: "<gray>Nitrogenio</gray>"
+  chlorine:
+    name: "<green>Cloro</green>"
+  ethylene:
+    name: "<white>Etileno</white>"
+  compressed_air:
+    name: "<aqua>Ar Comprimido</aqua>"
+  argon:
+    name: "<light_purple>Argonio</light_purple>"
+  carbon_dioxide:
+    name: "<gray>Dioxido de Carbono</gray>"
+  liquid_oxygen:
+    name: "<aqua>Oxigenio Liquido</aqua>"
+
+guide:
+  title: "<gold>Guia Sapientia</gold>"
+  locked: "<dark_gray>Bloqueado</dark_gray>"
+  index:
+    header:
+      name: "<gold><bold>Guia Sapientia</bold></gold>"
+      lore: "<gray>Clique em uma entrada para ver\nsua receita e informacoes detalhadas.</gray>"
+  detail:
+    title: "<gold>Guia</gold> <gray>·</gray> <white><name></white>"
+    recipe:
+      header: "<aqua><bold>Receita</bold></aqua>"
+      none: "<gray>Este item nao possui receita.\nObtenha por drops no mundo, pelo\ncomando /sapientia give ou via admin.</gray>"
+    yields: "<gray>Produz <white><amount>x</white> por craft.</gray>"
+    category: "<dark_gray>Categoria:</dark_gray> <gray><category></gray>"
+    back:
+      name: "<yellow>« Voltar ao Indice</yellow>"
+      lore: "<gray>Retornar ao indice do guia.</gray>"
+
+ui:
+  machine:
+    title: "<gold>Máquina Sapientia</gold>"
+    energy:
+      title: "<aqua>Buffer de Energia</aqua>"
+      value: "<gray><current>/<max> E</gray>"
+      percent: "<gray><percent>%</percent></gray>"
+    running: "<green>Em operação</green>"
+    stopped: "<red>Parada</red>"
+    click:
+      start: "<gray>Clique para iniciar.</gray>"
+      stop: "<gray>Clique para parar.</gray>"
+    bedrock:
+      content: "<current>/<max> E (<percent>%)"
+      toggle: "Em operação"
+  filter:
+    title: "<gold>Filtro de Itens</gold>"
+    empty: "<gray>Sem regras — aceitando todos os itens.</gray>"
+    help: "<dark_gray>Edite via /sapientia logistics filter.</dark_gray>"
+    policy: "<aqua>Roteamento:</aqua> <white><policy></white>"
+    rule:
+      line: "<gray><mode>:</gray> <white><pattern></white>"
+
+metal:
+  copper_raw:
+    name: "<gold>Cobre Bruto</gold>"
+  copper_dust:
+    name: "<gold>Po de Cobre</gold>"
+  copper_ingot:
+    name: "<gold>Lingote de Cobre</gold>"
+  copper_block:
+    name: "<gold>Bloco de Cobre</gold>"
+  copper_plate:
+    name: "<gold>Placa de Cobre</gold>"
+  copper_wire:
+    name: "<gold>Fio de Cobre</gold>"
+  copper_rod:
+    name: "<gold>Haste de Cobre</gold>"
+  copper_gear:
+    name: "<gold>Engrenagem de Cobre</gold>"
+  copper_screw:
+    name: "<gold>Parafuso de Cobre</gold>"
+  tin_raw:
+    name: "<white>Estanho Bruto</white>"
+  tin_dust:
+    name: "<white>Po de Estanho</white>"
+  tin_ingot:
+    name: "<white>Lingote de Estanho</white>"
+  tin_block:
+    name: "<white>Bloco de Estanho</white>"
+  tin_plate:
+    name: "<white>Placa de Estanho</white>"
+  tin_wire:
+    name: "<white>Fio de Estanho</white>"
+  tin_rod:
+    name: "<white>Haste de Estanho</white>"
+  tin_gear:
+    name: "<white>Engrenagem de Estanho</white>"
+  tin_screw:
+    name: "<white>Parafuso de Estanho</white>"
+  zinc_raw:
+    name: "<gray>Zinco Bruto</gray>"
+  zinc_dust:
+    name: "<gray>Po de Zinco</gray>"
+  zinc_ingot:
+    name: "<gray>Lingote de Zinco</gray>"
+  zinc_block:
+    name: "<gray>Bloco de Zinco</gray>"
+  zinc_plate:
+    name: "<gray>Placa de Zinco</gray>"
+  zinc_wire:
+    name: "<gray>Fio de Zinco</gray>"
+  zinc_rod:
+    name: "<gray>Haste de Zinco</gray>"
+  zinc_gear:
+    name: "<gray>Engrenagem de Zinco</gray>"
+  zinc_screw:
+    name: "<gray>Parafuso de Zinco</gray>"
+  lead_raw:
+    name: "<dark_gray>Chumbo Bruto</dark_gray>"
+  lead_dust:
+    name: "<dark_gray>Po de Chumbo</dark_gray>"
+  lead_ingot:
+    name: "<dark_gray>Lingote de Chumbo</dark_gray>"
+  lead_block:
+    name: "<dark_gray>Bloco de Chumbo</dark_gray>"
+  lead_plate:
+    name: "<dark_gray>Placa de Chumbo</dark_gray>"
+  lead_wire:
+    name: "<dark_gray>Fio de Chumbo</dark_gray>"
+  lead_rod:
+    name: "<dark_gray>Haste de Chumbo</dark_gray>"
+  lead_gear:
+    name: "<dark_gray>Engrenagem de Chumbo</dark_gray>"
+  lead_screw:
+    name: "<dark_gray>Parafuso de Chumbo</dark_gray>"
+  silver_raw:
+    name: "<white>Prata Bruto</white>"
+  silver_dust:
+    name: "<white>Po de Prata</white>"
+  silver_ingot:
+    name: "<white>Lingote de Prata</white>"
+  silver_block:
+    name: "<white>Bloco de Prata</white>"
+  silver_plate:
+    name: "<white>Placa de Prata</white>"
+  silver_wire:
+    name: "<white>Fio de Prata</white>"
+  silver_rod:
+    name: "<white>Haste de Prata</white>"
+  silver_gear:
+    name: "<white>Engrenagem de Prata</white>"
+  silver_screw:
+    name: "<white>Parafuso de Prata</white>"
+  nickel_raw:
+    name: "<yellow>Niquel Bruto</yellow>"
+  nickel_dust:
+    name: "<yellow>Po de Niquel</yellow>"
+  nickel_ingot:
+    name: "<yellow>Lingote de Niquel</yellow>"
+  nickel_block:
+    name: "<yellow>Bloco de Niquel</yellow>"
+  nickel_plate:
+    name: "<yellow>Placa de Niquel</yellow>"
+  nickel_wire:
+    name: "<yellow>Fio de Niquel</yellow>"
+  nickel_rod:
+    name: "<yellow>Haste de Niquel</yellow>"
+  nickel_gear:
+    name: "<yellow>Engrenagem de Niquel</yellow>"
+  nickel_screw:
+    name: "<yellow>Parafuso de Niquel</yellow>"
+  bronze_dust:
+    name: "<gold>Po de Bronze</gold>"
+  bronze_ingot:
+    name: "<gold>Lingote de Bronze</gold>"
+  bronze_block:
+    name: "<gold>Bloco de Bronze</gold>"
+  bronze_plate:
+    name: "<gold>Placa de Bronze</gold>"
+  bronze_wire:
+    name: "<gold>Fio de Bronze</gold>"
+  bronze_rod:
+    name: "<gold>Haste de Bronze</gold>"
+  bronze_gear:
+    name: "<gold>Engrenagem de Bronze</gold>"
+  bronze_screw:
+    name: "<gold>Parafuso de Bronze</gold>"
+  brass_dust:
+    name: "<yellow>Po de Latao</yellow>"
+  brass_ingot:
+    name: "<yellow>Lingote de Latao</yellow>"
+  brass_block:
+    name: "<yellow>Bloco de Latao</yellow>"
+  brass_plate:
+    name: "<yellow>Placa de Latao</yellow>"
+  brass_wire:
+    name: "<yellow>Fio de Latao</yellow>"
+  brass_rod:
+    name: "<yellow>Haste de Latao</yellow>"
+  brass_gear:
+    name: "<yellow>Engrenagem de Latao</yellow>"
+  brass_screw:
+    name: "<yellow>Parafuso de Latao</yellow>"
+  electrum_dust:
+    name: "<aqua>Po de Eletro</aqua>"
+  electrum_ingot:
+    name: "<aqua>Lingote de Eletro</aqua>"
+  electrum_block:
+    name: "<aqua>Bloco de Eletro</aqua>"
+  electrum_plate:
+    name: "<aqua>Placa de Eletro</aqua>"
+  electrum_wire:
+    name: "<aqua>Fio de Eletro</aqua>"
+  electrum_rod:
+    name: "<aqua>Haste de Eletro</aqua>"
+  electrum_gear:
+    name: "<aqua>Engrenagem de Eletro</aqua>"
+  electrum_screw:
+    name: "<aqua>Parafuso de Eletro</aqua>"
+
+  aluminum_raw:
+    name: "<gray>Aluminio Bruto</gray>"
+  aluminum_dust:
+    name: "<gray>Po de Aluminio</gray>"
+  aluminum_ingot:
+    name: "<gray>Lingote de Aluminio</gray>"
+  aluminum_block:
+    name: "<gray>Bloco de Aluminio</gray>"
+  aluminum_plate:
+    name: "<gray>Chapa de Aluminio</gray>"
+  aluminum_wire:
+    name: "<gray>Fio de Aluminio</gray>"
+  aluminum_rod:
+    name: "<gray>Haste de Aluminio</gray>"
+  aluminum_gear:
+    name: "<gray>Engrenagem de Aluminio</gray>"
+  aluminum_screw:
+    name: "<gray>Parafuso de Aluminio</gray>"
+  silicon_raw:
+    name: "<dark_gray>Silicio Bruto</dark_gray>"
+  silicon_dust:
+    name: "<dark_gray>Po de Silicio</dark_gray>"
+  silicon_ingot:
+    name: "<dark_gray>Lingote de Silicio</dark_gray>"
+  silicon_block:
+    name: "<dark_gray>Bloco de Silicio</dark_gray>"
+  silicon_plate:
+    name: "<dark_gray>Chapa de Silicio</dark_gray>"
+  silicon_wire:
+    name: "<dark_gray>Fio de Silicio</dark_gray>"
+  silicon_rod:
+    name: "<dark_gray>Haste de Silicio</dark_gray>"
+  silicon_gear:
+    name: "<dark_gray>Engrenagem de Silicio</dark_gray>"
+  silicon_screw:
+    name: "<dark_gray>Parafuso de Silicio</dark_gray>"
+  titanium_raw:
+    name: "<white>Titanio Bruto</white>"
+  titanium_dust:
+    name: "<white>Po de Titanio</white>"
+  titanium_ingot:
+    name: "<white>Lingote de Titanio</white>"
+  titanium_block:
+    name: "<white>Bloco de Titanio</white>"
+  titanium_plate:
+    name: "<white>Chapa de Titanio</white>"
+  titanium_wire:
+    name: "<white>Fio de Titanio</white>"
+  titanium_rod:
+    name: "<white>Haste de Titanio</white>"
+  titanium_gear:
+    name: "<white>Engrenagem de Titanio</white>"
+  titanium_screw:
+    name: "<white>Parafuso de Titanio</white>"
+  lithium_raw:
+    name: "<light_purple>Litio Bruto</light_purple>"
+  lithium_dust:
+    name: "<light_purple>Po de Litio</light_purple>"
+  lithium_ingot:
+    name: "<light_purple>Lingote de Litio</light_purple>"
+  lithium_block:
+    name: "<light_purple>Bloco de Litio</light_purple>"
+  lithium_plate:
+    name: "<light_purple>Chapa de Litio</light_purple>"
+  lithium_wire:
+    name: "<light_purple>Fio de Litio</light_purple>"
+  lithium_rod:
+    name: "<light_purple>Haste de Litio</light_purple>"
+  lithium_gear:
+    name: "<light_purple>Engrenagem de Litio</light_purple>"
+  lithium_screw:
+    name: "<light_purple>Parafuso de Litio</light_purple>"
+  stainless_steel_dust:
+    name: "<white>Po de Aco Inoxidavel</white>"
+  stainless_steel_ingot:
+    name: "<white>Lingote de Aco Inoxidavel</white>"
+  stainless_steel_block:
+    name: "<white>Bloco de Aco Inoxidavel</white>"
+  stainless_steel_plate:
+    name: "<white>Chapa de Aco Inoxidavel</white>"
+  stainless_steel_wire:
+    name: "<white>Fio de Aco Inoxidavel</white>"
+  stainless_steel_rod:
+    name: "<white>Haste de Aco Inoxidavel</white>"
+  stainless_steel_gear:
+    name: "<white>Engrenagem de Aco Inoxidavel</white>"
+  stainless_steel_screw:
+    name: "<white>Parafuso de Aco Inoxidavel</white>"
+  damascus_steel_dust:
+    name: "<dark_gray>Po de Aco Damasco</dark_gray>"
+  damascus_steel_ingot:
+    name: "<dark_gray>Lingote de Aco Damasco</dark_gray>"
+  damascus_steel_block:
+    name: "<dark_gray>Bloco de Aco Damasco</dark_gray>"
+  damascus_steel_plate:
+    name: "<dark_gray>Chapa de Aco Damasco</dark_gray>"
+  damascus_steel_wire:
+    name: "<dark_gray>Fio de Aco Damasco</dark_gray>"
+  damascus_steel_rod:
+    name: "<dark_gray>Haste de Aco Damasco</dark_gray>"
+  damascus_steel_gear:
+    name: "<dark_gray>Engrenagem de Aco Damasco</dark_gray>"
+  damascus_steel_screw:
+    name: "<dark_gray>Parafuso de Aco Damasco</dark_gray>"
+  nichrome_dust:
+    name: "<gold>Po de Nicromo</gold>"
+  nichrome_ingot:
+    name: "<gold>Lingote de Nicromo</gold>"
+  nichrome_block:
+    name: "<gold>Bloco de Nicromo</gold>"
+  nichrome_plate:
+    name: "<gold>Chapa de Nicromo</gold>"
+  nichrome_wire:
+    name: "<gold>Fio de Nicromo</gold>"
+  nichrome_rod:
+    name: "<gold>Haste de Nicromo</gold>"
+  nichrome_gear:
+    name: "<gold>Engrenagem de Nicromo</gold>"
+  nichrome_screw:
+    name: "<gold>Parafuso de Nicromo</gold>"
+
+component:
+  silicon_wafer:
+    name: "<aqua>Wafer de Silicio</aqua>"
+  motor_t1:
+    name: "<gray>Motor LV</gray>"
+  motor_t2:
+    name: "<yellow>Motor MV</yellow>"
+  motor_t3:
+    name: "<aqua>Motor HV</aqua>"
+  circuit_t1:
+    name: "<gray>Circuito LV</gray>"
+  circuit_t2:
+    name: "<yellow>Circuito MV</yellow>"
+  circuit_t3:
+    name: "<aqua>Circuito HV</aqua>"
+  processor_t1:
+    name: "<gray>Processador T1</gray>"
+  processor_t2:
+    name: "<yellow>Processador T2</yellow>"
+  processor_t3:
+    name: "<aqua>Processador T3</aqua>"
+  coil_t1:
+    name: "<gray>Bobina LV</gray>"
+  coil_t2:
+    name: "<yellow>Bobina MV</yellow>"
+  coil_t3:
+    name: "<aqua>Bobina HV</aqua>"
+  ram_t2:
+    name: "<yellow>Modulo RAM T2</yellow>"
+  ram_t3:
+    name: "<aqua>Modulo RAM T3</aqua>"
+  storage_hdd:
+    name: "<gray>HD</gray>"
+  storage_ssd:
+    name: "<aqua>SSD</aqua>"

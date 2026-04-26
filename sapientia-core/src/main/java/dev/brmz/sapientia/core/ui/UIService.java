@@ -51,6 +51,20 @@ public final class UIService implements Listener {
         provider.openCustom(player, descriptor, context);
     }
 
+    /**
+     * Opens a previously {@linkplain #register(UIDescriptor) registered} UI by its key.
+     * The supplied {@code context} must be assignable to the descriptor's context type;
+     * a {@link ClassCastException} is propagated otherwise.
+     */
+    @SuppressWarnings("unchecked")
+    public void open(@NotNull Player player, @NotNull NamespacedKey key, @NotNull Object context) {
+        UIDescriptor<?> descriptor = descriptors.get(key);
+        if (descriptor == null) {
+            throw new IllegalArgumentException("No UIDescriptor registered for key: " + key);
+        }
+        open(player, (UIDescriptor<Object>) descriptor, context);
+    }
+
     /** Called by the Java provider to track the open inventory for event dispatch. */
     <C> void trackOpen(@NotNull Player player, @NotNull SapientiaInventoryHolder<C> holder) {
         openHolders.put(player.getUniqueId(), holder);
