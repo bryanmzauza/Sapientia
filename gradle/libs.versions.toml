@@ -34,8 +34,9 @@ kryo              = { module = "com.esotericsoftware:kryo",                     
 
 floodgate-api     = { module = "org.geysermc.floodgate:api",                      version.ref = "floodgate" }
 
-junit-bom         = { module = "org.junit:junit-bom",                             version.ref = "junit" }
-junit-jupiter     = { module = "org.junit.jupiter:junit-jupiter" }
+junit-bom              = { module = "org.junit:junit-bom",                             version.ref = "junit" }
+junit-jupiter          = { module = "org.junit.jupiter:junit-jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 assertj           = { module = "org.assertj:assertj-core",                        version.ref = "assertj" }
 mockbukkit        = { module = "com.github.seeseemelk:MockBukkit-v26.1",          version.ref = "mockbukkit" }
 

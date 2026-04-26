@@ -104,6 +104,8 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
     private dev.brmz.sapientia.core.petroleum.PetroleumTicker petroleumTicker;
     private dev.brmz.sapientia.core.electronics.ElectronicsTicker electronicsTicker;
     private dev.brmz.sapientia.core.geo.GeoTicker geoTicker;
+    private dev.brmz.sapientia.core.logistics.LogisticsTicker logisticsTicker;
+    private dev.brmz.sapientia.core.logistics.LogisticsConfig logisticsConfig;
 
     @Override
     public void onEnable() {
@@ -188,6 +190,11 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         // Geo & atmosphere kinetic loop (T-431..T-435 / 1.7.1).
         this.geoTicker = new dev.brmz.sapientia.core.geo.GeoTicker(
                 getLogger(), this, energyService, fluidsService, chunkBlockIndex);
+
+        // Advanced-logistics kinetic loop + maxflow opt-in (T-444 / T-450 / 1.8.1).
+        this.logisticsConfig = dev.brmz.sapientia.core.logistics.LogisticsConfig.from(getConfig());
+        this.logisticsTicker = new dev.brmz.sapientia.core.logistics.LogisticsTicker(
+                getLogger(), this, logisticsGraph, chunkBlockIndex);
 
         // Programmable-logic DAG runtime (T-302 / 1.3.0).
         this.logicService = new LogicServiceImpl(
@@ -345,6 +352,9 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
 
         // Geo & atmosphere kinetic loop — every 5 ticks (T-431..T-435 / 1.7.1).
         getServer().getScheduler().runTaskTimer(this, () -> geoTicker.tick(), 17L, 5L);
+
+        // Advanced-logistics kinetic loop — every 10 ticks (T-450 / 1.8.1).
+        getServer().getScheduler().runTaskTimer(this, () -> logisticsTicker.tick(), 19L, 10L);
 
         getLogger().info(messages.plain("plugin.enabled",
                 Placeholder.parsed("version", getPluginMeta().getVersion())));

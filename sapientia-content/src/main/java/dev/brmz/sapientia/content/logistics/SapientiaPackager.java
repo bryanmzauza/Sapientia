@@ -1,31 +1,29 @@
 package dev.brmz.sapientia.content.logistics;
 
-import dev.brmz.sapientia.api.block.SapientiaBlock;
-import dev.brmz.sapientia.api.guide.GuideCategory;
+import dev.brmz.sapientia.api.energy.EnergyTier;
+import dev.brmz.sapientia.api.logistics.ItemNodeType;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Packager (T-441 / 1.8.0). Bundles the items in an adjacent container into a
- * single {@code packaged_bundle} ItemStack with a Sapientia NBT payload, so a
- * fixed recipe pattern (e.g. solar-panel kit) ships as one stack through the
- * logistics network. Placement-only in 1.8.0; the NBT format is locked by
- * ADR-020 (deferred to 1.8.1) and the packaging tick lands with it.
+ * Packager (T-441 / 1.8.0; kinetic loop wired in T-450 / 1.8.1). Bundles the
+ * items in an adjacent container into a single {@code packaged_bundle}
+ * ItemStack with a Sapientia NBT payload, so a fixed recipe pattern (e.g.
+ * solar-panel kit) ships as one stack through the logistics network.
+ *
+ * <p>Registers as a {@link ItemNodeType#CONSUMER} node so the
+ * {@code LogisticsTicker} (1.8.1) picks it up: per cycle it pulls one stack
+ * from the chest above, wraps it as a Sapientia bundle and fires
+ * {@code SapientiaItemPackagedEvent} so addons can veto or rewrite the
+ * bundle. NBT format is locked by ADR-020.
  *
  * <p>Companion: {@link SapientiaUnpackager}.
  */
-public final class SapientiaPackager implements SapientiaBlock {
-
-    private final NamespacedKey id;
+public final class SapientiaPackager extends LogisticsContentBlock {
 
     public SapientiaPackager(@NotNull Plugin plugin) {
-        this.id = new NamespacedKey(plugin, "packager");
+        super(plugin, "packager", Material.DROPPER, "block.packager.name",
+                ItemNodeType.CONSUMER, EnergyTier.LOW, 0);
     }
-
-    @Override public @NotNull NamespacedKey id() { return id; }
-    @Override public @NotNull Material baseMaterial() { return Material.DROPPER; }
-    @Override public @NotNull String displayNameKey() { return "block.packager.name"; }
-    @Override public @NotNull GuideCategory guideCategory() { return GuideCategory.LOGISTICS; }
 }
