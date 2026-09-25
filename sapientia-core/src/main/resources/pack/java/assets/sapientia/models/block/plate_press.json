@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "sapientia:block/plate_press_front",
+    "top": "sapientia:block/plate_press_top",
+    "side": "sapientia:block/plate_press_side"
+  }
+}

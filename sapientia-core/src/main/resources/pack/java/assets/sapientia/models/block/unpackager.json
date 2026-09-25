@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "sapientia:block/unpackager_front",
+    "top": "sapientia:block/unpackager_top",
+    "side": "sapientia:block/unpackager_side"
+  }
+}

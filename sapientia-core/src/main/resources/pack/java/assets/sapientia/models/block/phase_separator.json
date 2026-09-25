@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "sapientia:block/phase_separator_front",
+    "top": "sapientia:block/phase_separator_top",
+    "side": "sapientia:block/phase_separator_side"
+  }
+}

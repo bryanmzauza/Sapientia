@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "sapientia:block/filter_chamber_front",
+    "top": "sapientia:block/filter_chamber_top",
+    "side": "sapientia:block/filter_chamber_side"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "sapientia:block/fluid_level_sensor_front",
+    "top": "sapientia:block/fluid_level_sensor_top",
+    "side": "sapientia:block/fluid_level_sensor_side"
+  }
+}

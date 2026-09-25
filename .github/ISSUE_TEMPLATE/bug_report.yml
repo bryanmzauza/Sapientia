@@ -14,7 +14,7 @@ body:
     id: paper-version
     attributes:
       label: Paper version
-      placeholder: 26.1.2-132
+      placeholder: 26.3-41
     validations:
       required: true
 

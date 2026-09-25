@@ -90,7 +90,7 @@ public final class FluidSolver {
 
             long buffered = 0L;
             for (SimpleFluidNode tank : tanks) {
-                FluidStack c = (FluidStack) tank.contents();
+                FluidStack c = tank.contents();
                 if (c != null) buffered += c.amountMb();
             }
             if (pumped > 0L || drained > 0L) {

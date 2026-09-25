@@ -90,10 +90,12 @@ command:
       issues: "<yellow><count> problema(s) de validação registrados; veja o log do servidor.</yellow>"
   pack:
     usage: "<red>Uso: /sapientia pack build <java|bedrock|all></red>"
-    success: "<green>Resource pack gerado em <white><path></white>.</green>"
+    success: "<green>Resource pack gerado em <white><path></white> <gray>(<overrides> substituição(ões))</gray>. SHA-1: <white><sha1></white></green>"
     failure: "<red>Falha ao gerar o pack: <white><error></white></red>"
     bedrock:
-      success: "<green>Pack Bedrock gerado em <white><pack></white>; mappings em <white><mappings></white>.</green>"
+      success: "<green>Pack Bedrock gerado em <white><pack></white>; mapeamento do Geyser em <white><mappings></white>.</green>"
+      installed: "<green>Instalado no Geyser em <white><path></white>. Reinicie o Geyser para carregar o novo pack.</green>"
+      manual: "<yellow>Geyser não encontrado neste servidor: copie o .mcpack para a pasta packs/ do Geyser e o mapeamento para custom_mappings/.</yellow>"
       unsupported: "<red>Alvo de pack desconhecido. Use <white>java</white>, <white>bedrock</white> ou <white>all</white>.</red>"
 
 error:

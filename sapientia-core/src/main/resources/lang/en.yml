@@ -90,10 +90,12 @@ command:
       issues: "<yellow><count> validation issue(s) logged; check the server log.</yellow>"
   pack:
     usage: "<red>Usage: /sapientia pack build <java|bedrock|all></red>"
-    success: "<green>Resource pack written to <white><path></white>.</green>"
+    success: "<green>Resource pack written to <white><path></white> <gray>(<overrides> override(s))</gray>. SHA-1: <white><sha1></white></green>"
     failure: "<red>Pack build failed: <white><error></white></red>"
     bedrock:
-      success: "<green>Bedrock pack written to <white><pack></white>; mappings under <white><mappings></white>.</green>"
+      success: "<green>Bedrock pack written to <white><pack></white>; Geyser mappings at <white><mappings></white>.</green>"
+      installed: "<green>Installed into Geyser at <white><path></white>. Restart Geyser to load the new pack.</green>"
+      manual: "<yellow>Geyser not found on this server: copy the .mcpack to Geyser's packs/ folder and the mappings file to custom_mappings/.</yellow>"
       unsupported: "<red>Unknown pack target. Use <white>java</white>, <white>bedrock</white> or <white>all</white>.</red>"
 
 error:

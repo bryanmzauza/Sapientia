@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "sapientia:block/pumpjack_front",
+    "top": "sapientia:block/pumpjack_top",
+    "side": "sapientia:block/pumpjack_side"
+  }
+}

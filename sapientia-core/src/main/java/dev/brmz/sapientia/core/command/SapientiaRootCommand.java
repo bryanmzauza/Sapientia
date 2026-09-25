@@ -82,6 +82,7 @@ public final class SapientiaRootCommand implements TabExecutor {
         sendHelpLine(sender, msg, "/sapientia pack build bedrock", "command.help.desc.pack-build-bedrock");
         sendHelpLine(sender, msg, "/sapientia pack build all", "command.help.desc.pack-build-all");
         sendHelpLine(sender, msg, "/sapientia logistics", "command.help.desc.logistics");
+        sendHelpLine(sender, msg, "/sapientia fluids", "command.help.desc.fluids");
         sendHelpLine(sender, msg, "/sapientia logic", "command.help.desc.logic");
     }
 
@@ -118,11 +119,11 @@ public final class SapientiaRootCommand implements TabExecutor {
             String locale = plugin.getConfig().getString("locale", "en");
             plugin.messages().setActiveLocale(locale);
             long ms = (System.nanoTime() - started) / 1_000_000;
-            sender.sendMessage(msg.component("command.reload.success",
+            sender.sendMessage(msg.component("plugin.reload.success",
                     Placeholder.parsed("ms", Long.toString(ms))));
         } catch (RuntimeException e) {
             plugin.getLogger().warning("Reload failed: " + e);
-            sender.sendMessage(msg.component("command.reload.failure",
+            sender.sendMessage(msg.component("plugin.reload.failure",
                     Placeholder.parsed("error", String.valueOf(e.getMessage()))));
         }
     }
@@ -139,23 +140,11 @@ public final class SapientiaRootCommand implements TabExecutor {
         String target = args[2].toLowerCase(java.util.Locale.ROOT);
         try {
             switch (target) {
-                case "java" -> {
-                    java.nio.file.Path output = packBuilder.buildJavaPack();
-                    sender.sendMessage(msg.component("command.pack.success",
-                            Placeholder.parsed("path", output.toString())));
-                }
-                case "bedrock" -> {
-                    java.nio.file.Path output = packBuilder.buildBedrockPack();
-                    sender.sendMessage(msg.component("command.pack.bedrock.success",
-                            Placeholder.parsed("path", output.toString())));
-                }
+                case "java" -> reportJavaPack(sender, msg, packBuilder.buildJavaPack());
+                case "bedrock" -> reportBedrockPack(sender, msg, packBuilder.buildBedrockPack());
                 case "all" -> {
-                    java.nio.file.Path j = packBuilder.buildJavaPack();
-                    sender.sendMessage(msg.component("command.pack.success",
-                            Placeholder.parsed("path", j.toString())));
-                    java.nio.file.Path b = packBuilder.buildBedrockPack();
-                    sender.sendMessage(msg.component("command.pack.bedrock.success",
-                            Placeholder.parsed("path", b.toString())));
+                    reportJavaPack(sender, msg, packBuilder.buildJavaPack());
+                    reportBedrockPack(sender, msg, packBuilder.buildBedrockPack());
                 }
                 default -> sender.sendMessage(msg.component("command.pack.usage"));
             }
@@ -163,6 +152,26 @@ public final class SapientiaRootCommand implements TabExecutor {
             plugin.getLogger().warning("Pack build failed: " + e);
             sender.sendMessage(msg.component("command.pack.failure",
                     Placeholder.parsed("error", String.valueOf(e.getMessage()))));
+        }
+    }
+
+    private void reportJavaPack(CommandSender sender, Messages msg, ResourcePackBuilder.JavaPackResult result) {
+        sender.sendMessage(msg.component("command.pack.success",
+                Placeholder.unparsed("path", result.pack().toString()),
+                Placeholder.unparsed("sha1", result.sha1()),
+                Placeholder.unparsed("overrides", Integer.toString(result.overrides()))));
+    }
+
+    private void reportBedrockPack(CommandSender sender, Messages msg, ResourcePackBuilder.BedrockPackResult result) {
+        String mappings = result.mappings() == null ? "-" : result.mappings().toString();
+        sender.sendMessage(msg.component("command.pack.bedrock.success",
+                Placeholder.unparsed("pack", result.pack().toString()),
+                Placeholder.unparsed("mappings", mappings)));
+        if (result.geyserFolder() != null) {
+            sender.sendMessage(msg.component("command.pack.bedrock.installed",
+                    Placeholder.unparsed("path", result.geyserFolder().toString())));
+        } else {
+            sender.sendMessage(msg.component("command.pack.bedrock.manual"));
         }
     }
 

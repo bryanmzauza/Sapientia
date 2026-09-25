@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -37,12 +38,11 @@ public final class LangFileWriter {
     }
 
     /**
-     * Writes one {@code <bedrockLocale>.lang} file per loaded locale into
-     * {@code targetDir/texts/} and returns the list of paths written.
+     * Renders one {@code <bedrockLocale>.lang} file per loaded locale, keyed by
+     * file name (for example {@code en_US.lang}), in locale order.
      */
-    public @NotNull List<Path> writeAll(@NotNull Path targetDir) throws IOException {
-        Files.createDirectories(targetDir);
-        List<Path> written = new ArrayList<>();
+    public @NotNull Map<String, String> render() {
+        Map<String, String> files = new LinkedHashMap<>();
         MiniMessage mm = MiniMessage.miniMessage();
 
         for (String locale : sortedLocales()) {
@@ -53,18 +53,28 @@ public final class LangFileWriter {
                 String value = TextAdapter.toPlainBedrock(mm.deserialize(e.getValue()));
                 rendered.put(e.getKey(), value);
             }
-            Path out = targetDir.resolve(toBedrockLocale(locale) + ".lang");
-            try (var w = Files.newBufferedWriter(out, StandardCharsets.UTF_8)) {
-                for (Map.Entry<String, String> e : rendered.entrySet()) {
-                    w.write(e.getKey());
-                    w.write('=');
-                    // Bedrock .lang doesn't permit raw newlines inside values.
-                    w.write(e.getValue().replace("\r", "").replace('\n', ' '));
-                    w.write('\t');
-                    w.write('#');
-                    w.newLine();
-                }
+            StringBuilder out = new StringBuilder(rendered.size() * 48);
+            for (Map.Entry<String, String> e : rendered.entrySet()) {
+                // Bedrock .lang doesn't permit raw newlines inside values.
+                out.append(e.getKey()).append('=')
+                        .append(e.getValue().replace("\r", "").replace('\n', ' '))
+                        .append("\t#").append('\n');
             }
+            files.put(toBedrockLocale(locale) + ".lang", out.toString());
+        }
+        return files;
+    }
+
+    /**
+     * Writes the files from {@link #render()} into {@code targetDir} and returns
+     * the paths written.
+     */
+    public @NotNull List<Path> writeAll(@NotNull Path targetDir) throws IOException {
+        Files.createDirectories(targetDir);
+        List<Path> written = new ArrayList<>();
+        for (Map.Entry<String, String> file : render().entrySet()) {
+            Path out = targetDir.resolve(file.getKey());
+            Files.writeString(out, file.getValue(), StandardCharsets.UTF_8);
             written.add(out);
         }
         return written;

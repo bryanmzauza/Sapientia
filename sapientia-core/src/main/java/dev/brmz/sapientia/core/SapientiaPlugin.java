@@ -48,6 +48,7 @@ import dev.brmz.sapientia.core.guide.UnlockServiceImpl;
 import dev.brmz.sapientia.core.i18n.Messages;
 import dev.brmz.sapientia.core.item.ItemRegistry;
 import dev.brmz.sapientia.core.overrides.ContentOverrideService;
+import dev.brmz.sapientia.core.pack.BundledPack;
 import dev.brmz.sapientia.core.pack.ResourcePackBuilder;
 import dev.brmz.sapientia.core.persistence.DatabaseManager;
 import dev.brmz.sapientia.core.persistence.WriteBehindQueue;
@@ -227,12 +228,21 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         this.overrideService.start();
         this.itemRegistry.setOverrides(overrideService);
         this.recipeRegistry.setOverrides(overrideService);
+        BundledPack bundledPack = BundledPack.fromClassLoader(getClass().getClassLoader());
+        if (getConfig().getBoolean("resource-pack.item-models", true)) {
+            this.itemRegistry.setItemModels(bundledPack.itemModelIds());
+        }
         this.resourcePackBuilder = new ResourcePackBuilder(
                 getLogger(),
-                getDataFolder().toPath().resolve("pack"),
-                getConfig().getInt("resource-pack.pack-format", 32));
+                getDataFolder().toPath(),
+                bundledPack,
+                getConfig().getInt("resource-pack.pack-format", ResourcePackBuilder.DEFAULT_PACK_FORMAT),
+                version());
         this.resourcePackBuilder.setMessages(messages);
         this.resourcePackBuilder.setItemRegistry(itemRegistry);
+        this.resourcePackBuilder.setGeyserFolder(() -> Optional
+                .ofNullable(getServer().getPluginManager().getPlugin("Geyser-Spigot"))
+                .map(geyser -> geyser.getDataFolder().toPath()));
 
         this.uiService = new UIService(platformService);
         this.uiService.registerProvider(new JavaInventoryUIProvider(uiService));

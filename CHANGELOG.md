@@ -1,984 +1,385 @@
 # Changelog
 
-Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and SemVer.
+All notable changes to Sapientia are documented in this file.
 
-## [1.10.0] — Guide polish & item discoverability ✅
+The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/), and the
+project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Breaking changes to the
+public `sapientia-api` module only happen in major versions.
 
-Quality-of-life pass over the player-facing guide and the i18n catalogue.
-Two themes ship together:
+Versions 0.1.0 through 1.10.0 were development milestones; no binaries were published for them.
 
-1. The `/sapientia guide` UI now scales for the next two milestones
-   (Nuclear, Quantum) instead of cramming everything into one flat list.
-2. Players who picked up an unfamiliar item — most famously
-   `sapientia:aluminum_raw` — finally see *where it comes from* without
-   having to dig through the codebase.
+## [Unreleased]
+
+Planned as 1.11.0. Moves the plugin to Minecraft 26.3 and gives every built-in item and block its
+own texture on both Java and Bedrock.
 
 ### Added
 
-- **Three-level guide navigation** (`GuideServiceImpl`,
-  `sapientia-core`): the index now lists categories
-  (`MATERIAL`, `TOOL`, `MACHINE`, `ENERGY`, `LOGISTICS`, `INFO`) instead
-  of every entry. Each category renders its own paginated detail view
-  (28 entries per page) with prev / next controls; the entry detail
-  back button returns to the originating category, not to the root
-  index. Bedrock parity preserved through `GuideIndexBedrockRenderer`,
-  `GuideCategoryBedrockRenderer` and `GuideDetailBedrockRenderer`.
-- **`item.<id>.desc` keys for opaque items** (`en.yml`, `pt_BR.yml`):
-  description lookup is automatic — every item whose `displayNameKey`
-  follows the `*.name` convention picks up `*.desc` if present (already
-  wired via `GuideServiceImpl#descriptionKeyFor`). New entries explain
-  acquisition for items the player cannot intuit:
-  - All 10 raw metals (`copper_raw`, `tin_raw`, `zinc_raw`, `lead_raw`,
-    `silver_raw`, `nickel_raw`, `aluminum_raw`, `silicon_raw`,
-    `titanium_raw`, `lithium_raw`) — call out that ore world-gen lands
-    in 2.0.0 and that `/sapientia give <id>` is the bridge until then.
-  - `silicon_wafer` — workbench recipe (8× silicon dust + 1× quartz →
-    4 wafers) and downstream usage (HV processors / circuits / RAM).
-  - 6 alloy ingots (`bronze`, `brass`, `electrum`, `stainless_steel`,
-    `damascus_steel`, `nichrome`) — Mixer + Electric Furnace path with
-    explicit dust ratios.
-- New i18n keys for guide navigation: `guide.category.*` (6 categories
-  × `name` + `desc`), `guide.page.{prev,next,indicator}.*`,
-  `guide.entry.click`, `guide.index.button.count`,
-  `guide.category.{title,back.*}`. en.yml and pt_BR.yml stay at strict
-  parity (verified by the `verifyTranslations` Gradle task).
+- Bundled textures for all 254 built-in items and blocks, shipped inside the plugin jar. Machines
+  render as 3D blocks in the inventory and use trim colours to show their voltage tier; metals,
+  components and android upgrades have dedicated sprites, and tiered items show tier pips.
+- Items now carry the `minecraft:item_model` component so the Java client picks up the bundled
+  models. Controlled by the new `resource-pack.item-models` option (default `true`).
+- `/sapientia pack build java` merges the bundled assets with any file placed in
+  `plugins/Sapientia/pack/` (operator files win) and reports the pack's SHA-1 for the
+  `resource-pack-sha1` entry in `server.properties`. Rebuilding an unchanged pack produces the
+  same hash.
+- `/sapientia pack build bedrock` now includes item textures and inventory icons, and writes Geyser
+  custom item mappings to `plugins/Sapientia/geyser/sapientia_items.json`. When Geyser runs on the
+  same server, the pack and the mappings are copied into its `packs/` and `custom_mappings/`
+  folders automatically.
 
 ### Changed
 
-- The guide index is no longer a flat list. The previous 2-level
-  flow (Index → Detail) becomes 3-level (Index → Category → Detail).
-  No registry changes — only `UIService` descriptors and the Bedrock
-  renderer set were updated.
+- **Breaking:** requires Paper 26.3 or newer (`api-version: 26.3`). Java 25 is still required.
+- The default resource pack format is now 97 (Minecraft 26.3), and `pack.mcmeta` uses the
+  `min_format`/`max_format` fields. Configured values below 65 are replaced with the default and
+  logged, so existing `config.yml` files keep working.
+- `pack.mcmeta` is always generated; a copy in `plugins/Sapientia/pack/` is ignored.
+- The Bedrock pack manifest version now follows the plugin version, so clients download updated
+  packs instead of reusing a cached copy.
+- Geyser mappings use format version 2, matched by item model, and are no longer placed inside the
+  `.mcpack`.
+- The SQLite driver is now provided by Paper instead of being embedded, which reduces the plugin
+  jar from about 15.7 MB to 2.2 MB. Paper was already the driver in use at runtime.
+- Custom model data is written through the data component API; behaviour is unchanged.
+- Development: the Gradle wrapper is now 9.8.0 and `run-paper` 3.1.0; `:sapientia-core:runServer`
+  starts Paper 26.3.
+
+### Removed
+
+- The `plugins/Sapientia/pack/bedrock/` staging folder is no longer used and can be deleted.
 
 ### Fixed
 
-- **Component / recipe registration order** (`ContentBootstrap.java`):
-  `ComponentCatalog.registerAll` now runs *before*
-  `MachineRecipeData.registerAll` so the HV `laser_cutter` recipe can
-  reference `sapientia:silicon_wafer`. Previously crashed on plugin
-  enable with `IllegalStateException: Sapientia item not registered:
-  sapientia:silicon_wafer`.
+- `/sapientia reload` printed a missing-translation placeholder instead of its confirmation.
+- The Bedrock pack build message showed literal `<pack>` and `<mappings>` placeholders instead of
+  the file paths.
+- `/sapientia help` did not list `/sapientia fluids`.
+- The `sapientia.command.logistics` and `sapientia.command.fluids` permissions were checked but not
+  declared in `plugin.yml`. They are now declared with the same default (op).
 
-### Notes
+## [1.10.0] - 2026-04-26
 
-- No content / API breakage. The new `*.desc` keys are additive —
-  existing items without a description keep rendering fine (the guide
-  treats absent desc keys as "no description block").
-
----
-
-## [1.9.1] — Androids 🤖 (kinetic loop) ✅
-
-Activates the catalogue shipped in 1.9.0. The 8 androids now actually
-work: motor cooldown, AI chip scan radius, armour HP / damage shave and
-fuel buffer all gate the per-tick behaviour, and the program assignment
-UI lets a player pick a logic program at right-click. Mirrors the
-1.4.0 → 1.4.1, 1.5.0 → 1.5.1, 1.6.0 → 1.6.1, 1.7.0 → 1.7.1 and
-1.8.0 → 1.8.1 split convention.
+Reorganises the in-game guide and documents how to obtain items that have no obvious source.
 
 ### Added
 
-- **`AndroidUpgradeScaling`** (T-454, `sapientia-core`): pure-POJO scaling
-  table for the 4 upgrade tiers. AI chip scan radius
-  `4/6/9/13` blocks; motor cooldown `20/14/9/5` ticks; armour HP
-  `100/200/400/800` + damage shave `0/1/2/4`; fuel buffer
-  `1000/4000/16000/64000` mb; biofuel ratio locked at `100 mb = 1 SU`.
-- **`AndroidLootTables`** (T-455, ADR-021): deterministic seeded loot
-  tables for the 6 loot-producing archetypes (farmer, lumberjack, miner,
-  fisherman, butcher, slayer). Builder + trader use the IO-driven
-  consume/exchange path instead and have no table.
-- **`AndroidBehaviorEngine`** (T-451, `sapientia-core`): per-archetype
-  kinetic behaviour. Loot archetypes pull fuel from the chest above and
-  deposit a rolled stack into the chest below; builder pulls a placeable
-  block and places it within the chip-tier scan radius; trader does a
-  fixed 9-for-1 emerald exchange between input and output chests.
-- **`AndroidIO`** helper (`sapientia-core`): reads `+Y` for input,
-  writes `-Y` for output, exposes `SOLID_FUEL` table
-  (`COAL=1000`, `CHARCOAL=800`, `BLAZE_POWDER=4000`, `BLAZE_ROD=8000` mb).
-- **`AndroidTicker` v2** (T-451 / T-459): wires the behaviour engine
-  behind the per-android motor cooldown gate. The
-  `INSTRUCTIONS_PER_TICK_CAP=1` contract still holds — motor tier
-  shortens the gap between ticks, never the per-tick budget. Cancelled
-  `SapientiaAndroidTickEvent`s still re-arm cooldown so misbehaving
-  listeners cannot starve the snapshot loop.
-- **Logic sensor kinds** (T-441 / T-442 / `sapientia-core` builtins):
-  - `comparator_read` — params `world/x/y/z`, output `out` ∈ `0..15`
-    (vanilla redstone power semantics).
-  - `fluid_level_read` — params `world/x/y/z`, output `out` ∈ `0..100`
-    (Sapientia tank fill ratio percentage).
-- **`AndroidProgramSelectorUI`** (T-453, `sapientia-core`): right-click
-  on any placed android opens a 27-slot chest listing every registered
-  logic program; clicking a paper ticket assigns it via
-  `AndroidService#assignProgram`. Slot 26 is a barrier "clear" button.
-  Bedrock players auto-fall-back through `BedrockFormsUIProvider`
-  (T-302l).
-- **`AndroidTickBenchmark` v2** (P-020 / T-459, `sapientia-benchmarks`):
-  real per-tick CPU benchmark — exercises the cooldown gate +
-  `AndroidLootTables.roll` for `100` and `200` androids, anchoring the
-  ≥ 18 TPS / ≤ 50 ms-per-tick budget contract.
-- **i18n** (`en.yml` + `pt_BR.yml`): 9 new keys under `ui.android.selector.*`.
-- **Tests**: `AndroidUpgradeScalingTest`, `AndroidLootTablesTest`.
+- Guide navigation in three levels: categories (Materials, Tools, Machines, Energy, Logistics,
+  Info), a paginated list per category (28 entries per page) and the entry detail, with Back
+  returning to the originating page. Bedrock players get equivalent forms.
+- Descriptions for items whose origin is not obvious: the ten raw metals, the silicon wafer and the
+  six alloy ingots. Any item with a `<key>.desc` entry next to its `<key>.name` now shows it in the
+  guide.
+
+### Fixed
+
+- The plugin failed to enable because the laser cutter recipe referenced the silicon wafer before
+  it was registered.
+
+## [1.9.1] - 2026-04-26
+
+Makes the eight androids from 1.9.0 perform work.
+
+### Added
+
+- Per-type android behaviour. Farmer, lumberjack, miner, fisherman, butcher and slayer consume fuel
+  from the container above and output simulated loot to the container below; the builder places
+  blocks from its input container within its scan radius; the trader exchanges nine items for one
+  emerald.
+- Upgrade effects: AI chips set the scan radius (4, 6, 9, 13 blocks), motor chips the cooldown
+  (20, 14, 9, 5 ticks), armour plates the health and damage reduction, and fuel modules the fuel
+  buffer (1,000 to 64,000 mB). Solid fuels: coal, charcoal, blaze powder and blaze rods.
+- Program selector: right-clicking an android opens a menu listing the stored logic programs to
+  assign or clear.
+- Logic nodes `comparator_read` (redstone power, 0 to 15) and `fluid_level_read` (tank fill, 0 to
+  100 %).
+- Android tick benchmark for 100 and 200 androids.
 
 ### Changed
 
-- `AndroidContentBlock#onInteract` opens the new program selector UI
-  instead of the 1.9.0 no-op stub.
-- `AndroidServiceImpl#hydrate` resets `lastTickMs` to `0` for all loaded
-  rows. The field is repurposed in 1.9.1 from "wall-clock millis of last
-  tick" to "next eligible tick counter" (motor cooldown gate). The
-  reset prevents 1.9.0 stored millis values from freezing the loop for
-  ~580 days at 20 TPS.
+- `SapientiaAndroidTickEvent` now fires from the live android loop. Cancelling it skips the action
+  but still starts the cooldown.
+- Stored android timers are reset when the plugin loads, because their meaning changed from a
+  timestamp to a tick counter.
 
-### Migration
+## [1.9.0] - 2026-04-26
 
-- No schema migration (V010 not introduced). The repurpose of
-  `lastTickMs` is purely semantic; persisted values are reset at hydrate.
-
-## [1.9.0] — Androids 🤖 (catalogue) ✅
-
-Mirrors the 1.4.0 → 1.4.1, 1.5.0 → 1.5.1, 1.6.0 → 1.6.1, 1.7.0 → 1.7.1 and
-1.8.0 → 1.8.1 split convention. 1.9.0 ships the **catalogue + caps +
-persistence + event scaffolding** for the 8 androids; the kinetic AI loop
-(scan, replant, schematic playback, simulated loot, upgrade effects, full
-DAG editor UI, P-020 benchmark) is reserved for 1.9.1.
+Adds androids: programmable machines that automate farming, gathering, building and trading.
 
 ### Added
 
-- **8 android blocks** (T-451 / T-452, `sapientia-content`):
-  `android_farmer`, `android_lumberjack`, `android_miner`,
-  `android_fisherman`, `android_butcher`, `android_builder`,
-  `android_slayer`, `android_trader`. Each is an `AndroidContentBlock`
-  that registers an `AndroidNode` with `AndroidService` on place and
-  removes it on break.
-- **16 android upgrade items** (T-454, `sapientia-content`):
-  `AndroidUpgradeItem` enum × `AndroidUpgradeContentItem` registered by
-  `AndroidUpgradeCatalog` — 4 kinds (`ai_chip`, `motor_chip`,
-  `armour_plate`, `fuel_module`) × 4 tiers. Craftable via
-  `AndroidRecipes`; behavioural effects light up in 1.9.1.
-- **Public API surface** (`sapientia-api`):
-  - `dev.brmz.sapientia.api.android.AndroidType` — 8-value enum with
-    stable `idBase()`.
-  - `AndroidUpgradeKind` — 4-value enum (`AI_CHIP`, `MOTOR`, `ARMOUR`,
-    `FUEL_MODULE`).
-  - `AndroidUpgrade` — `record(kind, tier)` validating tier ∈ [1, 4].
-  - `AndroidNode` + `AndroidService` —
-    `addNode` / `removeNode` / `nodeAt` / `all` / `countInChunk` /
-    `totalCount` / `assignProgram` / `clearProgram` / `setUpgrade` /
-    `chunkCap` / `serverCap`.
-  - `SapientiaAPI.androids()` returns the bound implementation.
-- **`SapientiaAndroidTickEvent`** (cancellable, `HandlerList`,
-  matching the `SapientiaItemPackagedEvent` pattern from 1.8.1) —
-  fired once per android per tick by the placeholder ticker so addons
-  can wire listeners ahead of the 1.9.1 kinetic loop.
-- **`AndroidServiceImpl` + `AndroidStore` + `AndroidTicker` +
-  `AndroidCapsListener`** (`sapientia-core`):
-  - V009 migration creates the `androids` table (composite PK
-    `world / x / y / z` + `idx_androids_chunk` per-chunk index).
-  - `AndroidConfig` (pure POJO) reads `androids.cap.server` from
-    `config.yml`, defaults to 200, clamps to `[1, 5_000]`.
-  - `AndroidCaps.CHUNK_CAP = 4` — locked invariant.
-  - `AndroidTicker.INSTRUCTIONS_PER_TICK_CAP = 1` — T-451 contract guard.
-  - `AndroidCapsListener` cancels `SapientiaBlockPlaceEvent` at
-    `EventPriority.HIGH` whenever the chunk or server cap is exhausted.
-- **i18n** — 24 new keys per locale (8 block names + 16 upgrade names)
-  under a dedicated `android:` top-level section in `en.yml` and
-  `pt_BR.yml`. `verifyTranslations` reports 446 keys aligned per locale.
-- **`docs/content-spec-T-45x.md`** — full catalogue, recipe summary, cap +
-  persistence contract, deferred 1.9.1 surface.
-- **ADR-021** (`docs/decision-log.md`) — slayer melee policy: loot
-  puramente simulado (alinhado com `mob_simulator`), sem mob real
-  targeting. Deixa a porta aberta para um flag opt-in
-  `androids.slayer.realmob: true` se a comunidade exigir.
+- Eight android blocks (farmer, lumberjack, miner, fisherman, butcher, builder, slayer, trader)
+  with persistent state.
+- Sixteen android upgrades: AI chip, motor chip, armour plate and fuel module, each in four tiers,
+  with crafting recipes.
+- Placement limits of 4 androids per chunk and a configurable server-wide cap
+  (`androids.cap.server`, default 200).
+- API: `AndroidType`, `AndroidUpgrade`, `AndroidNode`, `AndroidService` (via
+  `SapientiaAPI#androids()`) and the cancellable `SapientiaAndroidTickEvent`.
 
-### Tests
+## [1.8.1] - 2026-04-25
 
-- `AndroidConfigTest` — defaults match spec, MIN/MAX clamping (mirrors
-  `LogisticsConfigTest` from 1.8.1).
-- `AndroidCapsTest` — `CHUNK_CAP == 4` invariant.
-- `AndroidTickerTest` — `INSTRUCTIONS_PER_TICK_CAP == 1` invariant.
-
-### Wiring
-
-- `SapientiaPlugin#onEnable()` instantiates `AndroidConfig`,
-  `AndroidStore`, `AndroidServiceImpl`, `AndroidTicker`; calls
-  `Sapientia.register(this)` first so that `Sapientia.get().androids()`
-  is available before `AndroidServiceImpl#hydrate()` and
-  `AndroidCapsListener` registration; schedules the ticker with offset
-  delay 21 ticks and period 1 tick.
-- `ContentBootstrap.registerAll` registers `AndroidUpgradeCatalog` first,
-  then the 8 android blocks, then `AndroidRecipes`.
-
-### Deferred to 1.9.1 (kinetic loop)
-
-- T-453 full DAG editor UI (Java inventory + Bedrock fallback flat-list).
-- T-454-effects — chip / motor / armour / fuel scaling becomes observable.
-- T-455 simulated loot tables for slayer / butcher.
-- Per-archetype kinetic behaviour (scan, replant, mine, schematic,
-  melee, trade).
-- T-459 P-020 benchmark — 200 androids / tick budget.
-- Comparator + fluid-level sensor logic-runtime read (originally deferred
-  from 1.8.1) — wires in as an instruction input source.
-
-### Build
-
-- `gradlew build verifyTranslations` BUILD SUCCESSFUL.
-
----
-
-## [1.8.1] — Advanced logistics kinetic loop 🔁 ✅
-
-Mirrors the 1.4.0 → 1.4.1, 1.5.0 → 1.5.1, 1.6.0 → 1.6.1 and 1.7.0 → 1.7.1 splits:
-1.8.0 shipped the catalogue; 1.8.1 wires the kinetic loop. The packager /
-unpackager pair now actually fires `SapientiaItemPackagedEvent`, the
-Edmonds-Karp max-flow solver lands as opt-in data structure, and ADR-020
-locks both the bundle NBT format (V1 single-stack now / V2 multi-stack in
-2.0.0) and the `network.solver: legacy|maxflow` policy.
+Activates the packager and unpackager and adds an optional max-flow item router.
 
 ### Added
 
-- `dev.brmz.sapientia.core.logistics.MaxFlowItemSolver` — pure-data
-  Edmonds-Karp implementation operating on a `long[][]` capacity matrix
-  (T-444). Time complexity `O(V·E²)`. Resets the residual graph on every
-  call so results are deterministic across invocations. Backed by 8
-  arithmetic invariants in `MaxFlowItemSolverTest` covering the canonical
-  CLRS 6-node example (max flow = 23), self-loops, disconnected sinks,
-  parallel paths, single-edge networks and rejection of negative /
-  non-square inputs.
-- `LogisticsConfig` + `LogisticsConfig.Solver` — operator-facing parser for
-  `network.solver` (T-444 / T-445). Aliases `maxflow` / `max-flow` /
-  `max_flow`; unknown values fall back to `LEGACY` so a typo never breaks
-  routing. Pure POJO with 4 invariants in `LogisticsConfigTest`.
-- `LogisticsTicker` — per-cycle (every 10 ticks) driver registered alongside
-  `MachineProcessor` / `PetroleumTicker` / `ElectronicsTicker` / `GeoTicker`
-  (T-450). Pulls one stack per packager from the chest above, wraps it as a
-  Sapientia bundle (`Material.BUNDLE` proxy, ADR-020 §2 V1 layout), fires
-  `SapientiaItemPackagedEvent`, and on success deposits the bundle into the
-  chest below. Symmetrical inverse path for the unpackager.
-- `MaxFlowItemSolverBenchmark` — JMH harness for **P-019**, parameterised
-  on 100 / 1000-node grid networks. Anchors the regression gate from ADR-020
-  (≥ 20 % regression blocks merge — same policy as T-171).
+- Packager and unpackager processing: the packager bundles one stack from the container above into
+  the container below, and the unpackager reverses it. Each bundle fires the cancellable
+  `SapientiaItemPackagedEvent`.
+- A max-flow (Edmonds-Karp) solver and the `network.solver: legacy|maxflow` option. The option is
+  read and validated, but item routing still uses the default solver.
+- Item routing benchmark on 100- and 1,000-node networks.
 
-### Changed
+## [1.8.0] - 2026-04-25
 
-- `SapientiaPackager` and `SapientiaUnpackager` — promoted from
-  placement-only stubs to `LogisticsContentBlock` subclasses. They now
-  register as `ItemNodeType.CONSUMER` / `PRODUCER` nodes (priority 0, LOW
-  tier) so the new `LogisticsTicker` picks them up via the existing
-  `ItemNetworkGraph` traversal.
-- `SapientiaPlugin` — new fields `logisticsTicker` and `logisticsConfig`,
-  initialised right after `geoTicker`; scheduled at offset 19L / period
-  10L mirroring the 1.7.1 cadence.
-
-### Decision records
-
-- **ADR-020** — Packager NBT format (V1 single-stack now / V2 multi-stack
-  in 2.0.0) + Ford-Fulkerson opt-in policy. Default solver remains `legacy`
-  to preserve world-state determinism for existing servers; `maxflow` is
-  an explicit opt-in for HV+ networks (≥ 1000 nodes).
-
-### Deferred to later milestones
-
-- **T-445** explicit priority-lane API exposed via `/sapientia logistics
-  policy` — designed in ADR-020 but lands once the splitter ratio table
-  goes live (1.9.0).
-- **Splitter ratio table** + **multi-pass filter rule chaining** — both
-  rolled to 1.9.0 alongside the android programming UI (T-453) which is the
-  natural consumer.
-- **Comparator sensor** + **fluid level sensor** logic-runtime read — lands
-  with T-453 (the DAG editor that consumes their values).
-- **Conveyor belt** visible item-on-belt rendering — display-entity work
-  rolled to 1.9.0 with the android pose / animation pass.
-- **Multi-stack bundle layout (ADR-020 §3 V2)** — ships with the dedicated
-  `packaged_bundle` content item in 2.0.0.
-
-### i18n
-
-- No new keys; parity holds at **422**. The kinetic loop reuses the 1.8.0
-  catalogue strings.
-
-## [1.8.0] — Advanced logistics 📦 ✅
-
-Catalogue release for industrial-grade item / fluid routing. Adds eight new
-item-logistics blocks (buffer, splitter, filter chamber, overflow module,
-comparator sensor, packager, unpackager, conveyor belt), two new fluid-logistics
-blocks (valve, level sensor) and the public `SapientiaItemPackagedEvent`
-event scaffolding. Mirrors the 1.4.0 → 1.4.1, 1.5.0 → 1.5.1, 1.6.0 → 1.6.1 and
-1.7.0 → 1.7.1 splits: this release ships items, blocks, recipes and i18n; the
-kinetic loop (Ford-Fulkerson swap, splitter ratio table, multi-pass filter
-chains, packager NBT, conveyor belt visible item rendering, comparator-sensor
-runtime hookup) lands in 1.8.1.
+Adds advanced item and fluid logistics blocks.
 
 ### Added
 
-- `dev.brmz.sapientia.api.events.SapientiaItemPackagedEvent` — cancellable event
-  fired when a `packager` block bundles items into a `packaged_bundle` stack
-  (T-450). Ships in 1.8.0; the kinetic packaging tick that fires it lands in
-  1.8.1.
-- 8 item-logistics blocks under `sapientia-content/logistics/` (T-441 / T-442):
-  - `item_buffer` — high-priority CONSUMER (priority +5) — barrel-based smoothing sink.
-  - `item_splitter` — JUNCTION — observer-driven distributor; ratio table in 1.8.1.
-  - `filter_chamber` — FILTER — multi-pass filter; 1.8.0 ships single-pass parity with the 1.1.0 `item_filter`.
-  - `overflow_module` — low-priority CONSUMER (priority -10) — last-resort sink.
-  - `comparator_sensor` — placement-only stub; logic-runtime hookup in 1.8.1.
-  - `packager` / `unpackager` — placement-only stubs; NBT format locked by ADR-020 in 1.8.1.
-  - `conveyor_belt` — JUNCTION — visible item-on-belt rendering in 1.8.1.
-- 2 fluid-logistics blocks under `sapientia-content/fluids/` (T-443):
-  - `fluid_valve` — JUNCTION — manual + logic-driven toggle in 1.8.1.
-  - `fluid_level_sensor` — placement-only stub; logic-runtime hookup in 1.8.1.
-- 10 shaped recipes in `LogisticsRecipes` (T-448) — one per new block, gated
-  behind 1.6.0 HV components for the heavy items (packager / unpackager use
-  CIRCUIT_T3) and 1.4.0 brass / iron ingots for the lighter routing pieces.
-- `SapientiaItemPackagedEventTest` (sapientia-api) — verifies the event class
-  exposes a HandlerList and implements `Cancellable`.
+- Item logistics: buffer, splitter, filter chamber, overflow module, comparator sensor, packager,
+  unpackager and conveyor belt.
+- Fluid logistics: valve and level sensor.
+- Crafting recipes for all ten blocks.
+- API: `SapientiaItemPackagedEvent`.
 
-### Changed
+## [1.7.1] - 2026-04-25
 
-- `ContentBootstrap` — registers the 10 new blocks after the 1.7.0 geo
-  catalogue and calls `LogisticsRecipes.registerAll` before the
-  `EnergyInspector` start.
-
-### Deferred to 1.8.1
-
-- T-444 Ford-Fulkerson hardening (max-flow swap for HV+ networks).
-- T-445 Routing improvements — explicit priority lanes (P0..P3) per node.
-- T-446 Tests — splitter ratio integrity, packager NBT round-trip, max-flow
-  correctness vs reference.
-- T-447 Benchmark P-019 — Ford-Fulkerson on 1000-node item network.
-- T-449 ADR-020 — packager / unpackager NBT format.
-- Splitter ratio table.
-- Multi-pass filter rule chaining.
-- Comparator sensor + fluid level sensor logic-runtime read.
-- Conveyor belt visible item-on-belt rendering (display-entity API on Java;
-  static texture on Bedrock).
-
-### i18n
-
-- +20 keys (10 blocks × name + desc) in en/pt_BR; parity now at **422**.
-
-## [1.7.1] — Geo & atmosphere kinetic loop ⛏️ ✅
-
-Activates the 1.7.0 catalogue. The four geo / atmosphere multiblocks plus the
-two MV machines now actually consume energy and move fluids per tick. Mirrors
-the 1.4.0 → 1.4.1, 1.5.0 → 1.5.1 and 1.6.0 → 1.6.1 pattern: 1.7.0 shipped the
-catalogue, 1.7.1 ships the loop.
+Makes the geology and atmosphere machines from 1.7.0 operate.
 
 ### Added
 
-- `dev.brmz.sapientia.core.geo.GeoTicker` — per-tick driver (T-431..T-435):
-  - `quarry_controller` (3×3×4 hollow shell) drains 512 SU and pushes 25 mB
-    of slurry (water proxy) into the tank above.
-  - `drill_rig_controller` (5×5×8 hollow shell) drains 1024 SU and rolls a
-    20% chance to deposit 10 mB `crude_oil` into the tank above
-    (sub-bedrock virtual mining; deepest reservoirs are oil-rich).
-  - `desalinator_controller` (5×3×3 hollow shell) consumes 100 mB water from
-    the input tank above, drains 256 SU, and emits 90 mB fresh water into
-    the tank below (the missing 10 mB models the rock-salt residue —
-    item-form deferred to 2.0.0).
-  - `gas_extractor` MV CONSUMER drains 256 SU and pulls 20 mB nitrogen from
-    the chunk atmosphere into the tank above.
-  - `atmospheric_collector` MV CONSUMER drains 256 SU and round-robins
-    nitrogen → argon → carbon_dioxide (15 mB per cycle) into the tank above.
-- Energy graph registration on the three controllers (`onPlace` / `onBreak`
-  in `SapientiaQuarryController`, `SapientiaDrillRigController`,
-  `SapientiaDesalinatorController`) — they now register as HV CONSUMER nodes
-  so cables can power them.
-- 8 pure-arithmetic invariants in `GeoTickerArithmeticTest` covering draw
-  positivity, drill-rig probability range, desalinator efficiency window
-  (80–100%), round-robin gas rotation, and HV buffer headroom.
+- The quarry controller consumes energy and outputs slurry into the tank above.
+- The drill rig has a 20 % chance per cycle to extract crude oil from below bedrock.
+- The desalinator turns 100 mB of water into 90 mB of fresh water.
+- The gas extractor collects nitrogen and the atmospheric collector rotates between nitrogen, argon
+  and carbon dioxide.
+- The three multiblock controllers join energy networks as high-voltage consumers.
 
-### Changed
+## [1.7.0] - 2026-04-25
 
-- `SapientiaPlugin` — owns the new `geoTicker` field, instantiates it after
-  `electronicsTicker`, schedules it at 17L delay / 5L period, and exposes a
-  public `geoTicker()` accessor.
-
-### Deferred
-
-- T-438 (P-018 quarry chunk-budget benchmark) → 1.8.0 alongside the
-  performance pass.
-- T-440 (Bedrock CustomForm AABB editor) → 2.0.0 with the rest of the
-  Bedrock-specific UX.
-- GPS coverage radius scan + handheld-map overlay (kinetic side of T-436)
-  → 1.8.0 with advanced logistics.
-
-### i18n
-
-- No new keys; en/pt_BR parity stays at **402**.
-
-## [1.7.0] — Geo & atmosphere ⛏️ ✅
-
-Catalogue release for industrial-scale resource gathering. Adds three multiblock
-controllers, two new MV-tier machines, the GPS infrastructure (transmitter +
-marker block + handheld map), the GPS-style prospector tool, and three new
-fluids (argon, carbon_dioxide, liquid_oxygen). Mirrors the 1.4.0 → 1.4.1 and
-1.6.0 → 1.6.1 splits: this release ships items, blocks, fluids, recipes and
-i18n; the kinetic-loop processing (quarry AABB tick, drill-rig probability
-tables, GPS coverage scan, atmospheric collection, desalination cycle) lands
-in 1.7.1.
+Adds large-scale resource gathering and GPS infrastructure.
 
 ### Added
-- **Atmospheric gases & cryogenics** (sapientia-core, T-435) — three new
-  `FluidType`s registered automatically by `SapientiaPlugin`:
-  - `argon` — inert atmospheric gas (density 2 kg/m³); atmospheric collector
-    output, used as a shielding gas reagent.
-  - `carbon_dioxide` — atmospheric collector + combustion byproduct (density
-    2 kg/m³); reagent in algae bioreactor chains (2.0.0).
-  - `liquid_oxygen` — cryogenic liquid produced by chilling `oxygen_gas` in
-    the liquefier (density 1141 kg/m³, well above water — guards the
-    "low-density => gas" routing rule).
-- **Multiblock controller stubs** (sapientia-content, T-431 / T-432 / T-434)
-  — placement + shape-validation, kinetic ticks land in 1.7.1:
-  - `quarry_controller` — 3×3×4 hollow shell of stainless casing or
-    iron blocks (vanilla proxy). Future home of the AABB-driven mining tick.
-  - `drill_rig_controller` — 5×5×8 hollow shell. Future home of sub-bedrock
-    virtual mining via probability tables.
-  - `desalinator_controller` — 5×3×3 hollow shell. Future home of sea-water
-    → fresh-water + rock-salt processing.
-- **MV machines** (sapientia-content, T-433) — placement-only stubs registering
-  as MV CONSUMER nodes on the energy graph:
-  - `gas_extractor` — pulls underground gas pockets into the fluid network
-    (kinetic in 1.7.1).
-  - `atmospheric_collector` — samples world atmosphere into nitrogen / argon
-    / CO₂ tanks (biome-weighted in 1.7.1).
-- **GPS infrastructure** (sapientia-content, T-436):
-  - `gps_transmitter` (block) — broadcasts a coverage signal that lights up
-    handheld maps (coverage scan in 1.7.1).
-  - `gps_marker` (block) — passive way-point block; renders on the map.
-  - `gps_handheld_map` (item) — shows nearby markers when in coverage.
-- **Prospector** (sapientia-content, T-433) — GPS-style scan tool. Right-click
-  surveys surrounding chunks for sub-bedrock ore reservoirs (kinetic in 1.7.1).
-- **`GeoRecipes`** (sapientia-content, T-439) — 9 shaped workbench recipes
-  covering every new block + item, gating heavier multiblock controllers
-  behind 1.6.0 HV electronics (`circuit_t3`, `ram_t3`, `motor_t3`).
-- **`GeoAndAtmosphereFluidsTest`** (sapientia-core, T-437 catalogue piece) —
-  4 pure-arithmetic invariants on the new fluids: gas density gate, LOX
-  liquid density, id namespacing, non-zero color.
 
-### Changed
-- **`SapientiaPlugin`** — registers the three new `FluidType`s alongside the
-  existing 14 built-ins.
-- **`ContentBootstrap`** — wires the 7 new blocks and 2 new items, plus the
-  `GeoRecipes.registerAll` call, in the established 1.x sequence.
+- Multiblock controllers for the quarry (3×3×4), drill rig (5×5×8) and desalinator (5×3×3).
+- Gas extractor and atmospheric collector machines.
+- GPS transmitter and marker blocks, the handheld GPS map and the prospector. Coverage, map display
+  and prospecting are not implemented yet.
+- Fluids: argon, carbon dioxide and liquid oxygen.
+- Crafting recipes for the new blocks and items.
 
-### Deferred
-- **T-437 kinetic tests** — quarry AABB serialization, drill-rig probability
-  tables, GPS coverage radius. Land in 1.7.1 with the kinetic loop.
-- **T-438 Benchmark P-018** — quarry tick budget on 32×32 footprint.
-  Deferred (mirrors the 1.4.1 / 1.5.1 / 1.6.1 pattern).
-- **T-440 Bedrock parity** — quarry AABB selector via `CustomForm` numeric
-  inputs. Lands in 1.7.1 alongside the wrench AABB selector.
+## [1.6.1] - 2026-04-25
 
-### i18n
-- 23 new keys per locale: 3 fluids (argon, carbon_dioxide, liquid_oxygen),
-  2 items (prospector, gps_handheld_map — name + lore + desc each), 7 blocks
-  (3 controllers + 2 machines + 2 GPS — name + desc each). Parity holds at
-  **402** keys for both `en_us` and `pt_br`.
-
-### Tests
-- 4 new `GeoAndAtmosphereFluidsTest` cases, all green. `cleanTest test`
-  reports BUILD SUCCESSFUL across every module; `verifyTranslations` confirms
-  402-key parity.
-
-## [1.6.1] — Electronics kinetic loop ⚡ ✅
-
-Activates the 1.6.0 HV catalogue. The new `ElectronicsTicker` drives every HV
-block contract (electrolyzer, boiler, condenser, geothermal, gas turbine, RTG)
-on a 5-tick cadence with 15-tick start delay, mirroring the `PetroleumTicker`
-pattern from 1.5.1. Mass and energy are conserved by construction and locked
-by 8 pure-arithmetic invariants in `ElectronicsTickerStoichiometryTest`.
+Makes the high-voltage machines from 1.6.0 operate.
 
 ### Added
-- **`ElectronicsTicker`** (sapientia-core, T-425 / T-426 / T-429) — per-tick
-  kinetic loop dispatching by `SapientiaBlock` id via `ChunkBlockIndex`:
-  - **Electrolyzer** — 2 H₂O → 2 H₂ + O₂ (100 mB water above → 200 mB hydrogen
-    below + 100 mB oxygen_gas to z=-1 neighbour, 1024 SU/cycle)
-  - **Boiler** — water above → compressed_air below (1:2 expansion, 50 mB →
-    100 mB, 256 SU)
-  - **Condenser** — compressed_air above → water below (2:1 contraction, mass
-    conservation inverse of boiler, 128 SU)
-  - **Geothermal generator** — scans 6 immediate lava neighbours,
-    `200 SU × count` pushed into the energy graph per tick
-  - **Gas turbine** — burns hydrogen (100 SU/mB) or ethylene (60 SU/mB) from a
-    tank below, up to 10 mB per cycle (H₂ is the better fuel)
-  - **RTG** — constant 50 SU/cycle trickle, no fuel input (decay curve modeled
-    as a fixed rate for now)
-- **HV machine recipes** (sapientia-content, `MachineRecipeData.registerHvMachines`)
-  — `rolling_mill` accepts every `Metal` ingot → 2× wire (256 SU, 20 ticks);
-  `laser_cutter` accepts silicon_ingot → 4× silicon_wafer (256 SU, 20 ticks).
-- **`ElectronicsTickerStoichiometryTest`** (sapientia-core, T-429) — 8
-  pure-arithmetic invariants on the published rates: 2 H₂/H₂O ratio,
-  O₂/H₂O equality, boiler/condenser mass conservation, boiler > condenser
-  energy, all generator rates positive, H₂ > ethylene SU/mB, gases respect
-  `FluidSpecs` tier capacity (gas-pipe pressure cap proxy until 1.7.0
-  dedicated pressure pass), and BuiltinFluidTypes id sanity.
 
-### Changed
-- **`SapientiaPlugin`** — registers the new `ElectronicsTicker` alongside
-  `PetroleumTicker`, scheduled at 15L delay / 5L period; exposed via
-  `electronicsTicker()` accessor.
+- Electrolyzer: 100 mB of water becomes 200 mB of hydrogen and 100 mB of oxygen.
+- Boiler and condenser convert between water and compressed air.
+- Geothermal generator output scales with adjacent lava; the gas turbine burns hydrogen or
+  ethylene; the RTG produces a constant trickle without fuel.
+- Rolling mill recipes (ingot to wire) and laser cutter recipes (silicon ingot to wafers).
 
-### Deferred
-- **T-430 Benchmark P-017** — 500-node mixed-tier gas-network throughput
-  benchmark deferred (mirrors the 1.4.1 / 1.5.1 pattern of skipping benchmarks
-  in kinetic releases).
-- **Dedicated gas pressure pass** — gases continue to share the fluid graph
-  (ADR-019) and are capped by `FluidSpecs.capacityMb`. Distinct
-  pressure/flow-rate semantics land in 1.7.0.
+## [1.6.0] - 2026-04-25
 
-### i18n
-- No new keys (no new items, blocks or fluids). Parity holds at **379** keys
-  for both `en_us` and `pt_br`.
-
-### Tests
-- 8 new `ElectronicsTickerStoichiometryTest` cases, all green. `cleanTest test`
-  reports BUILD SUCCESSFUL across every module; `verifyTranslations` confirms
-  379-key parity.
-
-## [1.6.0] — Electronics & HV ⚡ ✅
-
-Catalogue release for the high-voltage tier. Adds the new ore tier, electronics
-component chain, HV alloys, HV energy network and the gas pipeline. Mirrors the
-1.4.0 → 1.4.1 split: this release ships items, blocks, fluids, recipes and i18n;
-the kinetic-loop processing (gas pressure pass, electrolysis stoichiometry,
-geothermal world-heat, RTG decay) lands in 1.6.1.
+Adds the electronics chain and the high-voltage (HV) tier.
 
 ### Added
-- **`Metal` extensions** (sapientia-content, T-421 / T-424) — 4 new raw metals
-  (`aluminum`, `silicon`, `titanium`, `lithium`) and 3 new alloys
-  (`stainless_steel`, `damascus_steel`, `nichrome`). Catalogue grew from
-  78 → 138 metallurgy items.
-- **`Component` + `ComponentItem` + `ComponentCatalog`** (sapientia-content,
-  T-422) — 17-entry electronics chain spanning silicon wafer, motor T1..T3,
-  circuit T1..T3, processor T1..T3, coil T1..T3, RAM T2/T3 and storage HDD/SSD.
-- **`SapientiaCableT3` / `SapientiaCapacitorT3` / `SapientiaTransformerMvHv`**
-  (sapientia-content, T-425) — HV cable, capacitor and MV↔HV transformer.
-- **`SapientiaGeothermalGen` / `SapientiaGasTurbine` / `SapientiaRtg`**
-  (sapientia-content, T-425) — three HV generators registered as
-  `EnergyNodeType.GENERATOR` / `EnergyTier.HIGH`.
-- **`SapientiaElectrolyzer` / `SapientiaRollingMill` / `SapientiaLaserCutter` /
-  `SapientiaChemicalReactor`** (sapientia-content, T-423) — four HV machines
-  extending `MachineEnergyBlock`.
-- **6 new gas `FluidType`s** (sapientia-core, T-426 / ADR-019) — `hydrogen`,
-  `oxygen_gas`, `nitrogen`, `chlorine`, `ethylene`, `compressed_air`. Density
-  in [1, 12] kg/m³; classified as gases by the < 100 threshold.
-- **`FluidsContentBlockExt` + 6 gas blocks** (sapientia-content, T-426) —
-  `pressurized_pipe`, `gas_compressor`, `boiler`, `condenser`, `liquefier`,
-  `phase_separator`.
-- **`ElectronicsRecipes`** (sapientia-content, T-428) — ~25 shaped recipes
-  covering every component, HV energy block, HV machine and gas block.
-- **i18n** — +198 keys across `en.yml` and `pt_BR.yml` (60 new metals,
-  17 components, 16 blocks, 6 fluids per locale). `verifyTranslations` reports
-  379 keys per locale in parity.
-- **Tests** — `ComponentCatalogTest` (17 unique components, all materials
-  non-null), `BuiltinFluidTypesTest#gasesAreLowDensity` (ADR-019 invariant),
-  `MetalCatalogTest` updated for 138 items / 10 raw / 6 alloy.
-- **ADR-019** (`docs/decision-log.md`) — vapour classification: gases are
-  registered as `FluidType` with `density < 100 kg/m³` and share the existing
-  fluid graph. A dedicated gas-pressure pass arrives in 1.6.1.
 
-### Deferred
-- T-421 ore world-gen — catalogue ships, generation deferred (mirrors T-401).
-- T-429 kinetic-loop tests (electrolysis stoichiometry, gas-pipe pressure cap,
-  cable-tier burn) → 1.6.1.
-- T-430 benchmark P-017 (500-node gas-network throughput) → 1.6.1.
+- Four raw metals (aluminium, silicon, titanium, lithium) and three alloys (stainless steel,
+  Damascus steel, nichrome), bringing the metallurgy catalogue to 138 items.
+- Seventeen electronic components: silicon wafer, motors, circuits, processors and coils in three
+  tiers, RAM in two tiers, and HDD and SSD storage.
+- HV cable, capacitor and MV-to-HV transformer.
+- Generators: geothermal, gas turbine and RTG.
+- HV machines: electrolyzer, rolling mill, laser cutter and chemical reactor.
+- Gases (hydrogen, oxygen, nitrogen, chlorine, ethylene, compressed air) and gas handling blocks:
+  pressurized pipe, gas compressor, boiler, condenser, liquefier and phase separator.
+- Crafting recipes for the new content.
 
-### Build
-- `gradlew build verifyTranslations` BUILD SUCCESSFUL with 379 i18n keys per
-  locale and all module test suites green.
+## [1.5.1] - 2026-04-25
 
----
-
-## [1.5.1] — Petroleum kinetic loop ⛽ ✅
-
-Closes the deferred items from 1.5.0 so the crude → diesel → combustion vertical
-slice actually runs end-to-end.
+Completes the petroleum chain from crude oil to electricity.
 
 ### Added
-- **`MachineProcessor`** (sapientia-core, T-404 / 1.4.1) — per-tick recipe
-  driver. Scans every CONSUMER energy node, looks up the SapientiaBlock kind via
-  `ChunkBlockIndex`, scans the chest above for a matching `MachineRecipe` from
-  `MachineRecipeRegistry`, advances the in-flight recipe, and on completion
-  drains the energy buffer and deposits the output stack into the chest below.
-  In-flight progress is in-memory only (server restart rolls back).
-- **`MachineRecipe` / `MachineRecipeRegistry`** (sapientia-api, T-404) — public
-  recipe model and synchronized registry exposed through
-  `SapientiaAPI#machineRecipes()`.
-- **`MachineRecipeData`** (sapientia-content, T-404 / T-405 / T-414) — bulk
-  registration of ~40 metallurgy + chemistry recipes covering every machine
-  block placed by 1.4.0 and 1.5.0.
-- **`ReservoirService` + V008 migration** (sapientia-core, T-412) — per-chunk
-  crude-oil reservoirs persisted in `crude_oil_reservoirs`. Initialisation is
-  deterministic (FNV-1a-mixed seed of `world × chunkX × chunkZ`) yielding
-  reserves in [10 000, 100 000] mB; slow regeneration of 1 mB/min capped at the
-  initial reserve (ADR-018).
-- **`PetroleumTicker`** (sapientia-core, T-412 / T-413 / T-414 / T-415) — drives
-  pumpjack (drains reservoir → fills tank above), oil-refinery controller
-  (validates 5×5×7 shell, drains 100 mB crude, emits 40/30/20/10 mB
-  diesel/gasoline/lubricant/water to N/E/S/W tanks), combustion_gen (5 mB diesel
-  or gasoline → 200 / 250 SU per cycle), biogas_gen (10 mB nutrient_broth →
-  80 SU per cycle).
-- **ADR-017** (Voltage incompatibility between tiers) and **ADR-018**
-  (Reservoir replenishment = chunk-decay slow-regen finite) — full prose in
-  `docs/decision-log.md`.
-- **Tests** — `ReservoirServiceTest` (5 cases: deterministic init range,
-  stability, distinctness, drain reduces amount + persists, drain caps at
-  available); `MigrationLoaderTest` extended to expect V008.
 
-### Changed
-- `SapientiaPlugin` schedules `machineProcessor.tick()` every 10 ticks and
-  `petroleumTicker.tick()` every 5 ticks alongside the existing energy/
-  logistics/fluid solvers.
-- `MachineProcessor.tick()` reaps stale in-flight entries whose energy node has
-  disappeared (block break) so map size stays bounded.
+- Finite crude oil reservoirs per chunk (10,000 to 100,000 mB) that regenerate slowly. Pumpjacks
+  drain them into the tank above.
+- The oil refinery splits crude oil into diesel, gasoline, lubricant and water.
+- The combustion generator burns diesel or gasoline and the biogas generator burns nutrient broth.
+- Item recipes for the cracker, fermenter, still and bioreactor.
 
-### Notes
-- T-401 ore world-gen rolled forward again to 1.6.0 to ship alongside the
-  electronics-tier ores in a single `WorldGenerator` integration.
-- Recipe progress is intentionally non-persistent for now; 1.6.0 will add an
-  optional snapshot table once the kinetic loop has bedded in.
+## [1.5.0] - 2026-04-25
 
----
-
-## [1.2.0] — Fluids 💧 ✅
-
-Continuous-volume fluid logistics. Mirrors the 1.1.0 graph contract over a
-new `FluidNetworkGraph` and adds a vanilla-aware solver that pumps from /
-drains to water and lava blocks plus water/lava cauldrons.
+Adds petroleum and basic chemistry blocks.
 
 ### Added
-- **Fluids API** (T-301a) — `FluidNode`, `FluidNetwork`, `FluidService`,
-  `FluidNodeType` (`PIPE`/`PUMP`/`DRAIN`/`TANK`/`JUNCTION`), `FluidType`
-  (record: id, displayKey, color, density, hot), `FluidStack`,
-  `FluidSpecs.capacityMb` (4 000 / 16 000 / 64 000 / 256 000 mB) and
-  `FluidSpecs.throughputPerTick` (50 / 200 / 800 / 3 200 mB/tick). Public
-  events: `SapientiaFluidFlowEvent`, `SapientiaFluidTransferEvent`. Exposed
-  through `SapientiaAPI#fluids()`.
-- **Fluid graph + persistence** (T-301b/c) — `FluidNetworkGraph` (port of
-  `ItemNetworkGraph`), `SimpleFluidNode`, V006 migration with the
-  `fluid_nodes` table (chunk-indexed; tank contents = fluid type id +
-  amount). No mixing — tanks reject a second fluid type until drained.
-- **Fluid solver** (T-301d) — `FluidSolver`: per-network pump → tank →
-  drain pipeline running every 5 ticks, capped by per-tier throughput and
-  tank capacity; fires `SapientiaFluidTransferEvent` per move and
-  `SapientiaFluidFlowEvent` per active network.
-- **Vanilla bridge** (T-301e) — `AdjacentFluids` reads/writes vanilla:
-  consumes / fills water and lava cauldrons by `Levelled` level, removes
-  source water/lava blocks on extract, and places water/lava sources or
-  fills cauldrons on deposit.
-- **Built-in fluid registry** (T-301f) — `BuiltinFluidTypes` registers
-  `sapientia:water`, `sapientia:lava`, `sapientia:milk` at boot via
-  `FluidService#registerType` (Java-declared, per ADR-016 — supersedes the
-  pre-1.2.0 ROADMAP note about YAML-declared fluid types).
-- **Content blocks** (T-301g) — `SapientiaFluidPipe` (iron bars),
-  `SapientiaFluidPump` (blast furnace), `SapientiaFluidTank` (glass shell),
-  `SapientiaFluidDrain` (smoker) sharing `FluidsContentBlock` base.
-  Auto-registered bundled recipes under `GuideCategory.LOGISTICS`.
-- **Command** (T-301h) — `/sapientia fluids info` reports the targeted
-  node, its network and the live tank contents (`<fluid> <amount>/<capacity>
-  mB`). Permission `sapientia.command.fluids`.
-- **i18n** — added `block.fluid_pipe`, `block.fluid_pump`, `block.fluid_tank`,
-  `block.fluid_drain`, `fluid.water/lava/milk.name`, `command.fluids.*` and
-  `command.help.desc.fluids` to `en.yml` and `pt_BR.yml`. `verifyTranslations`
-  green at 118 keys.
 
-### Decisions
-- **ADR-015** — One fluid type per tank (no mixing). Trades realism for
-  determinism; matches the no-mixing rule already used by item filters.
-- **ADR-016** — Fluid types are Java-declared via `FluidService#registerType`.
-  Supersedes the pre-1.2.0 ROADMAP entry "Fluid types declarable via YAML"
-  in line with ADR-012 (Java-first content).
+- Fluids: crude oil, diesel, gasoline, lubricant and nutrient broth.
+- Pumpjack, oil refinery controller (5×5×7 multiblock) and stainless steel casing.
+- Chemistry machines: cracker, fermenter, still and bioreactor.
+- Combustion generator (MV) and biogas generator (LV).
+- Crafting recipes for the new blocks.
 
-## [1.1.0] — Item Logistics 📦 ✅
+## [1.4.1] - 2026-04-25
 
-First post-parity feature milestone. Introduces a fully wired item logistics
-network that mirrors the 0.3.0 energy graph: 6-neighbour BFS, split-on-removal,
-merge-on-add, per-tick solver, SQLite persistence and i18n-driven Java/Bedrock
-filter UIs.
+Machines now process recipes.
 
 ### Added
-- **Logistics API** (T-300a) — `ItemNode`, `ItemNetwork`, `ItemService`,
-  `ItemFilterRule`, `ItemFilterMode`, `ItemRoutingPolicy`, `ItemNodeType`,
-  `ItemSpecs.throughputPerTick(EnergyTier)` (64/256/1024/4096 items/tick).
-  Public events: `SapientiaItemFlowEvent`, `SapientiaItemFilterEvent`
-  (cancellable), `SapientiaItemRouteEvent`. Exposed through
-  `SapientiaAPI#logistics()`.
-- **Network graph + persistence** (T-300b/c) — `ItemNetworkGraph` (direct
-  port of `NetworkGraph`), `SimpleItemNode`, V005 migration with
-  `item_nodes` + `item_filter_rules` tables (chunk-indexed), `ItemNodeStore`
-  with `DELETE … RETURNING` rule cleanup.
-- **Routing solver** (T-300d) — `ItemSolver`: per-tick greedy round-robin /
-  priority / first-match policy; pulls/pushes via `AdjacentContainers`
-  (vanilla `BlockState` `Container` only — chests, barrels, hoppers,
-  dispensers, droppers, shulker boxes); fires `Filter`/`Route`/`Flow`
-  events; round-robin cursor map keyed by network UUID. Ford-Fulkerson
-  deferred to 1.4.0+.
-- **Filter rule matcher** (T-300e) — `ItemFilterRuleMatcher`: glob support
-  for `*`, `namespace:*`, exact `namespace:id`; BLACKLIST short-circuit;
-  WHITELIST gate.
-- **Content blocks** (T-300f) — `SapientiaItemCable` (iron bars),
-  `SapientiaItemProducer` (dropper), `SapientiaItemConsumer` (hopper),
-  `SapientiaItemFilter` (iron trapdoor) sharing `LogisticsContentBlock`
-  base. Auto-registered companion items + bundled recipes under
-  `GuideCategory.LOGISTICS`.
-- **Filter UI** (T-300g) — `FilterDescriptor` evolved from the 1.0.0
-  experimental stub: now `UIDescriptor<ItemNode>`, registered
-  unconditionally, renders the current rule list and routing policy on Java
-  (chest) and Bedrock (`SapientiaCustomForm` summary). Editing happens via
-  `/sapientia logistics filter add|remove|clear|list`. The
-  `experimental.filter` config flag is gone.
-- **`/sapientia logistics`** (T-300h) — `info` (raytraced node summary),
-  `policy <round_robin|priority|first_match>`, and
-  `filter <add|remove|clear|list>` subcommands with full tab-completion
-  and i18n keys in `en` + `pt_BR`.
-- **Wiring** (T-300i) — `SapientiaPlugin` now hosts an `ItemServiceImpl` +
-  `ItemSolver`, hydrates loaded chunks on startup, hooks chunk
-  load/unload, and ticks the solver every tick (energy stays at every 10).
 
-### Tests
-- `ItemNetworkGraphTest` — mirrors `NetworkGraphTest` for adjacent merge,
-  diagonal isolation, cable-split, network merge, default + mutable
-  routing policy. `MigrationLoaderTest` updated to assert V005.
+- Machine processing: a machine takes input from the container above, spends energy when a recipe
+  completes and outputs to the container below. Progress is kept in memory and resets on restart.
+- Around 40 machine recipes covering crushing, smelting, pressing, wire drawing, rod cutting and
+  block compression.
+- Induction furnace alloy recipes for steel, invar and kanthal.
 
-### Docs
-- `decision-log.md` — ADR-013 (item logistics reuses energy
-  `NetworkGraph` shape) and ADR-014 (per-network routing policy).
-- `ROADMAP.md` marked 1.1.0 ✅.
+## [1.4.0] - 2026-04-25
 
-## [1.0.0] — Bedrock parity 📱 ✅
-
-Bedrock parity milestone. Floodgate-detected Bedrock players now get a UI
-surface and resource-pack pipeline equivalent to Java.
+Adds metallurgy and the medium-voltage (MV) tier.
 
 ### Added
-- **Floodgate form wrappers** (T-201) — `SapientiaSimpleForm`,
-  `SapientiaModalForm`, `SapientiaCustomForm` in
-  `dev.brmz.sapientia.bedrock.forms`. Typed Cumulus 1.1.2 API; reflection
-  removed from `BedrockFormsUIProvider#isReady`.
-- **Machine UI on Bedrock** (T-202) — `MachineBedrockRenderer` builds a
-  `CustomForm` with energy/percent labels and a Running toggle that round-
-  trips state through `MachineRunningRegistry`.
-- **Experimental filter UI stub** (T-203) — `FilterDescriptor`, opt-in via
-  `experimental.filter` config flag. Lays the surface for 1.x logistics.
-- **Guide UI on Bedrock** (T-204) — `GuideIndexBedrockRenderer` +
-  `GuideDetailBedrockRenderer` mirror the Java guide flow as `SimpleForm`s.
-- **`TextAdapter.toPlainBedrock(Component)`** (T-205) and
-  **`LangFileWriter`** (T-205b) — render Adventure components into Bedrock-
-  friendly legacy strings and emit one `.lang` file per loaded locale.
-- **Auto Java→Bedrock fallback** (T-206) — `BedrockFallbackForm`
-  synthesises a `SimpleForm` from any `JavaInventoryRenderer` when no
-  dedicated `BedrockFormRenderer` is provided.
-- **`.mcpack` pipeline** (T-207) — `ResourcePackBuilder.buildBedrockPack()`
-  writes a stable Bedrock manifest using the fixed UUIDs in
-  `BedrockPackConstants`.
-- **Geyser item mappings** (T-208) — `GeyserMappingsBuilder` writes
-  `mappings/sapientia_items.json`. Items with non-zero
-  `customModelData()` get a deterministic Bedrock entry under their base
-  material.
-- **`/sapientia pack build {java|bedrock|all}`** (T-209) plus tab-complete
-  + help entries.
-- **Bedrock smoke harness** (T-210) — `scripts/smoke-bedrock.{sh,ps1}` +
-  `docs/bedrock-smoke-checklist.md`.
-- **Performance benchmarks** (T-211, P-009..P-012, P-014):
-  `PlatformDetectBenchmark`, `CustomFormOpenBenchmark`,
-  `BedrockMixOverheadBenchmark`, `GeyserMappingBenchmark`.
-- `SapientiaItem#customModelData()` default and `ItemOverride.customModelData`
-  YAML field, plus `ItemRegistry` propagation to spawned stacks (T-145).
-- `UIService#open(Player, NamespacedKey, Object)` overload for descriptor-
-  by-key open paths.
-- `SapientiaAPI#openMachineUI(Player, EnergyNode)` and
-  `SapientiaAPI#openUI(Player, NamespacedKey, Object)`.
-- New i18n keys under `ui.machine.*`, `ui.filter.*`, plus the new
-  `command.help.desc.pack-build-{bedrock,all}` and
-  `command.pack.bedrock.*` strings — `verifyTranslations` parity preserved.
 
-### Changed
-- `BedrockFormsUIProvider#isReady` now uses
-  `Bukkit.getPluginManager().getPlugin("floodgate")` instead of reflection.
-- `ResourcePackBuilder` accepts optional `Messages` + `ItemRegistry`
-  injections (no behaviour change for existing Java pack consumers).
+- Six metals (copper, tin, zinc, lead, silver, nickel) in nine forms and three alloys (bronze,
+  brass, electrum) in eight forms: 78 items.
+- Voltage tiers LV, MV, HV and EV. API: `MachineTier` and `TierCompatibility`, which define how
+  mismatched tiers behave (a higher tier burns a lower one; a lower tier is clamped).
+- Machines: macerator, ore washer, electric furnace, bench saw (LV) and mixer, compressor, plate
+  press, extractor (MV).
+- MV cable, MV capacitor, LV-to-MV transformer and LV/MV machine casings.
+- Induction furnace controller (3×3×3 multiblock) and shape validation helpers in the API.
+- More than 50 crafting recipes.
 
-## [1.0.0-beta] — Java MVP polish ⚡
+## [1.3.0] - 2026-04-25
 
-Sixth milestone. Release-grade quality: continuous benchmarking and a
-regression gate so performance targets from `docs/performance-contract.md`
-stay honest between releases.
+Adds programmable logic.
 
 ### Added
-- `sapientia-benchmarks` module with a JMH harness. Run via
-  `./gradlew :sapientia-benchmarks:jmh` (T-170).
-  - `NetworkGraphBenchmark.buildGraph500Nodes` — 500-node energy graph
-    rebuild, covering P-003 at the graph layer (current: ~78 µs/op, budget
-    5 ms).
-  - `TickBucketBenchmark.dispatchOneBucket` — 20 000 tickables across 20
-    buckets, covering P-007 (current: ~1.3 µs/op, budget 250 µs/bucket).
-- `compareToBaseline` Gradle task (T-171): reads the latest JMH JSON report
-  and fails the build when any benchmark regresses more than 10 % versus
-  `docs/benchmarks/baseline.json`. Missing-from-baseline benchmarks are
-  informational.
-- `saveBenchmarkBaseline` Gradle task: promotes the latest JMH result to the
-  committed baseline.
-- `TickBucketing#runOneTickForBenchmark()` — benchmark-only entry point
-  around `runOneTick()` so JMH can exercise the dispatcher without wiring a
-  Paper scheduler.
-- README "Running benchmarks" section (T-172).
 
-### Notes
-- Solver-level bench (`EnergySolver.tick`) deferred until the Bukkit
-  event-bus dependency is mockable; P-003 coverage retained at the graph
-  layer.
-- P-006 `WriteBehindQueue` bench deferred (requires in-memory DataSource
-  harness).
-- JMH's annotation processor emits JDK-25 bytecode, so the `:jmh` `JavaExec`
-  task pins its launcher to the Java 25 toolchain.
+- Logic programs as directed acyclic graphs, compiled in a deterministic order and evaluated every
+  5 ticks. Programs with cycles or unknown nodes are rejected; programs that throw are disabled.
+- Built-in nodes: constants, arithmetic, comparison, boolean logic, branching, memory, tick counter
+  and logging.
+- `/sapientia logic list|info|load|unload|enable|disable|export|tick` with the
+  `sapientia.command.logic` permission. Programs are stored in the database and can be exported to
+  YAML.
+- API: `LogicService` (via `SapientiaAPI#logic()`) and the cancellable `SapientiaLogicTickEvent`.
 
-## [0.5.0] — YAML overrides & resource pack 🎛️ ✅
+## [1.2.0] - 2026-04-25
 
-Fifth milestone. Operators can retune the Java-defined catalog at runtime via
-three focused YAML files and ship a Java resource pack without touching the
-plugin code.
+Adds fluid logistics.
 
 ### Added
-- `sapientia-api`: `ItemOverride`, `BlockOverride`, `RecipeOverride` records and
-  the `ContentOverrides` service (with `ReloadReport`). Exposed via new
-  `SapientiaAPI#overrides()` (T-160 / 0.5.0).
-- `sapientia-core`: `ContentOverrideService` reads `plugins/Sapientia/overrides/
-  items.yml|blocks.yml|recipes.yml`, validates materials/keys/result amounts and
-  publishes an atomic snapshot; invalid rows are logged and skipped (T-161).
-  `ItemRegistry#createStack` and `SapientiaRecipeRegistry#effectiveResult`
-  consult the snapshot on every lookup so reloads are immediate.
-- `/sapientia reload content` hot-reload (permission
-  `sapientia.command.reload`) with per-file counts and a summary of any
-  validation issues (T-162).
-- `sapientia-core`: `ResourcePackBuilder` seeds `pack.mcmeta` +
-  `assets/sapientia/` in `plugins/Sapientia/pack/` and zips to
-  `sapientia-resources.zip`; `/sapientia pack build java` surfaces it to
-  operators (permission `sapientia.command.pack`) (T-164).
-- Config: `resource-pack.pack-format` (default `32`) — adjustable per MC
-  version.
-- i18n: `command.help.desc.reload-content`, `command.help.desc.pack-build`,
-  `command.reload.content.success`, `command.reload.content.issues`,
-  `command.pack.usage|success|failure` in `en` and `pt_BR`.
-- Tests: `ContentOverrideServiceTest` (6 parser cases covering success,
-  unknown material, invalid key, block override, recipe result override, and
-  rejection of invalid `result_amount`).
 
-## [0.4.0] — Crafting & Guide 📖
+- Fluid pipe, pump, tank and drain. Pumps take water and lava from source blocks and cauldrons;
+  drains place them back.
+- Tank capacity and pipe throughput scale with tier. A tank holds one fluid type at a time.
+- Built-in fluids: water, lava and milk.
+- `/sapientia fluids info` with the `sapientia.command.fluids` permission.
+- API: `FluidService` (via `SapientiaAPI#fluids()`), `FluidType`, `FluidStack` and the
+  `SapientiaFluidFlowEvent` and `SapientiaFluidTransferEvent` events.
 
-Fourth milestone. Adds the shaped crafting mechanic (3×3 shape-exact matcher,
-dedicated workbench UI) and the in-game guide with per-player unlocks.
+## [1.1.0] - 2026-04-25
+
+Adds item logistics.
 
 ### Added
-- `sapientia-api`: sealed `RecipeIngredient` (`Vanilla` / `Sapientia` / `Empty`),
-  `SapientiaRecipe` interface, `RecipeRegistry` with `openWorkbench(Player)`,
-  `SapientiaRecipeCompleteEvent`, `GuideCategory` enum, `GuideEntry` record,
-  `GuideService`, `UnlockService`. `SapientiaItem#guideCategory()` and
-  `SapientiaBlock#guideCategory()` defaults. `SapientiaAPI#recipes()`,
-  `#guide()` and `#unlocks()` entry points (T-131 / T-132 / T-150 / T-151).
-- `sapientia-core`: `SapientiaRecipeRegistry` with pure `matchCells(...)` entry
-  point for tests (T-131). `WorkbenchHolder` + `WorkbenchListener` implementing
-  the 54-slot crafting window — grid at slots {10,11,12,19,20,21,28,29,30},
-  output at 24, filler glass panes elsewhere, auto-return of grid on close
-  (T-130). `GuideServiceImpl` auto-populates entries from the item and block
-  registries and renders a category-sorted Java inventory with grey-pane
-  placeholders for locked entries (T-150). `UnlockServiceImpl` backed by
-  migration `V004__unlocked_content.sql` with an in-memory per-player cache
-  (T-151). Workbench auto-unlocks each recipe on craft.
-- `sapientia-content`: `SapientiaWorkbench` block (CRAFTING_TABLE) routing
-  `onInteract` to `api.recipes().openWorkbench(player)`. `SapientiaGuide` item
-  (WRITTEN_BOOK) opening the guide via `api.guide().open(player)`. Three
-  reference recipes (`recipe_wrench`, `recipe_cable`, `recipe_generator`) with
-  mixed vanilla + Sapientia outputs.
-- i18n: `item.guide.name` / `item.guide.lore`, `block.workbench.name`,
-  `guide.title`, `guide.locked` in `en` and `pt_BR`.
-- Tests: `SapientiaRecipeRegistryTest` (7 cases: exact shape, missing
-  ingredient, translated pattern, extra item in empty cell, Sapientia-tagged
-  stack against vanilla cell, first-match precedence, duplicate-id rejection).
-  `MigrationLoaderTest` updated for V004.
 
-## [0.3.0] — Energy 🔌
+- Item cable, producer, consumer and filter blocks that move items between vanilla containers.
+- Per-network routing policies: round robin, priority and first match.
+- Whitelist and blacklist filters with wildcards (`*`, `namespace:*`), editable with
+  `/sapientia logistics filter add|remove|clear|list` and viewable in a filter UI on Java and
+  Bedrock.
+- `/sapientia logistics info|policy|filter`.
+- API: `ItemService` (via `SapientiaAPI#logistics()`) and the `SapientiaItemFlowEvent`,
+  `SapientiaItemFilterEvent` (cancellable) and `SapientiaItemRouteEvent` events.
 
-Third milestone. Introduces the energy graph: nodes (generator / cable / capacitor /
-consumer), connected-component networks with split/merge, a per-tick proportional
-solver, persistence of node state and the events addons need to react to flow.
+### Removed
+
+- The `experimental.filter` configuration option; the filter UI is always available.
+
+## [1.0.0] - 2026-04-24
+
+Bedrock players get the same interfaces and resource pack pipeline as Java players.
 
 ### Added
-- `sapientia-api`: `EnergyService`, `EnergyNetwork`, `EnergySpecs` (capacity / generation
-  / consumption table). `EnergyNode.tier()` default accessor. New events
-  `SapientiaEnergyFlowEvent` and `SapientiaMachineTickEvent`. `SapientiaAPI#energy()`
-  entry point (T-100/T-146).
-- `sapientia-core`: `NetworkGraph` with 6-neighborhood adjacency, BFS split-on-removal
-  and merge-on-add (T-141). `SimpleEnergyNode` with atomic buffers and dirty flag.
-  `EnergyNodeStore` (SQLite-backed CRUD over `energy_nodes`). `EnergyServiceImpl`
-  with chunk hydrate / unload hooks. `EnergySolver` greedy proportional pass that
-  runs every 10 server ticks and emits `SapientiaEnergyFlowEvent` per network
-  (T-142).
-- Migration `V003__energy_nodes.sql` (T-140).
-- `sapientia-content`: `EnergyContentBlock` base class plus the four reference blocks
-  `SapientiaGenerator`, `SapientiaCable`, `SapientiaCapacitor`, `SapientiaConsumer`
-  (T-143). i18n keys `block.generator/cable/capacitor/consumer.name` in `en` and
-  `pt_BR`.
-- Tests: `NetworkGraphTest` (6 cases covering merge / split / diagonal-isolation /
-  offer / draw). MigrationLoader tests updated for V003.
 
-### Deferred
-- T-144 Kryo serialisation of node `state_blob` — current schema persists buffers
-  as columns; revisit when machines need richer snapshot data.
-- T-145 In-game energy bar UI — depends on `UIService.open(NamespacedKey)` being
-  exposed through `SapientiaAPI`. Tracked under 0.4.0.
+- Bedrock forms for the machine UI and the guide, with an automatic fallback form for any menu that
+  has no dedicated Bedrock layout.
+- `/sapientia pack build java|bedrock|all`, producing a Java resource pack and a Bedrock `.mcpack`
+  with translated `.lang` files.
+- Bedrock smoke-test scripts and platform detection benchmarks.
+- API: `SapientiaAPI#openMachineUI` and `SapientiaAPI#openUI`.
 
-## [0.2.0] — Items & Blocks
+## [1.0.0-beta] - 2026-04-24
 
-Second milestone. Introduces the Slimefun-style fixed-Java-class content model
-(ADR-012), the block lifecycle pipeline and the asynchronous persistence layer.
+Adds performance benchmarks and a regression gate.
 
 ### Added
-- `sapientia-api`: `SapientiaItem` and `SapientiaBlock` interfaces with default
-  behavior hooks; events `SapientiaItemInteractEvent`, `SapientiaBlockPlaceEvent`,
-  `SapientiaBlockBreakEvent`, `SapientiaBlockInteractEvent`.
-- `SapientiaAPI` registry surface: `registerItem`, `registerBlock`, `findItem`,
-  `findBlock`, `createStack` (T-100b).
-- `sapientia-core`: `SapientiaBlockRegistry`, `ChunkBlockIndex` (chunk-scoped
-  hydration), `BlockLifecycleListener` (place/break/interact pipeline with event
-  emission and vanilla-drop suppression), `WriteBehindQueue` (500 ms async flush
-  with last-write-wins dedup, single worker thread) — T-105, T-111, T-112.
-- Root Gradle task `verifyTranslations` diffing `en.yml` vs `pt_BR.yml`, wired
-  into `check` (T-105 CI gate).
-- ArchUnit gate `NoUserFacingLiteralsTest` with escape annotation `@AllowLiteral`
-  (T-106).
-- `sapientia-content`: first demo content — `SapientiaWrench`, `SapientiaPedestal`,
-  `SapientiaConsole` — plus `ContentBootstrap` invoked from `SapientiaPlugin`
-  (T-180).
-- i18n keys `item.wrench.*`, `block.pedestal.*`, `block.console.*` in `en.yml`
-  and `pt_BR.yml`.
 
-### Changed
-- ADR-012: content is fixed Java classes Slimefun-style; YAML moves to
-  override-only for operators (0.5.0). Architecture §3/§5/§10, implementation
-  plan block 7 and module breakdown §2.3 updated; ROADMAP 0.2.0 expanded and
-  0.5.0 rewritten as "YAML overrides & resource pack".
-- `CustomBlockStore` now routes writes through `WriteBehindQueue` when attached;
-  `loadChunk` returns keyed records for hydration.
-- `ItemRegistry` accepts `SapientiaItem` registrations (bridged internally so
-  `/sapientia give` continues to work for both APIs).
+- JMH benchmarks for energy graph rebuilds and tick bucket dispatch
+  (`./gradlew :sapientia-benchmarks:jmh`).
+- `compareToBaseline`, which fails when any benchmark regresses more than 10 % against the stored
+  baseline, and `saveBenchmarkBaseline` to update that baseline.
 
-## [0.1.0] — Foundation
+## [0.5.0] - 2026-04-24
 
-First tagged release. Published by **BRMZ.dev** (<https://brmz.dev>). Establishes the multi-module skeleton, core runtime services and the public API surface consumed by addons.
+Server operators can rebalance the built-in content without code changes.
 
 ### Added
-- Gradle multi-module layout (6 modules) with convention plugins and version catalog.
-- `sapientia-api`: `Machine`, `EnergyNode`, enums (`MachineCategory`, `EnergyNodeType`, `EnergyTier`, `PlatformType`), records (`MachineState`, `RecipeProgress`), `Version`, and `SapientiaPlayerPlatformDetectEvent`.
-- `Messages` with MiniMessage + `en` and `pt_BR` catalogs.
-- `DatabaseManager` (HikariCP + SQLite WAL) and `MigrationLoader` with SHA-256 checksum.
-- `SapientiaScheduler` adapting Paper and Folia.
-- `PlatformService` with Floodgate detection (reflection) + persistent cache; `SapientiaPlayerPlatformDetectEvent` fired on player join.
-- `ItemRegistry` PDC + `/sapientia give` / `reload` / `help` commands.
-- `UIService` + `JavaInventoryUIProvider` + `BedrockFormsUIProvider` stub.
-- `TickBucketing` with 20 rotating buckets.
-- `CustomBlockStore` with upsert CRUD over `custom_blocks`.
-- Root task `buildPluginJar` producing the distributable shaded jar.
 
-### Changed
-- Build targets Java 25 and Minecraft / Paper 26.1.2 (alpha build).
-- Package root renamed to `dev.brmz.sapientia` and shaded library prefix to `dev.brmz.sapientia.libs`.
-- `plugin.yml` author is `BRMZ.dev`; project coordinate `dev.brmz.sapientia:sapientia-*`.
+- YAML overrides for items, blocks and recipes in `plugins/Sapientia/overrides/`. Invalid entries
+  are logged and skipped.
+- `/sapientia reload content` applies overrides without a restart.
+- `/sapientia pack build java` and the `resource-pack.pack-format` option.
+- API: `ContentOverrides` (via `SapientiaAPI#overrides()`).
+
+## [0.4.0] - 2026-04-24
+
+Adds crafting and the in-game guide.
+
+### Added
+
+- The Sapientia workbench with shaped 3×3 recipes that accept vanilla and Sapientia ingredients.
+- The guide item, listing every item and block by category; locked entries show as placeholders
+  until unlocked, and recipes unlock when first crafted.
+- API: `RecipeRegistry`, `GuideService`, `UnlockService` and the cancellable
+  `SapientiaRecipeCompleteEvent`.
+
+## [0.3.0] - 2026-04-24
+
+Adds the energy system.
+
+### Added
+
+- Generator, cable, capacitor and consumer blocks forming energy networks that split and merge as
+  blocks are placed and broken. Energy is distributed every 10 ticks and persisted.
+- API: `EnergyService` (via `SapientiaAPI#energy()`) and the `SapientiaEnergyFlowEvent` and
+  `SapientiaMachineTickEvent` events.
+
+## [0.2.0] - 2026-04-24
+
+Adds custom items and persistent custom blocks.
+
+### Added
+
+- API: `SapientiaItem` and `SapientiaBlock` for content defined in Java, plus item interaction and
+  block place, break and interact events.
+- Persistent custom blocks loaded and unloaded with their chunks, with asynchronous batched writes.
+- Wrench item and pedestal and console blocks.
+- Build checks for translation parity between English and Brazilian Portuguese and for untranslated
+  text sent to players.
+
+## [0.1.0] - 2026-04-24
+
+Initial project foundation.
+
+### Added
+
+- Multi-module Gradle build targeting Java 25 and Paper.
+- Public API module with machine, energy and platform types.
+- Translations in English and Brazilian Portuguese using MiniMessage.
+- Embedded SQLite storage with checksummed migrations.
+- Scheduler support for Paper and Folia.
+- Bedrock player detection through Floodgate.
+- `/sapientia give`, `/sapientia reload` and `/sapientia help`.

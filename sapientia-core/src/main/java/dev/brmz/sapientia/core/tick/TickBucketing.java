@@ -90,7 +90,7 @@ public final class TickBucketing {
 
     private void runOneTick() {
         long tick = tickCounter++;
-        int bucketIndex = (int) Math.floorMod(tick, BUCKET_COUNT);
+        int bucketIndex = Math.floorMod(tick, BUCKET_COUNT);
         List<Entry> snapshot;
         synchronized (buckets) {
             snapshot = new ArrayList<>(buckets.get(bucketIndex));

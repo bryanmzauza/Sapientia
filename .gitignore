@@ -38,3 +38,6 @@ build_output*.txt
 
 # Others
 docs/
+
+# Python
+__pycache__/

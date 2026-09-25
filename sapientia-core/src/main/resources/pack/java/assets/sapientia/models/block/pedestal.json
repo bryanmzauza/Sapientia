@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "top": "sapientia:block/pedestal_top",
+    "front": "sapientia:block/pedestal_front",
+    "side": "sapientia:block/pedestal_side"
+  }
+}

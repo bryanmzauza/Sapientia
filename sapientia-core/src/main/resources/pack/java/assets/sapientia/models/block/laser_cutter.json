@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "sapientia:block/laser_cutter_front",
+    "top": "sapientia:block/laser_cutter_top",
+    "side": "sapientia:block/laser_cutter_side"
+  }
+}

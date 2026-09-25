@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "sapientia:block/fluid_drain_front",
+    "top": "sapientia:block/fluid_drain_top",
+    "side": "sapientia:block/fluid_drain_side"
+  }
+}

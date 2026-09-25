@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "sapientia:block/consumer_front",
+    "top": "sapientia:block/consumer_top",
+    "side": "sapientia:block/consumer_side"
+  }
+}
