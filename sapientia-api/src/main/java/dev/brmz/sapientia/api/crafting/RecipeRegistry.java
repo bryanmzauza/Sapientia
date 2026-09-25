@@ -31,6 +31,15 @@ public interface RecipeRegistry {
      */
     @NotNull Optional<SapientiaRecipe> match(@NotNull @Nullable ItemStack[] grid);
 
+    /**
+     * Registers a recipe for the vanilla crafting table whose result is a
+     * Sapientia item. Players find it in their recipe book.
+     */
+    void registerVanilla(@NotNull VanillaRecipe recipe);
+
+    /** Every vanilla crafting table recipe registered through {@link #registerVanilla}. */
+    @NotNull Collection<VanillaRecipe> vanillaRecipes();
+
     /** Opens the Sapientia workbench UI for the given player (T-130 / 0.4.0). */
     void openWorkbench(@NotNull Player player);
 }

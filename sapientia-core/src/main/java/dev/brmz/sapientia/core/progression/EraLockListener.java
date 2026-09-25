@@ -65,6 +65,12 @@ public final class EraLockListener implements Listener {
                 return;
             }
         }
+        // Sapientia items made on the vanilla crafting table follow the era locks too.
+        NamespacedKey result = sapientiaId(event.getInventory().getResult());
+        if (result != null && !progression.isAvailable(result)
+                && !(event.getView().getPlayer() instanceof Player player && progression.bypasses(player))) {
+            event.getInventory().setResult(null);
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

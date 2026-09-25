@@ -10,8 +10,32 @@ Versions 0.1.0 through 1.10.0 were development milestones; no binaries were publ
 
 ## [Unreleased]
 
-Foundation 2 of Sapientia 2, planned as **2.0.1**: eras, player research, minerals from natural
-terrain and the plant system that every era builds on.
+Era 0 (Arrival), planned as **2.0.2**: how a new player starts.
+
+### Added
+
+- New players receive the Sapientia Guide on their first join, with a short welcome message
+  (`progression.give-guide-on-join`).
+- The guide (1 book and 1 flint) and the Sapientia Workbench (a crafting table surrounded by
+  cobblestone, planks and flint) are made on the vanilla crafting table, and appear in every
+  player's recipe book. The guide shows these recipes too, on Java and Bedrock.
+- Workbench tools: items that the Sapientia Workbench uses as an ingredient without consuming them,
+  losing one use per craft and breaking when none are left. They show a durability bar and do not
+  stack. The first ones arrive with era 1.
+- API: `VanillaRecipe`, `RecipeRegistry#registerVanilla` and `RecipeRegistry#vanillaRecipes` for
+  Sapientia items made on the vanilla crafting table, and `SapientiaItem#benchToolUses()` for
+  workbench tools.
+
+### Changed
+
+- Placing a Sapientia block counts as discovering it, so blocks received from an admin also
+  advance research and the guide's next goal.
+- Sapientia items made on the vanilla crafting table follow the era locks.
+
+## [2.0.1] - 2026-09-25
+
+Foundation 2 of Sapientia 2: eras, player research, minerals from natural terrain and the plant
+system that every era builds on.
 
 ### Added
 

@@ -1,14 +1,14 @@
 package dev.brmz.sapientia.content.crafting;
 
-import dev.brmz.sapientia.content.ContentEras;
-import dev.brmz.sapientia.api.mining.Mineral;
-import dev.brmz.sapientia.content.mining.MineralCatalog;
 import dev.brmz.sapientia.api.SapientiaAPI;
 import dev.brmz.sapientia.api.machine.MachineRecipe;
 import dev.brmz.sapientia.api.machine.MachineRecipeRegistry;
+import dev.brmz.sapientia.api.mining.Mineral;
+import dev.brmz.sapientia.content.ContentEras;
 import dev.brmz.sapientia.content.metallurgy.Metal;
 import dev.brmz.sapientia.content.metallurgy.MetalCatalog;
 import dev.brmz.sapientia.content.metallurgy.MetalForm;
+import dev.brmz.sapientia.content.mining.MineralCatalog;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;

@@ -322,7 +322,7 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         // Stacks made by another version, language or texture set are refreshed when seen.
         this.itemRegistry.setRevision(java.util.Objects.hash(getPluginMeta().getVersion(),
                 getConfig().getString("locale", "en"), getConfig().getBoolean("resource-pack.item-models", true),
-                bundledPack.itemModelIds(), 2));
+                bundledPack.itemModelIds(), 3));
         this.resourcePackBuilder = new ResourcePackBuilder(
                 getLogger(),
                 getDataFolder().toPath(),
@@ -422,6 +422,13 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         logisticsTicker.registerBehaviors(engine);
         machineProcessor.registerBehaviors(engine, blockRegistry.all().values());
 
+        // Era 0: vanilla crafting table recipes (guide, workbench), in every recipe book.
+        java.util.List<NamespacedKey> vanillaRecipes = recipeRegistry.installVanilla(getLogger());
+        getServer().getPluginManager().registerEvents(new dev.brmz.sapientia.core.guide.ArrivalListener(
+                itemRegistry, messages, progression, vanillaRecipes,
+                getConfig().getBoolean("progression.give-guide-on-join", true),
+                getName().toLowerCase(java.util.Locale.ROOT)), this);
+
         // Era locks: machines, machine recipes, placement and vanilla crafting (Foundation 2).
         engine.refreshLocks(id -> !progression.isAvailable(id));
         machineProcessor.setAvailability(recipe -> itemAvailable(recipe.input()) && itemAvailable(recipe.output()));
@@ -484,6 +491,9 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         }
         if (scheduler != null) {
             scheduler.shutdown();
+        }
+        if (recipeRegistry != null) {
+            recipeRegistry.uninstallVanilla();
         }
         if (energyExecutor != null) {
             energyExecutor.shutdown();

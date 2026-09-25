@@ -15,6 +15,7 @@ import java.util.Optional;
 import dev.brmz.sapientia.api.Sapientia;
 import dev.brmz.sapientia.api.crafting.RecipeIngredient;
 import dev.brmz.sapientia.api.crafting.SapientiaRecipe;
+import dev.brmz.sapientia.api.crafting.VanillaRecipe;
 import dev.brmz.sapientia.api.guide.GuideCategory;
 import dev.brmz.sapientia.api.guide.GuideEntry;
 import dev.brmz.sapientia.api.guide.GuideService;
@@ -567,6 +568,26 @@ public final class GuideServiceImpl implements GuideService {
                 List<Component> lock = recipeLockLines(player, recipe, entry);
                 inventory.setItem(DETAIL_ARROW_SLOT, lock.isEmpty() ? arrow() : lockedArrow(lock));
                 inventory.setItem(DETAIL_RESULT_SLOT, renderResult(recipe));
+            } else if (findVanillaFor(entry.id()) != null) {
+                VanillaRecipe vanilla = findVanillaFor(entry.id());
+                List<RecipeIngredient> grid = vanillaGrid(vanilla);
+                for (int i = 0; i < DETAIL_RECIPE_SLOTS.length && i < grid.size(); i++) {
+                    inventory.setItem(DETAIL_RECIPE_SLOTS[i], renderIngredient(grid.get(i)));
+                }
+                inventory.setItem(DETAIL_ARROW_SLOT, vanillaArrow());
+                ItemStack result = Sapientia.get().createStack(vanilla.result(), vanilla.amount())
+                        .orElseGet(() -> new ItemStack(entry.icon()));
+                ItemMeta meta = result.getItemMeta();
+                if (meta != null) {
+                    List<Component> lore = meta.lore() == null ? new ArrayList<>() : new ArrayList<>(meta.lore());
+                    lore.add(Component.empty());
+                    lore.add(messages.component("guide.detail.yields",
+                                    Placeholder.parsed("amount", Integer.toString(vanilla.amount())))
+                            .decoration(TextDecoration.ITALIC, false));
+                    meta.lore(lore);
+                    result.setItemMeta(meta);
+                }
+                inventory.setItem(DETAIL_RESULT_SLOT, result);
             } else {
                 ItemStack noRecipe = new ItemStack(Material.BARRIER);
                 ItemMeta meta = noRecipe.getItemMeta();
@@ -648,6 +669,17 @@ public final class GuideServiceImpl implements GuideService {
             ItemMeta meta = stack.getItemMeta();
             if (meta != null) {
                 meta.displayName(messages.component("guide.detail.recipe.header").style(noItalic()));
+                stack.setItemMeta(meta);
+            }
+            return stack;
+        }
+
+        private ItemStack vanillaArrow() {
+            ItemStack stack = new ItemStack(Material.CRAFTING_TABLE);
+            ItemMeta meta = stack.getItemMeta();
+            if (meta != null) {
+                meta.displayName(messages.component("guide.detail.vanilla.name").style(noItalic()));
+                meta.lore(splitLore(messages.plain("guide.detail.vanilla.lore"), NamedTextColor.GRAY));
                 stack.setItemMeta(meta);
             }
             return stack;
@@ -810,6 +842,16 @@ public final class GuideServiceImpl implements GuideService {
                         body.append('\n').append(dev.brmz.sapientia.core.i18n.TextAdapter.toPlainBedrock(line));
                     }
                 }
+            } else if (findVanillaFor(entry.id()) != null) {
+                VanillaRecipe vanilla = findVanillaFor(entry.id());
+                body.append(dev.brmz.sapientia.core.i18n.TextAdapter.toPlainBedrock(
+                        messages.component("guide.detail.vanilla.name"))).append('\n');
+                for (RecipeIngredient cell : vanillaGrid(vanilla)) {
+                    body.append("• ").append(describeIngredient(cell)).append('\n');
+                }
+                body.append('\n').append(dev.brmz.sapientia.core.i18n.TextAdapter.toPlainBedrock(
+                        messages.component("guide.detail.yields",
+                                Placeholder.parsed("amount", Integer.toString(vanilla.amount())))));
             } else {
                 body.append(messages.plain("guide.detail.recipe.none"));
             }
@@ -835,6 +877,43 @@ public final class GuideServiceImpl implements GuideService {
     }
 
     // -- helpers ---------------------------------------------------------------
+
+    /** The vanilla crafting table recipe that makes {@code itemId}, if any. */
+    private static @org.jetbrains.annotations.Nullable VanillaRecipe findVanillaFor(NamespacedKey itemId) {
+        for (VanillaRecipe recipe : Sapientia.get().recipes().vanillaRecipes()) {
+            if (recipe.result().equals(itemId)) return recipe;
+        }
+        return null;
+    }
+
+    /** A vanilla recipe laid out on a 3×3 grid, one representative material per cell. */
+    private static List<RecipeIngredient> vanillaGrid(VanillaRecipe recipe) {
+        List<RecipeIngredient> cells = new ArrayList<>(9);
+        for (int i = 0; i < 9; i++) cells.add(RecipeIngredient.empty());
+        if (recipe.isShaped()) {
+            for (int row = 0; row < recipe.shape().size(); row++) {
+                String line = recipe.shape().get(row);
+                for (int col = 0; col < line.length(); col++) {
+                    java.util.Set<Material> choice = recipe.ingredients().get(line.charAt(col));
+                    if (choice != null) cells.set(row * 3 + col, RecipeIngredient.of(representative(choice)));
+                }
+            }
+        } else {
+            int i = 0;
+            for (java.util.Set<Material> choice : recipe.ingredients().values()) {
+                if (i < 9) cells.set(i++, RecipeIngredient.of(representative(choice)));
+            }
+        }
+        return cells;
+    }
+
+    /** The material shown for a choice: the familiar one when present (oak planks, cobblestone). */
+    private static Material representative(java.util.Set<Material> choice) {
+        for (Material preferred : List.of(Material.OAK_PLANKS, Material.COBBLESTONE)) {
+            if (choice.contains(preferred)) return preferred;
+        }
+        return choice.stream().min(Comparator.comparing(Material::name)).orElseThrow();
+    }
 
     private SapientiaRecipe findRecipeFor(NamespacedKey itemId) {
         String target = itemId.toString();

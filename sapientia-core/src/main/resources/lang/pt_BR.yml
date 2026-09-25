@@ -402,6 +402,7 @@ fluid:
 
 guide:
   title: "<gold>Guia Sapientia</gold>"
+  welcome: "<gold>Bem-vindo ao Sapientia!</gold> <gray>Este guia mostra a era do servidor, seu próximo objetivo e todas as receitas. Clique com o botão direito para abrir. Comece fazendo a <white>Bancada Sapientia</white> numa mesa de trabalho.</gray>"
   locked: "<dark_gray>Bloqueado</dark_gray>"
   locked-era:
     name: "<gray><name></gray> <dark_gray>(bloqueado)</dark_gray>"
@@ -456,6 +457,10 @@ guide:
       header: "<aqua><bold>Receita</bold></aqua>"
       none: "<gray>Este item nao possui receita.\nObtenha por drops no mundo, pelo\ncomando /sapientia give ou via admin.</gray>"
     yields: "<gray>Produz <white><amount>x</white> por craft.</gray>"
+    vanilla:
+      name: "<aqua><bold>Mesa de trabalho vanilla</bold></aqua>"
+      lore: "<gray>Feito numa mesa de trabalho comum,
+não na Bancada Sapientia.</gray>"
     category: "<dark_gray>Categoria:</dark_gray> <gray><category></gray>"
     back:
       name: "<yellow>« Voltar a Categoria</yellow>"
@@ -1227,3 +1232,6 @@ mineral:
   borax_tailings:
     name: "<dark_gray>Rejeito de bórax</dark_gray>"
     desc: "O que a separação deixou de bórax.\nUm método melhor recupera o resto uma vez."
+
+workbench:
+  tool: "<gray>Ferramenta de bancada: <white><uses></white> usos, não é consumida</gray>"

@@ -6,6 +6,7 @@ import java.util.List;
 
 import dev.brmz.sapientia.api.crafting.SapientiaRecipe;
 import dev.brmz.sapientia.api.events.SapientiaRecipeCompleteEvent;
+import dev.brmz.sapientia.api.item.SapientiaItem;
 import dev.brmz.sapientia.api.progression.Era;
 import dev.brmz.sapientia.core.i18n.Messages;
 import dev.brmz.sapientia.core.item.ItemRegistry;
@@ -16,6 +17,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -26,6 +28,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
@@ -149,10 +152,15 @@ public final class WorkbenchListener implements Listener {
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled()) return;
 
-        // Consume one item per non-empty grid slot (shaped, per-slot).
+        // Consume one item per non-empty grid slot (shaped, per-slot); workbench tools lose a use instead.
         for (int slot : WorkbenchHolder.GRID_SLOTS) {
             ItemStack in = inv.getItem(slot);
             if (in == null || in.getType().isAir()) continue;
+            SapientiaItem tool = items.resolve(in);
+            if (tool != null && tool.benchToolUses() > 0) {
+                inv.setItem(slot, wear(player, in));
+                continue;
+            }
             in.setAmount(in.getAmount() - 1);
             inv.setItem(slot, in.getAmount() <= 0 ? null : in);
         }
@@ -165,6 +173,21 @@ public final class WorkbenchListener implements Listener {
             progression.discover(player.getUniqueId(), resultKey);
         }
         schedulePreviewRefresh(inv);
+    }
+
+    /** One use off a workbench tool; returns {@code null} when it breaks. */
+    private static @org.jetbrains.annotations.Nullable ItemStack wear(Player player, ItemStack tool) {
+        if (!(tool.getItemMeta() instanceof Damageable meta) || !meta.hasMaxDamage()) {
+            return tool; // an old stack without durability: refreshed on the next inventory update
+        }
+        int damage = meta.getDamage() + 1;
+        if (damage >= meta.getMaxDamage()) {
+            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1f, 1f);
+            return null;
+        }
+        meta.setDamage(damage);
+        tool.setItemMeta(meta);
+        return tool;
     }
 
     private void schedulePreviewRefresh(Inventory inv) {

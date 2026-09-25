@@ -64,6 +64,8 @@ progression:
   # up, taken from a container or harvested). false: every recipe of an
   # unlocked era is available to everyone.
   research: true
+  # Give the Sapientia Guide to each player on their first join (era 0).
+  give-guide-on-join: true
 
 # Minerals from natural terrain (Foundation 2). Breaking natural rock may drop
 # a mineral fragment; placed, formed or moved blocks and explosions never do.

@@ -193,6 +193,17 @@ public final class ItemRegistry {
         for (String loreKey : eff.loreKeys()) {
             lore.add(messages.component(loreKey).style(plain));
         }
+        SapientiaItem item = key == null ? null : sapientiaItems.get(key);
+        int toolUses = item == null ? 0 : item.benchToolUses();
+        if (toolUses > 0) {
+            lore.add(messages.component("workbench.tool",
+                    net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.unparsed("uses",
+                            Integer.toString(toolUses))).style(plain));
+            meta.setMaxStackSize(1);
+            if (meta instanceof org.bukkit.inventory.meta.Damageable damageable) {
+                damageable.setMaxDamage(toolUses);
+            }
+        }
         Function<NamespacedKey, Component> era = eraLine;
         if (era != null && key != null) {
             lore.add(era.apply(key).decoration(TextDecoration.ITALIC, false));

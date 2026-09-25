@@ -402,6 +402,7 @@ fluid:
 
 guide:
   title: "<gold>Sapientia Guide</gold>"
+  welcome: "<gold>Welcome to Sapientia!</gold> <gray>This guide shows the server era, your next goal and every recipe. Right-click it to open. Start by making the <white>Sapientia Workbench</white> on a crafting table.</gray>"
   locked: "<dark_gray>Locked</dark_gray>"
   locked-era:
     name: "<gray><name></gray> <dark_gray>(locked)</dark_gray>"
@@ -456,6 +457,10 @@ guide:
       header: "<aqua><bold>Recipe</bold></aqua>"
       none: "<gray>This item has no crafting recipe.\nObtain it from world drops, the\n/sapientia give command, or admins.</gray>"
     yields: "<gray>Yields <white><amount>x</white> per craft.</gray>"
+    vanilla:
+      name: "<aqua><bold>Vanilla crafting table</bold></aqua>"
+      lore: "<gray>Made on a normal crafting table,
+not on the Sapientia Workbench.</gray>"
     category: "<dark_gray>Category:</dark_gray> <gray><category></gray>"
     back:
       name: "<yellow>« Back to Category</yellow>"
@@ -1227,3 +1232,6 @@ mineral:
   borax_tailings:
     name: "<dark_gray>Borax Tailings</dark_gray>"
     desc: "What separation left of borax.\nA better method recovers the rest once."
+
+workbench:
+  tool: "<gray>Workbench tool: <white><uses></white> uses, not consumed</gray>"

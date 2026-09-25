@@ -46,6 +46,16 @@ public interface SapientiaItem {
         return Era.ARRIVAL;
     }
 
+    /**
+     * Uses of a workbench tool (for example a hammer). A positive value makes
+     * the item a tool: used as a Sapientia Workbench ingredient it loses one use
+     * instead of being consumed, and breaks when none are left. Stacks of tools
+     * do not stack and show a durability bar. Defaults to {@code 0} (not a tool).
+     */
+    default int benchToolUses() {
+        return 0;
+    }
+
     /** Whether this item appears in the guide before being unlocked. Defaults to {@code true}. */
     default boolean discoveredByDefault() {
         return true;
