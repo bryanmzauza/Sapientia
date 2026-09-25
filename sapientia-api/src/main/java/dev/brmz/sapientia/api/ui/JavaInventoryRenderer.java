@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Renders a Java Edition inventory for a given UI context. Invoked by the Java UI
- * provider when a player opens a Sapientia UI. See docs/ui-strategy.md §2.
+ * provider when a player opens a Sapientia UI. See docs/internal/ui-strategy.md §2.
  *
  * <p>The provider owns inventory creation so it can install the correct
  * {@code InventoryHolder}. The renderer contributes the {@linkplain #title title},

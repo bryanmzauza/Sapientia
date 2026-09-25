@@ -1,5 +1,5 @@
 # Catálogo pt-BR — localização oficial do Sapientia.
-# Chaves em notação pontuada: <área>.<assunto>.<variante>. Veja docs/i18n-strategy.md.
+# Chaves em notação pontuada: <área>.<assunto>.<variante>. Veja docs/internal/i18n-strategy.md.
 plugin:
   enabled: "<green>Sapientia v<white><version></white> ativado.</green>"
   disabled: "<yellow>Sapientia desativado.</yellow>"

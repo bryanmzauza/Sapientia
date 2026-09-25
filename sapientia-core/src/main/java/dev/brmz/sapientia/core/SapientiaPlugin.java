@@ -71,7 +71,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Core plugin entry point. Wires up i18n, persistence, platform detection, item registry,
  * the scheduler adapter and the root command, then exposes the public API via
- * {@link Sapientia}. See docs/implementation-plan.md.
+ * {@link Sapientia}. See docs/internal/implementation-plan.md.
  */
 public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
 

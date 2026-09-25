@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Owns the SQLite connection pool and kicks off migrations on startup.
- * See docs/persistence-schema.md §1.
+ * See docs/internal/persistence-schema.md §1.
  */
 public final class DatabaseManager implements AutoCloseable {
 

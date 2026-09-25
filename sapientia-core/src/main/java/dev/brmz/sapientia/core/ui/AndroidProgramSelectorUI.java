@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Bedrock players: no custom form is shipped — Sapientia's
  * {@code BedrockFormsUIProvider} (T-302l) auto-generates a flat-list form
- * from the Java layout (see docs/ui-strategy.md §3.2). Addons that want a
+ * from the Java layout (see docs/internal/ui-strategy.md §3.2). Addons that want a
  * richer DAG editor canvas can still register their own UI under a
  * different key.
  */

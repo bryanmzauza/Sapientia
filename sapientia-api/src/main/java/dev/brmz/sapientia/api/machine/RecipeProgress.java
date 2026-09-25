@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Snapshot of the progress of a recipe currently being processed by a {@link Machine}.
- * See docs/api-spec.md §2.1.
+ * See docs/internal/api-spec.md §2.1.
  *
  * @param recipeId      stable identifier of the recipe, e.g. {@code "sapientia:iron_plate"}.
  * @param ticksElapsed  ticks completed so far (inclusive of the current one).

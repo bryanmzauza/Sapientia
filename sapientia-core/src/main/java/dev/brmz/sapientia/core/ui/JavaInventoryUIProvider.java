@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.jetbrains.annotations.NotNull;
 
-/** Java Edition {@link UIProvider}. Always registered. See docs/ui-strategy.md §2. */
+/** Java Edition {@link UIProvider}. Always registered. See docs/internal/ui-strategy.md §2. */
 public final class JavaInventoryUIProvider implements UIProvider {
 
     private final UIService service;

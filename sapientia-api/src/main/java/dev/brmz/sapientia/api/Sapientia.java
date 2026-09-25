@@ -4,7 +4,7 @@ import java.util.Objects;
 
 /**
  * Single entry point for the Sapientia API. A provider (the core plugin) is registered
- * at enable time and retrieved by addons via {@link #get()}. See docs/api-spec.md §5.
+ * at enable time and retrieved by addons via {@link #get()}. See docs/internal/api-spec.md §5.
  */
 public final class Sapientia {
 

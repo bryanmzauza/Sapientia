@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
  * {@code SapientiaBlock} that registers as an LV energy {@code CONSUMER}
  * and accepts an assigned logic program. The live AI behaviour (crop / log
  * scan, slayer melee policy, trader exchange tables, ...) lands with the
- * kinetic loop in 1.9.1 — see ROADMAP 1.9.0 and docs/content-spec-T-45x.md.
+ * kinetic loop in 1.9.1 — see ROADMAP 1.9.0 and docs/internal/content-spec-T-45x.md.
  *
  * <p>The {@link #idBase()} maps directly to the registry id
  * (e.g. {@code sapientia:android_farmer}) and to the i18n key

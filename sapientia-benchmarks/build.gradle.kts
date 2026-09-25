@@ -40,7 +40,7 @@ val jmhRun = tasks.register<JavaExec>("jmh") {
 // --- Baseline comparator (T-171 / 1.0.0-beta) --------------------------------
 //
 // compareToBaseline reads the latest JMH result.json produced by `:jmh` and
-// compares it against `docs/benchmarks/baseline.json`. Any benchmark whose
+// compares it against `docs/internal/benchmarks/baseline.json`. Any benchmark whose
 // score regresses by more than 10 % fails the build. Missing benchmarks in
 // the baseline are reported as informational. New baselines are captured with
 // `saveBenchmarkBaseline`.
@@ -52,7 +52,7 @@ tasks.register("compareToBaseline") {
 
     doLast {
         val resultFile = layout.buildDirectory.file("reports/benchmarks/result.json").get().asFile
-        val baselineFile = rootProject.file("docs/benchmarks/baseline.json")
+        val baselineFile = rootProject.file("docs/internal/benchmarks/baseline.json")
         if (!resultFile.exists()) {
             throw GradleException("No JMH result at ${resultFile.absolutePath}. Run :jmh first.")
         }
@@ -103,9 +103,9 @@ fun parseBenchmarkScores(json: String): Map<String, Double> {
 
 tasks.register<Copy>("saveBenchmarkBaseline") {
     group = "verification"
-    description = "Promotes the latest JMH report to docs/benchmarks/baseline.json (T-171)."
+    description = "Promotes the latest JMH report to docs/internal/benchmarks/baseline.json (T-171)."
     dependsOn(jmhRun)
     from(layout.buildDirectory.file("reports/benchmarks/result.json"))
-    into(rootProject.file("docs/benchmarks"))
+    into(rootProject.file("docs/internal/benchmarks"))
     rename { "baseline.json" }
 }

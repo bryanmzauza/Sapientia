@@ -18,7 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * CRUD access to the {@code custom_blocks} table. Used by the block registry to
- * persist Sapientia-placed blocks across restarts. See docs/persistence-schema.md §3.
+ * persist Sapientia-placed blocks across restarts. See docs/internal/persistence-schema.md §3.
  *
  * <p>When a {@link WriteBehindQueue} is attached, {@link #put} / {@link #remove}
  * become non-blocking: they enqueue the operation for the 500ms flusher instead

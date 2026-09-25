@@ -1,5 +1,5 @@
 # English catalog — Sapientia default locale.
-# Keys use dotted notation: <area>.<subject>.<variant>. See docs/i18n-strategy.md.
+# Keys use dotted notation: <area>.<subject>.<variant>. See docs/internal/i18n-strategy.md.
 plugin:
   enabled: "<green>Sapientia v<white><version></white> enabled.</green>"
   disabled: "<yellow>Sapientia disabled.</yellow>"

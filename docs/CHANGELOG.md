@@ -10,6 +10,31 @@ Versions 0.1.0 through 1.10.0 were development milestones; no binaries were publ
 
 ## [Unreleased]
 
+Development of **2.0.0**, the era-based rewrite of Sapientia, begins. 2.0.0 will contain the
+performance and progression foundations plus era 0; each following era ships as its own minor
+version (era 1 as 2.1.0, era 2 as 2.2.0, and so on), with fixes as patch versions.
+
+### Added
+
+- Gameplay design proposal in `docs/jogabilidade.md` (in Portuguese): 25 eras from the Stone Age
+  to the far future, unlocked by the server admin with per-player research inside each era; metals
+  obtained by breaking natural (never player-placed) rock, from 38 multi-metal minerals plus
+  non-metallic minerals; separation that improves era by era; material chains for agriculture (the
+  base of the server), food, wood, fibres, water, chemicals and oil; world-altering mining
+  automation (explosives never drop ores); and the performance contract.
+- One design document per era in `docs/eras/`, listing every item and block, how it is made, what
+  it does, machine numbers, per-chunk limits and implementation tasks.
+
+### Changed
+
+- The roadmap and changelog moved to `docs/`, with an index in `docs/README.md`.
+- The roadmap is now organized by eras: two foundation milestones (performance, then progression
+  and world systems) followed by one milestone per era. Task codes are `F<n>.<n>` and `E<era>.<n>`.
+- The project version is now `2.0.0-SNAPSHOT`.
+- Performance requirement: 10 million active Sapientia blocks (machines, cables and pipes; 100,000
+  per player with 100 players) within a fixed per-tick budget, with per-chunk limits and machines
+  pausing outside a 4-chunk activity radius around players.
+
 ## [1.11.0] - 2026-09-25
 
 Moves the plugin to Minecraft 26.3 and gives every built-in item and block its own texture on both

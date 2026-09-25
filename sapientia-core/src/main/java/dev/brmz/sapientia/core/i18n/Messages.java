@@ -22,7 +22,7 @@ import org.yaml.snakeyaml.Yaml;
 
 /**
  * Catalog-backed message resolver. English is the default and fallback locale; additional
- * locales override entries key-by-key. See docs/i18n-strategy.md.
+ * locales override entries key-by-key. See docs/internal/i18n-strategy.md.
  */
 public final class Messages {
 

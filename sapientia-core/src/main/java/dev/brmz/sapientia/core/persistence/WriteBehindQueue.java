@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
  * Batches {@code custom_blocks} mutations from the main (or region) thread and flushes
  * them to SQLite from a single worker thread every {@link #FLUSH_INTERVAL_MS} ms.
  * Dedupes concurrent writes per {@link BlockKey} with last-write-wins semantics.
- * See docs/persistence-schema.md §7 and ROADMAP 0.2.0 (T-111).
+ * See docs/internal/persistence-schema.md §7 and ROADMAP 0.2.0 (T-111).
  */
 public final class WriteBehindQueue {
 

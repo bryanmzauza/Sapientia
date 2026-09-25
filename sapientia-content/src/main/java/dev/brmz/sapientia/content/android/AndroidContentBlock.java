@@ -67,7 +67,7 @@ public abstract class AndroidContentBlock implements SapientiaBlock {
         // Open the program selector UI (T-453 / 1.9.1). Right-clicking with
         // an empty hand opens the chest; clicking a paper ticket assigns the
         // chosen logic program. Bedrock players auto-fall-back through
-        // BedrockFormsUIProvider per docs/ui-strategy.md §3.2.
+        // BedrockFormsUIProvider per docs/internal/ui-strategy.md §3.2.
         Player player = event.player();
         if (Sapientia.get().androids().nodeAt(event.block()).isEmpty()) return;
         Sapientia.get().openUI(

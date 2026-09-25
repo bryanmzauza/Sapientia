@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Top-level Sapientia service. Additional services (machines, energy, UI) are exposed as
- * sub-services and will be added as the core grows. See docs/api-spec.md.
+ * sub-services and will be added as the core grows. See docs/internal/api-spec.md.
  */
 public interface SapientiaAPI {
 

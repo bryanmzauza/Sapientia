@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
  * Keeps an in-memory index of placed Sapientia blocks keyed by chunk so the
  * lifecycle listener can answer {@code "what is at this Block?"} in O(1) without
  * a SQLite round-trip. Hydrated on {@link ChunkLoadEvent}; dropped on
- * {@link ChunkUnloadEvent}. See docs/sapientia-architecture.md §7.4.
+ * {@link ChunkUnloadEvent}. See docs/internal/sapientia-architecture.md §7.4.
  */
 public final class ChunkBlockIndex implements Listener {
 

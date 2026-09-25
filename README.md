@@ -9,8 +9,9 @@ overrides.
 
 Created and maintained by **[BRMZ.dev](https://brmz.dev)**.
 
-> **Status:** current version 1.11.0. See the [changelog](CHANGELOG.md) for what it contains and
-> the [roadmap](ROADMAP.md) for what comes next.
+> **Status:** the current version is 1.11.0. Version 2.0.0, which reorganizes Sapientia into 25
+> historical eras, is in development. See the [changelog](docs/CHANGELOG.md) and the
+> [roadmap](docs/ROADMAP.md).
 
 ## Features
 

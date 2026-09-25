@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Platform-specific renderer backend. Each implementation handles one
  * {@link PlatformType} and delegates custom UIs through {@link UIDescriptor}.
- * See docs/ui-strategy.md §1.1.
+ * See docs/internal/ui-strategy.md §1.1.
  */
 public interface UIProvider {
 

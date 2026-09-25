@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 /**
  * T-455 / 1.9.1 — loot table determinism + coverage guards.
  *
- * <p>The 1.9.1 contract from {@code docs/decision-log.md} (ADR-021) is that
+ * <p>The 1.9.1 contract from {@code docs/internal/decision-log.md} (ADR-021) is that
  * loot is <em>simulated</em>, not generated from real entities. Tests here
  * lock both that contract (no spawn side-effects required to run) and the
  * "same seed → same roll" property the benchmark + behaviour engine depend

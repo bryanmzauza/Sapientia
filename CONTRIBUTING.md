@@ -73,11 +73,13 @@ into `build/smoke-bedrock/` first.
 ## Versioning and releases
 
 - The version lives in the root `build.gradle.kts`. Between releases it carries a `-SNAPSHOT`
-  suffix (for example `1.11.0-SNAPSHOT`).
-- Record changes under `## [Unreleased]` in `CHANGELOG.md` as you go, written for server operators
+  suffix (for example `2.0.0-SNAPSHOT`).
+- Versions follow the eras: 2.0.0 ships the foundations and era 0; era N ships as 2.N.0, and its
+  fixes as 2.N.1, 2.N.2 and so on (see `docs/ROADMAP.md`).
+- Record changes under `## [Unreleased]` in `docs/CHANGELOG.md` as you go, written for server operators
   and addon developers.
 - To release: remove `-SNAPSHOT`, rename the `[Unreleased]` section to the version and date, update
-  the milestone in `ROADMAP.md`, and tag the commit `vX.Y.Z`.
+  the milestone in `docs/ROADMAP.md`, and tag the commit `vX.Y.Z`.
 
 ## Commit conventions
 
@@ -86,16 +88,19 @@ into `build/smoke-bedrock/` first.
 
 <optional body, imperative mood>
 
-Refs: T-NNN
+Refs: E3.2
 ```
+
+Task codes come from the roadmap and the era documents: `F<foundation>.<n>` for foundation work
+and `E<era>.<n>` for era work (see `docs/eras/`). Older history uses `T-NNN`.
 
 Types: `feat`, `fix`, `docs`, `refactor`, `test`, `build`, `ci`, `chore`.
 
 ## Pull requests
 
-- One pull request per task (`T-NNN`) when possible.
+- One pull request per task (`F1.3`, `E3.2`) when possible; development follows the eras in order.
 - Include tests and run `./gradlew build` locally.
-- Describe how the change meets the exit criteria of its milestone in `ROADMAP.md`.
+- Describe how the change meets the exit criteria of its milestone in `docs/ROADMAP.md`.
 
 ## Reporting bugs
 

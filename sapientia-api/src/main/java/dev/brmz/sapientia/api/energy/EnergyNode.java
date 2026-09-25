@@ -3,7 +3,7 @@ package dev.brmz.sapientia.api.energy;
 import java.util.UUID;
 
 /**
- * A node participating in an energy {@code NetworkGraph}. See docs/api-spec.md §2.2.
+ * A node participating in an energy {@code NetworkGraph}. See docs/internal/api-spec.md §2.2.
  * Implementations are provided by the Sapientia core; addons consume this interface.
  */
 public interface EnergyNode {

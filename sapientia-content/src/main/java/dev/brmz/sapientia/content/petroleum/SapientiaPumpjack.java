@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
  * <p>1.5.0 ships the block as an MV {@link EnergyNodeType#CONSUMER} stub: it
  * places, registers as an energy node, and opens the standard machine UI. The
  * full reservoir-depletion model (chunk-noise generation + per-chunk SQLite
- * persistence) is deferred to 1.5.1, see {@code docs/content-spec-T-41x.md}.
+ * persistence) is deferred to 1.5.1, see {@code docs/internal/content-spec-T-41x.md}.
  */
 public final class SapientiaPumpjack extends MachineEnergyBlock {
     public SapientiaPumpjack(@NotNull Plugin plugin) {

@@ -36,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Applies numbered SQL migrations from {@code classpath:db/migrations/VNNN__*.sql}.
  * Tracks state in {@code schema_version} and aborts when a checksum mismatch is
- * detected. See docs/persistence-schema.md §2.
+ * detected. See docs/internal/persistence-schema.md §2.
  */
 public final class MigrationLoader {
 
