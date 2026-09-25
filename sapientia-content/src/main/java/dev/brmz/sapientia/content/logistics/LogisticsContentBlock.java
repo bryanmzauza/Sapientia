@@ -1,5 +1,6 @@
 package dev.brmz.sapientia.content.logistics;
 
+import dev.brmz.sapientia.content.CatalogBlock;
 import dev.brmz.sapientia.api.Sapientia;
 import dev.brmz.sapientia.api.block.SapientiaBlock;
 import dev.brmz.sapientia.api.energy.EnergyTier;
@@ -21,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
  * no buffer of its own — it only registers/unregisters the node with the
  * {@code ItemService}.
  */
-abstract class LogisticsContentBlock implements SapientiaBlock {
+abstract class LogisticsContentBlock implements CatalogBlock {
 
     private final NamespacedKey id;
     private final Material material;

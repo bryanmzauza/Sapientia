@@ -1,11 +1,19 @@
 package dev.brmz.sapientia.core.crafting;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import dev.brmz.sapientia.api.crafting.SapientiaRecipe;
 import dev.brmz.sapientia.api.events.SapientiaRecipeCompleteEvent;
-import dev.brmz.sapientia.api.guide.UnlockService;
+import dev.brmz.sapientia.api.progression.Era;
+import dev.brmz.sapientia.core.i18n.Messages;
+import dev.brmz.sapientia.core.item.ItemRegistry;
+import dev.brmz.sapientia.core.progression.ProgressionServiceImpl;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -30,21 +38,30 @@ import org.jetbrains.annotations.NotNull;
  * shows a preview of whatever recipe currently matches and, on pickup, consumes
  * one ingredient from each grid cell before granting the result and firing
  * {@link SapientiaRecipeCompleteEvent}. All other slots (filler glass) reject clicks.
+ *
+ * <p>Only recipes the player has unlocked (era and research) can be crafted; a
+ * matching locked recipe shows a barrier explaining what is missing.
  */
 public final class WorkbenchListener implements Listener {
 
     private final Plugin plugin;
     private final SapientiaRecipeRegistry recipes;
-    private final UnlockService unlocks;
+    private final ProgressionServiceImpl progression;
+    private final ItemRegistry items;
+    private final Messages messages;
     private final ItemStack filler;
 
     public WorkbenchListener(
             @NotNull Plugin plugin,
             @NotNull SapientiaRecipeRegistry recipes,
-            @NotNull UnlockService unlocks) {
+            @NotNull ProgressionServiceImpl progression,
+            @NotNull ItemRegistry items,
+            @NotNull Messages messages) {
         this.plugin = plugin;
         this.recipes = recipes;
-        this.unlocks = unlocks;
+        this.progression = progression;
+        this.items = items;
+        this.messages = messages;
         this.filler = buildFiller();
     }
 
@@ -87,7 +104,9 @@ public final class WorkbenchListener implements Listener {
             event.setCancelled(true);
             if (!(event.getWhoClicked() instanceof Player player)) return;
             ItemStack[] grid = extractGrid(event.getInventory());
-            recipes.match(grid).ifPresent(recipe -> craft(player, event.getInventory(), recipe));
+            recipes.match(grid)
+                    .filter(recipe -> canCraft(player, recipe))
+                    .ifPresent(recipe -> craft(player, event.getInventory(), recipe));
             return;
         }
 
@@ -140,7 +159,11 @@ public final class WorkbenchListener implements Listener {
 
         player.getInventory().addItem(result).values().forEach(overflow ->
                 player.getWorld().dropItemNaturally(player.getLocation(), overflow));
-        unlocks.unlock(player.getUniqueId(), recipe.id());
+        String resultId = items.idOf(result);
+        NamespacedKey resultKey = resultId == null ? null : NamespacedKey.fromString(resultId);
+        if (resultKey != null) {
+            progression.discover(player.getUniqueId(), resultKey);
+        }
         schedulePreviewRefresh(inv);
     }
 
@@ -150,8 +173,47 @@ public final class WorkbenchListener implements Listener {
 
     private void refreshPreview(Inventory inv) {
         ItemStack[] grid = extractGrid(inv);
-        inv.setItem(WorkbenchHolder.OUTPUT_SLOT,
-                recipes.match(grid).map(recipes::effectiveResult).orElse(null));
+        SapientiaRecipe recipe = recipes.match(grid).orElse(null);
+        Player viewer = inv.getViewers().isEmpty() || !(inv.getViewers().get(0) instanceof Player p) ? null : p;
+        if (recipe == null || viewer == null) {
+            inv.setItem(WorkbenchHolder.OUTPUT_SLOT, null);
+        } else if (canCraft(viewer, recipe)) {
+            inv.setItem(WorkbenchHolder.OUTPUT_SLOT, recipes.effectiveResult(recipe));
+        } else {
+            inv.setItem(WorkbenchHolder.OUTPUT_SLOT, lockedPreview(viewer, recipe));
+        }
+    }
+
+    private boolean canCraft(Player player, SapientiaRecipe recipe) {
+        return progression.bypasses(player) || progression.isRecipeUnlocked(player.getUniqueId(), recipe.id());
+    }
+
+    /** A barrier naming the era the recipe needs, or the ingredients still to discover. */
+    private ItemStack lockedPreview(Player player, SapientiaRecipe recipe) {
+        ItemStack stack = new ItemStack(Material.BARRIER);
+        ItemMeta meta = stack.getItemMeta();
+        if (meta == null) return stack;
+        meta.displayName(messages.component("research.locked.name").decoration(TextDecoration.ITALIC, false));
+        List<Component> lore = new ArrayList<>();
+        String resultId = items.idOf(recipe.result());
+        Era era = progression.eraOf(resultId == null ? recipe.id() : NamespacedKey.fromString(resultId));
+        if (!progression.isUnlocked(era)) {
+            lore.add(messages.component("research.locked.era",
+                    Placeholder.unparsed("number", Integer.toString(era.number())),
+                    Placeholder.component("era", messages.component(era.nameKey())))
+                    .decoration(TextDecoration.ITALIC, false));
+        } else {
+            lore.add(messages.component("research.locked.missing").decoration(TextDecoration.ITALIC, false));
+            for (NamespacedKey missing : progression.missingFor(player.getUniqueId(), recipe.id())) {
+                Component name = items.find(missing)
+                        .map(item -> messages.component(item.displayNameKey()))
+                        .orElse(Component.text(missing.getKey()));
+                lore.add(Component.text("- ").append(name).decoration(TextDecoration.ITALIC, false));
+            }
+        }
+        meta.lore(lore);
+        stack.setItemMeta(meta);
+        return stack;
     }
 
     private ItemStack[] extractGrid(Inventory inv) {

@@ -9,10 +9,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Catalog of metals shipped in Sapientia 1.4.0 (T-402 / T-403).
  *
- * <p>The first six are <em>raw metals</em> obtained from world-ore mining.
- * The remaining three are <em>alloys</em> produced via the mixer or the
- * induction-furnace multiblock and therefore <em>do not</em> register a
- * {@link MetalForm#RAW} form.
+ * <p>Pure metals come from mineral fragments; alloys are mixed from their
+ * dusts. Every metal registers all eight {@link MetalForm}s.
  */
 public enum Metal {
     // --- Raw metals (T-402 / 1.4.0) ---
@@ -66,11 +64,8 @@ public enum Metal {
         return displayPt;
     }
 
-    /** Forms registered for this metal. Alloys skip {@link MetalForm#RAW}. */
+    /** Forms registered for this metal: all of them. */
     public @NotNull Set<MetalForm> forms() {
-        if (!alloy) return EnumSet.allOf(MetalForm.class);
-        Set<MetalForm> out = EnumSet.allOf(MetalForm.class);
-        out.remove(MetalForm.RAW);
-        return out;
+        return EnumSet.allOf(MetalForm.class);
     }
 }

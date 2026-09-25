@@ -1,7 +1,7 @@
 package dev.brmz.sapientia.content.metallurgy;
 
+import dev.brmz.sapientia.content.CatalogItem;
 import dev.brmz.sapientia.api.guide.GuideCategory;
-import dev.brmz.sapientia.api.item.SapientiaItem;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.Plugin;
@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
  * 24 for the three alloys, all backed by vanilla materials with custom-model-data
  * tags so the resource pack can swap textures.
  */
-public final class MetalItem implements SapientiaItem {
+public final class MetalItem implements CatalogItem {
 
     private final NamespacedKey id;
     private final Metal metal;

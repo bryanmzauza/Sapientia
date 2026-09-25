@@ -1,7 +1,7 @@
 package dev.brmz.sapientia.content.crafting;
 
+import dev.brmz.sapientia.content.CatalogBlock;
 import dev.brmz.sapientia.api.Sapientia;
-import dev.brmz.sapientia.api.block.SapientiaBlock;
 import dev.brmz.sapientia.api.events.SapientiaBlockInteractEvent;
 import dev.brmz.sapientia.api.guide.GuideCategory;
 import org.bukkit.Material;
@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
  * <p>Opening the UI is routed through {@link Sapientia#get()} so this content
  * module does not need a compile-time dependency on sapientia-core.
  */
-public final class SapientiaWorkbench implements SapientiaBlock {
+public final class SapientiaWorkbench implements CatalogBlock {
 
     private final NamespacedKey id;
 

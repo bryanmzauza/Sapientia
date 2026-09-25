@@ -19,9 +19,11 @@ import dev.brmz.sapientia.api.guide.GuideCategory;
 import dev.brmz.sapientia.api.guide.GuideEntry;
 import dev.brmz.sapientia.api.guide.GuideService;
 import dev.brmz.sapientia.api.guide.UnlockService;
+import dev.brmz.sapientia.api.progression.Era;
 import dev.brmz.sapientia.api.ui.JavaInventoryRenderer;
 import dev.brmz.sapientia.api.ui.UIDescriptor;
 import dev.brmz.sapientia.core.i18n.Messages;
+import dev.brmz.sapientia.core.progression.ProgressionServiceImpl;
 import dev.brmz.sapientia.core.ui.UIService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -90,16 +92,19 @@ public final class GuideServiceImpl implements GuideService {
     private final Map<NamespacedKey, GuideEntry> entries = new LinkedHashMap<>();
     private final UIService uiService;
     private final UnlockService unlockService;
+    private final ProgressionServiceImpl progression;
     private final Messages messages;
 
     public GuideServiceImpl(
             @NotNull Plugin plugin,
             @NotNull UIService uiService,
             @NotNull UnlockService unlockService,
+            @NotNull ProgressionServiceImpl progression,
             @NotNull Messages messages) {
         this.plugin = plugin;
         this.uiService = uiService;
         this.unlockService = unlockService;
+        this.progression = progression;
         this.messages = messages;
         uiService.register(new GuideIndexDescriptor());
         uiService.register(new GuideCategoryDescriptor());
@@ -139,19 +144,81 @@ public final class GuideServiceImpl implements GuideService {
         uiService.open(player, new GuideDetailDescriptor(), entry);
     }
 
-    private List<GuideEntry> entriesForCategory(@NotNull GuideCategory category) {
+    /** Entries of a category the player can see: content of locked eras is hidden. */
+    private List<GuideEntry> entriesForCategory(@NotNull GuideCategory category, @NotNull Player player) {
+        boolean bypass = progression.bypasses(player);
         List<GuideEntry> all = new ArrayList<>();
         for (GuideEntry e : entries.values()) {
-            if (e.category() == category) all.add(e);
+            if (e.category() == category && (bypass || progression.isAvailable(e.id()))) all.add(e);
         }
-        all.sort(Comparator.comparing(e -> e.id().toString()));
+        all.sort(Comparator.comparing((GuideEntry e) -> progression.eraOf(e.id()).number())
+                .thenComparing(e -> e.id().toString()));
         return all;
     }
 
-    private int countByCategory(@NotNull GuideCategory category) {
+    private int countByCategory(@NotNull GuideCategory category, @NotNull Player player) {
+        return entriesForCategory(category, player).size();
+    }
+
+    /** Entries of a category hidden because their era is locked. */
+    private int lockedInCategory(@NotNull GuideCategory category, @NotNull Player player) {
+        if (progression.bypasses(player)) return 0;
         int n = 0;
-        for (GuideEntry e : entries.values()) if (e.category() == category) n++;
+        for (GuideEntry e : entries.values()) {
+            if (e.category() == category && !progression.isAvailable(e.id())) n++;
+        }
         return n;
+    }
+
+    private boolean isVisible(@NotNull GuideEntry entry, @NotNull Player player) {
+        return entry.discoveredByDefault() || unlockService.isUnlocked(player.getUniqueId(), entry.id());
+    }
+
+    /** Server era and the player's next goal, as lore or text lines. */
+    private List<Component> progressLines(@NotNull Player player) {
+        List<Component> lines = new ArrayList<>();
+        Era era = progression.serverEra();
+        lines.add(messages.component("guide.index.era",
+                Placeholder.unparsed("number", Integer.toString(era.number())),
+                Placeholder.component("era", messages.component(era.nameKey()))));
+        Era goal = progression.nextGoal(player.getUniqueId());
+        NamespacedKey gateway = goal == null ? null : goal.gatewayItem();
+        if (goal != null && gateway != null) {
+            Component item = Sapientia.get().findItem(gateway)
+                    .map(i -> messages.component(i.displayNameKey()))
+                    .or(() -> Sapientia.get().findBlock(gateway).map(b -> messages.component(b.displayNameKey())))
+                    .orElse(Component.text(gateway.getKey()));
+            lines.add(messages.component("guide.index.goal",
+                    Placeholder.component("item", item),
+                    Placeholder.component("era", messages.component(goal.nameKey()))));
+        } else {
+            lines.add(messages.component("guide.index.goal-done"));
+        }
+        return lines;
+    }
+
+    /** Lore explaining why a recipe is locked for the player, or empty when it is not. */
+    private List<Component> recipeLockLines(@NotNull Player player, @NotNull SapientiaRecipe recipe,
+                                            @NotNull GuideEntry entry) {
+        if (progression.bypasses(player) || progression.isRecipeUnlocked(player.getUniqueId(), recipe.id())) {
+            return List.of();
+        }
+        List<Component> lines = new ArrayList<>();
+        Era era = progression.eraOf(entry.id());
+        if (!progression.isUnlocked(era)) {
+            lines.add(messages.component("research.locked.era",
+                    Placeholder.unparsed("number", Integer.toString(era.number())),
+                    Placeholder.component("era", messages.component(era.nameKey()))));
+            return lines;
+        }
+        lines.add(messages.component("research.locked.missing"));
+        for (NamespacedKey missing : progression.missingFor(player.getUniqueId(), recipe.id())) {
+            Component name = Sapientia.get().findItem(missing)
+                    .map(i -> messages.component(i.displayNameKey()))
+                    .orElse(Component.text(missing.getKey()));
+            lines.add(Component.text("- ").append(name));
+        }
+        return lines;
     }
 
     /** Context for the paginated category view. */
@@ -188,6 +255,7 @@ public final class GuideServiceImpl implements GuideService {
     private final class GuideIndexRenderer implements JavaInventoryRenderer<Player> {
 
         private final Map<Integer, GuideCategory> slotIndex = new HashMap<>();
+        private Player viewer;
 
         @Override public int size(@NotNull Player player, @NotNull Player ctx) { return 54; }
 
@@ -199,6 +267,7 @@ public final class GuideServiceImpl implements GuideService {
         @Override
         public void render(@NotNull Inventory inventory, @NotNull Player player, @NotNull Player ctx) {
             slotIndex.clear();
+            viewer = player;
             ItemStack border = decorativePane(Material.BLACK_STAINED_GLASS_PANE);
             for (int slot : CHEST_BORDER) inventory.setItem(slot, border);
             inventory.setItem(INDEX_HEADER_SLOT, headerBook());
@@ -226,7 +295,13 @@ public final class GuideServiceImpl implements GuideService {
             ItemMeta meta = stack.getItemMeta();
             if (meta != null) {
                 meta.displayName(messages.component("guide.index.header.name").style(noItalic()));
-                meta.lore(splitLore(messages.plain("guide.index.header.lore"), NamedTextColor.GRAY));
+                List<Component> lore = new ArrayList<>(splitLore(messages.plain("guide.index.header.lore"),
+                        NamedTextColor.GRAY));
+                lore.add(Component.empty());
+                for (Component line : progressLines(viewer)) {
+                    lore.add(line.decoration(TextDecoration.ITALIC, false));
+                }
+                meta.lore(lore);
                 stack.setItemMeta(meta);
             }
             return stack;
@@ -247,7 +322,7 @@ public final class GuideServiceImpl implements GuideService {
                     lore.add(Component.empty());
                 }
                 lore.add(messages.component("guide.index.button.count",
-                                Placeholder.parsed("count", Integer.toString(countByCategory(cat))))
+                                Placeholder.parsed("count", Integer.toString(countByCategory(cat, viewer))))
                         .decoration(TextDecoration.ITALIC, false));
                 meta.lore(lore);
                 stack.setItemMeta(meta);
@@ -278,21 +353,19 @@ public final class GuideServiceImpl implements GuideService {
             ItemStack border = decorativePane(Material.BLACK_STAINED_GLASS_PANE);
             for (int slot : CHEST_BORDER) inventory.setItem(slot, border);
 
-            List<GuideEntry> all = entriesForCategory(view.category());
+            List<GuideEntry> all = entriesForCategory(view.category(), player);
             int totalPages = Math.max(1, (all.size() + PAGE_SIZE - 1) / PAGE_SIZE);
             int page = Math.max(0, Math.min(view.page(), totalPages - 1));
 
-            inventory.setItem(CATEGORY_HEADER_SLOT,
-                    categoryHeader(view.category(), page, totalPages, all.size()));
+            inventory.setItem(CATEGORY_HEADER_SLOT, categoryHeader(view.category(), page, totalPages, all.size(),
+                    lockedInCategory(view.category(), player)));
 
             int from = page * PAGE_SIZE;
             int to = Math.min(all.size(), from + PAGE_SIZE);
             for (int i = from, idx = 0; i < to; i++, idx++) {
                 int slot = CATEGORY_ENTRY_SLOTS[idx];
                 GuideEntry entry = all.get(i);
-                boolean unlocked = entry.discoveredByDefault()
-                        || unlockService.isUnlocked(player.getUniqueId(), entry.id());
-                if (unlocked) {
+                if (isVisible(entry, player)) {
                     inventory.setItem(slot, renderIndexEntry(entry));
                     slotIndex.put(slot, entry);
                 } else {
@@ -332,7 +405,8 @@ public final class GuideServiceImpl implements GuideService {
             Bukkit.getScheduler().runTask(plugin, () -> openDetail(player, entry));
         }
 
-        private ItemStack categoryHeader(GuideCategory cat, int page, int totalPages, int totalEntries) {
+        private ItemStack categoryHeader(GuideCategory cat, int page, int totalPages, int totalEntries,
+                                         int lockedEntries) {
             ItemStack stack = categoryIcon(cat);
             ItemMeta meta = stack.getItemMeta();
             if (meta != null) {
@@ -345,6 +419,11 @@ public final class GuideServiceImpl implements GuideService {
                 lore.add(messages.component("guide.index.button.count",
                                 Placeholder.parsed("count", Integer.toString(totalEntries)))
                         .decoration(TextDecoration.ITALIC, false));
+                if (lockedEntries > 0) {
+                    lore.add(messages.component("guide.category.locked-eras",
+                                    Placeholder.unparsed("count", Integer.toString(lockedEntries)))
+                            .decoration(TextDecoration.ITALIC, false));
+                }
                 meta.lore(lore);
                 stack.setItemMeta(meta);
             }
@@ -455,7 +534,8 @@ public final class GuideServiceImpl implements GuideService {
                 for (int i = 0; i < DETAIL_RECIPE_SLOTS.length && i < pattern.size(); i++) {
                     inventory.setItem(DETAIL_RECIPE_SLOTS[i], renderIngredient(pattern.get(i)));
                 }
-                inventory.setItem(DETAIL_ARROW_SLOT, arrow());
+                List<Component> lock = recipeLockLines(player, recipe, entry);
+                inventory.setItem(DETAIL_ARROW_SLOT, lock.isEmpty() ? arrow() : lockedArrow(lock));
                 inventory.setItem(DETAIL_RESULT_SLOT, renderResult(recipe));
             } else {
                 ItemStack noRecipe = new ItemStack(Material.BARRIER);
@@ -542,6 +622,17 @@ public final class GuideServiceImpl implements GuideService {
             return stack;
         }
 
+        private ItemStack lockedArrow(List<Component> lines) {
+            ItemStack stack = new ItemStack(Material.BARRIER);
+            ItemMeta meta = stack.getItemMeta();
+            if (meta != null) {
+                meta.displayName(messages.component("research.locked.name").style(noItalic()));
+                meta.lore(lines.stream().map(l -> l.decoration(TextDecoration.ITALIC, false)).toList());
+                stack.setItemMeta(meta);
+            }
+            return stack;
+        }
+
         private ItemStack backButton() {
             ItemStack stack = new ItemStack(Material.SPECTRAL_ARROW);
             ItemMeta meta = stack.getItemMeta();
@@ -563,12 +654,15 @@ public final class GuideServiceImpl implements GuideService {
         public void open(@NotNull Player player, @NotNull Player ctx) {
             String title = dev.brmz.sapientia.core.i18n.TextAdapter.toPlainBedrock(
                     messages.component("guide.title"));
-            String content = dev.brmz.sapientia.core.i18n.TextAdapter.toPlainBedrock(
-                    messages.component("guide.index.header.lore"));
+            StringBuilder content = new StringBuilder(dev.brmz.sapientia.core.i18n.TextAdapter.toPlainBedrock(
+                    messages.component("guide.index.header.lore"))).append("\n");
+            for (Component line : progressLines(player)) {
+                content.append('\n').append(dev.brmz.sapientia.core.i18n.TextAdapter.toPlainBedrock(line));
+            }
             dev.brmz.sapientia.bedrock.forms.SapientiaSimpleForm form =
                     new dev.brmz.sapientia.bedrock.forms.SapientiaSimpleForm()
                             .title(title)
-                            .content(content);
+                            .content(content.toString());
             GuideCategory[] cats = GuideCategory.values();
             for (GuideCategory c : cats) {
                 form.button(dev.brmz.sapientia.core.i18n.TextAdapter.toPlainBedrock(
@@ -589,12 +683,11 @@ public final class GuideServiceImpl implements GuideService {
 
         @Override
         public void open(@NotNull Player player, @NotNull CategoryView view) {
-            List<GuideEntry> all = entriesForCategory(view.category());
+            List<GuideEntry> all = entriesForCategory(view.category(), player);
             // Keep only unlocked entries — Bedrock SimpleForm has no greyed state.
             List<GuideEntry> visible = new ArrayList<>();
             for (GuideEntry e : all) {
-                if (e.discoveredByDefault()
-                        || unlockService.isUnlocked(player.getUniqueId(), e.id())) {
+                if (isVisible(e, player)) {
                     visible.add(e);
                 }
             }
@@ -668,6 +761,14 @@ public final class GuideServiceImpl implements GuideService {
                         messages.component("guide.detail.yields",
                                 Placeholder.parsed("amount",
                                         Integer.toString(recipe.result().getAmount())))));
+                List<Component> lock = recipeLockLines(player, recipe, entry);
+                if (!lock.isEmpty()) {
+                    body.append("\n\n").append(dev.brmz.sapientia.core.i18n.TextAdapter.toPlainBedrock(
+                            messages.component("research.locked.name")));
+                    for (Component line : lock) {
+                        body.append('\n').append(dev.brmz.sapientia.core.i18n.TextAdapter.toPlainBedrock(line));
+                    }
+                }
             } else {
                 body.append(messages.plain("guide.detail.recipe.none"));
             }

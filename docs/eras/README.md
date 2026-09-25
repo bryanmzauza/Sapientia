@@ -1,7 +1,7 @@
 # Eras do Sapientia
 
-O desenvolvimento do Sapientia é feito **por eras**, e as versões seguem as eras: a 2.0.0 traz as
-fundações e a era 0, e a era N sai na linha 2.N.x (2.N.0 lança a era; 2.N.1 em diante são
+O desenvolvimento do Sapientia é feito **por eras**, e as versões seguem as eras: a 2.0.0 traz a
+fundação de desempenho, a 2.0.1 a fundação de progressão, a 2.0.2 a era 0, e a era N sai na linha 2.N.x (2.N.0 lança a era; 2.N.1 em diante são
 correções). Cada arquivo desta pasta descreve uma era por
 completo: o que ela libera, cada item e bloco, como é produzido, o que faz, as máquinas com seus
 números e a lista de tarefas de implementação.
@@ -46,7 +46,7 @@ documentos das eras:
 
 | Era | Versão | Nome | Documento |
 |-----|--------|------|-----------|
-| 0 | 2.0.x | Chegada | [era-00-chegada.md](era-00-chegada.md) |
+| 0 | 2.0.2 | Chegada | [era-00-chegada.md](era-00-chegada.md) |
 | 1 | 2.1.x | Idade da Pedra | [era-01-pedra.md](era-01-pedra.md) |
 | 2 | 2.2.x | Idade do Cobre | [era-02-cobre.md](era-02-cobre.md) |
 | 3 | 2.3.x | Idade do Bronze | [era-03-bronze.md](era-03-bronze.md) |

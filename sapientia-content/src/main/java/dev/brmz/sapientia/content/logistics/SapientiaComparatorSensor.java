@@ -1,6 +1,6 @@
 package dev.brmz.sapientia.content.logistics;
 
-import dev.brmz.sapientia.api.block.SapientiaBlock;
+import dev.brmz.sapientia.content.CatalogBlock;
 import dev.brmz.sapientia.api.guide.GuideCategory;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
  * (T-302) as a {@code COMPARATOR} input source. 1.8.0 ships the placement +
  * registration; the per-tick read is wired to the logic runtime in 1.8.1.
  */
-public final class SapientiaComparatorSensor implements SapientiaBlock {
+public final class SapientiaComparatorSensor implements CatalogBlock {
 
     private final NamespacedKey id;
 

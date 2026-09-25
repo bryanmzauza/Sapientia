@@ -77,6 +77,7 @@ import dev.brmz.sapientia.content.gas.SapientiaLiquefier;
 import dev.brmz.sapientia.content.gas.SapientiaPhaseSeparator;
 import dev.brmz.sapientia.content.gas.SapientiaPressurizedPipe;
 import dev.brmz.sapientia.content.metallurgy.MetalCatalog;
+import dev.brmz.sapientia.content.mining.MineralCatalog;
 import dev.brmz.sapientia.content.multiblock.SapientiaInductionFurnaceController;
 import dev.brmz.sapientia.content.multiblock.SapientiaMachineCasing;
 import dev.brmz.sapientia.content.multiblock.SapientiaMachineCasingMv;
@@ -134,6 +135,10 @@ public final class ContentBootstrap {
 
         // Metallurgy items (T-402 / T-403 / 1.4.0) — 78 metal items.
         MetalCatalog.registerAll(plugin, api);
+
+        // Minerals, their fragments and tailings, elements and separation methods (Foundation 2).
+        // Before the recipes, which turn fragments into dusts.
+        MineralCatalog.registerAll(api);
 
         // Shared casings (T-400 / T-405 / 1.4.0).
         api.registerBlock(new SapientiaMachineCasing(plugin));

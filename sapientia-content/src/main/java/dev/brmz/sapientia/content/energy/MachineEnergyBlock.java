@@ -1,7 +1,7 @@
 package dev.brmz.sapientia.content.energy;
 
+import dev.brmz.sapientia.content.CatalogBlock;
 import dev.brmz.sapientia.api.Sapientia;
-import dev.brmz.sapientia.api.block.SapientiaBlock;
 import dev.brmz.sapientia.api.energy.EnergyNode;
 import dev.brmz.sapientia.api.energy.EnergyNodeType;
 import dev.brmz.sapientia.api.energy.EnergySpecs;
@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
  * to the {@link GuideCategory#MACHINE} guide category and is open for cross-package
  * subclassing in the {@code metallurgy} and {@code machines} subpackages.
  */
-public abstract class MachineEnergyBlock implements SapientiaBlock {
+public abstract class MachineEnergyBlock implements CatalogBlock {
 
     private final NamespacedKey id;
     private final Material material;

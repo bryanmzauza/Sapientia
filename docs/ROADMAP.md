@@ -32,23 +32,26 @@ Sapientia 2 is the era-based rewrite of the plugin. Its versions follow the eras
 
 | Version line | Contents |
 |--------------|----------|
-| **2.0.0** | Foundation 1 (performance) and Foundation 2 (progression and world), plus era 0 |
-| **2.0.x** | Fixes and adjustments to the foundations and era 0 |
+| **2.0.0** | Foundation 1 (performance) |
+| **2.0.1** | Foundation 2 (progression and world) |
+| **2.0.2** | Era 0 (arrival) |
+| **2.0.x** | Later fixes and adjustments to the foundations and era 0 |
 | **2.N.0** | Release of era N (era 1 is 2.1.0, era 2 is 2.2.0, … era 24 is 2.24.0) |
 | **2.N.x** | Fixes and balance changes for era N |
 
-1. **Foundations first.** They ship together as 2.0.0, which is a major version because it changes
-   the public API (eras, minerals) and replaces the current raw ore items.
+1. **Foundations first.** Foundation 1 is 2.0.0, a major version because it removed an unused part
+   of the public API; Foundation 2 is 2.0.1 (eras, research, minerals and plants, all additive in
+   the API; the raw ore items become mineral fragments); era 0 follows as 2.0.2.
 2. **Then one era at a time, in order.** Each era is a minor version: it adds content without
    breaking the API.
 3. Tasks use `F<foundation>.<n>` and `E<era>.<n>` codes, which are also used in commit messages
    (`Refs: E3.2`).
 
-**Current cycle:** 2.0.0, in progress.
+**Current cycle:** 2.0.1 (Foundation 2), ready for testing on a server.
 
 ---
 
-## Foundation 1 — Performance · In progress (2.0.0)
+## Foundation 1 — Performance · Done (2.0.0)
 
 **Goal.** Replace the current full-scan tick loops with an engine that stays within a fixed budget
 at 10 million active blocks.
@@ -89,25 +92,35 @@ server.
 
 ---
 
-## Foundation 2 — Progression and world · Planned (2.0.0)
+## Foundation 2 — Progression and world · Done (2.0.1)
 
 **Goal.** Build the systems every era relies on.
 
-- [ ] F2.1 `Era` API, `ProgressionService` (migration V010), `/sapientia era` commands and
-  configuration.
-- [ ] F2.2 Era locks on crafting, machines, placement, planting and the guide; `sapientia.era.bypass`.
-- [ ] F2.3 Per-player research: discoveries and prerequisites.
-- [ ] F2.4 Guide first page with the server era and the player's next goal.
-- [ ] F2.5 Natural-terrain tracking: per-section placed-block maps in chunk data.
-- [ ] F2.6 Mineral fragments: configurable drop tables by host block, depth, biome and dimension.
-- [ ] F2.7 Veins derived from the world seed.
-- [ ] F2.8 Mineral composition, separation methods and tailings.
-- [ ] F2.9 Sapientia plants on vanilla crop blocks; wild seeds by biome.
-- [ ] F2.10 Migration of the current raw ore items to the new mineral system.
-- [ ] F2.11 Automated era coherence test over all recipes.
+- [x] F2.1 `Era` API, `ProgressionService` (migration V011), `/sapientia era` commands and
+  configuration. Every built-in item and block belongs to an era.
+- [x] F2.2 Era locks on crafting, machines, placement, planting and the guide; `sapientia.era.bypass`.
+  Sapientia items no longer work as their vanilla base material in vanilla crafting, smelting or
+  smithing.
+- [x] F2.3 Per-player research: discoveries and prerequisites.
+- [x] F2.4 Guide first page with the server era and the player's next goal.
+- [x] F2.5 Natural-terrain tracking: per-section placed-block maps in chunk data.
+- [x] F2.6 Mineral fragments: configurable drop tables by host block, depth, biome and dimension
+  (46 minerals, pickaxe tiers by era, Fortune, no drops from Silk Touch or explosions).
+- [x] F2.7 Veins derived from the world seed.
+- [x] F2.8 Mineral composition, separation methods and tailings (the rules and data; the machines
+  that separate come with their eras).
+- [x] F2.9 Sapientia plants on vanilla crop blocks; wild seeds by biome (the system; the plants
+  themselves come with era 1).
+- [x] F2.10 Migration of the current raw ore items to the new mineral system.
+- [x] F2.11 Automated era coherence check over all recipes. It runs over every registered recipe at
+  server start (recipes are built from item stacks, which need a running server); the current
+  recipes pass with no violations.
 
 **Exit criteria.** An admin can set and advance the server era; locked content is hidden and
 unusable; breaking natural rock drops fragments and placed blocks never do.
+
+**Status.** Era commands, locks and the coherence check were verified on a Paper 26.3 server;
+drops, research and the guide are covered by unit tests and still need a play test with a client.
 
 ---
 
@@ -115,7 +128,7 @@ unusable; breaking natural rock drops fragments and placed blocks never do.
 
 | Era | Version | Name | Highlights | Document |
 |-----|---------|------|------------|----------|
-| 0 | 2.0.x | Arrival | Guide, Sapientia Workbench | [era-00](eras/era-00-chegada.md) |
+| 0 | 2.0.2 | Arrival | Guide, Sapientia Workbench | [era-00](eras/era-00-chegada.md) |
 | 1 | 2.1.x | Stone Age | Agriculture (flax, herbs, quern, bread), charcoal pit, fire clay, clay furnace | [era-01](eras/era-01-pedra.md) |
 | 2 | 2.2.x | Copper Age | Native copper, gold and silver; rice; salt pan; hand loom | [era-02](eras/era-02-cobre.md) |
 | 3 | 2.3.x | Bronze Age | Tin, bronze, gold pan, scythe, cheese, pedal loom | [era-03](eras/era-03-bronze.md) |

@@ -6,15 +6,14 @@ import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The seven processed forms a metal can take in Sapientia (T-402 / 1.4.0).
+ * The eight forms a metal can take in Sapientia (T-402 / 1.4.0). Metals come
+ * out of mineral fragments, so there is no raw form.
  *
  * <p>Each form has a default vanilla {@link Material} used as the visual base.
  * Concrete metals may override per-metal materials when needed, but most forms
  * fall back to the generic placeholders defined here.
  */
 public enum MetalForm {
-    /** Raw chunk (drop from world ore — pre-smelt). */
-    RAW("raw", Material.RAW_COPPER),
     /** Powder produced by macerator. */
     DUST("dust", Material.SUGAR),
     /** Smelted ingot. */

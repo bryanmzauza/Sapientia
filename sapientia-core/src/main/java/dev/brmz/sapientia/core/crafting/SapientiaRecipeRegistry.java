@@ -32,6 +32,7 @@ public final class SapientiaRecipeRegistry implements RecipeRegistry {
     private final Map<NamespacedKey, SapientiaRecipe> recipes = new LinkedHashMap<>();
     private WorkbenchListener workbench;
     private @Nullable ContentOverrides overrides;
+    private volatile int revision;
 
     public SapientiaRecipeRegistry(@NotNull ItemRegistry itemRegistry) {
         this.itemRegistry = itemRegistry;
@@ -79,6 +80,12 @@ public final class SapientiaRecipeRegistry implements RecipeRegistry {
         if (recipes.putIfAbsent(recipe.id(), recipe) != null) {
             throw new IllegalStateException("Duplicate Sapientia recipe id: " + recipe.id());
         }
+        revision++;
+    }
+
+    /** Increments whenever a recipe is registered, so indexes over recipes know when to rebuild. */
+    public int revision() {
+        return revision;
     }
 
     @Override

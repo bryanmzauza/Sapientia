@@ -1,7 +1,7 @@
 package dev.brmz.sapientia.content.fluids;
 
+import dev.brmz.sapientia.content.CatalogBlock;
 import dev.brmz.sapientia.api.Sapientia;
-import dev.brmz.sapientia.api.block.SapientiaBlock;
 import dev.brmz.sapientia.api.energy.EnergyTier;
 import dev.brmz.sapientia.api.events.SapientiaBlockBreakEvent;
 import dev.brmz.sapientia.api.events.SapientiaBlockInteractEvent;
@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
  * subpackage can declare new fluid-graph blocks (T-426 / 1.6.0) without
  * exposing the package-private base.
  */
-public abstract class FluidsContentBlockExt implements SapientiaBlock {
+public abstract class FluidsContentBlockExt implements CatalogBlock {
 
     private final NamespacedKey id;
     private final Material material;

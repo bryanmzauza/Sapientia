@@ -2,8 +2,8 @@ package dev.brmz.sapientia.content.items;
 
 import java.util.List;
 
+import dev.brmz.sapientia.content.CatalogItem;
 import dev.brmz.sapientia.api.events.SapientiaItemInteractEvent;
-import dev.brmz.sapientia.api.item.SapientiaItem;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
  * wrench renders the live readout via the {@code EnergyInspector} look-scan —
  * no click is needed. Clicking plays a short UI sound for feedback.
  */
-public final class SapientiaWrench implements SapientiaItem {
+public final class SapientiaWrench implements CatalogItem {
 
     private final NamespacedKey id;
 

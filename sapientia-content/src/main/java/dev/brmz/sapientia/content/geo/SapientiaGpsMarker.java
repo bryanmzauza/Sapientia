@@ -1,6 +1,6 @@
 package dev.brmz.sapientia.content.geo;
 
-import dev.brmz.sapientia.api.block.SapientiaBlock;
+import dev.brmz.sapientia.content.CatalogBlock;
 import dev.brmz.sapientia.api.guide.GuideCategory;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
  * point of interest. The handheld map (1.7.1) renders these markers if the
  * player is inside a transmitter's coverage radius. Placement-only in 1.7.0.
  */
-public final class SapientiaGpsMarker implements SapientiaBlock {
+public final class SapientiaGpsMarker implements CatalogBlock {
 
     private final NamespacedKey id;
 

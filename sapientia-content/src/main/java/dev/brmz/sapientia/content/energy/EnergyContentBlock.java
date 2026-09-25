@@ -1,5 +1,6 @@
 package dev.brmz.sapientia.content.energy;
 
+import dev.brmz.sapientia.content.CatalogBlock;
 import dev.brmz.sapientia.api.Sapientia;
 import dev.brmz.sapientia.api.block.SapientiaBlock;
 import dev.brmz.sapientia.api.energy.EnergyNode;
@@ -23,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
  * {@link EnergyInspector}, a periodic look-to-inspect loop driven by the
  * wrench — no per-block interaction is needed here.
  */
-abstract class EnergyContentBlock implements SapientiaBlock {
+abstract class EnergyContentBlock implements CatalogBlock {
 
     private final NamespacedKey id;
     private final Material material;

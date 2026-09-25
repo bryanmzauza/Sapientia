@@ -1,7 +1,7 @@
 package dev.brmz.sapientia.content.energy;
 
+import dev.brmz.sapientia.content.CatalogBlock;
 import dev.brmz.sapientia.api.Sapientia;
-import dev.brmz.sapientia.api.block.SapientiaBlock;
 import dev.brmz.sapientia.api.energy.EnergyNodeType;
 import dev.brmz.sapientia.api.energy.EnergySpecs;
 import dev.brmz.sapientia.api.energy.EnergyTier;
@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
  * will add a true paired-node implementation backed by two
  * {@link dev.brmz.sapientia.api.energy.EnergyService#addNode} entries.
  */
-public final class SapientiaTransformerLvMv implements SapientiaBlock {
+public final class SapientiaTransformerLvMv implements CatalogBlock {
 
     private final NamespacedKey id;
 

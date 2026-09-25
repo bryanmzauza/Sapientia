@@ -56,6 +56,8 @@ public final class ElectronicsRecipes {
         RecipeIngredient nichromeWire  = ingot(plugin, Metal.NICHROME, MetalForm.WIRE);
         RecipeIngredient damascusPlate = ingot(plugin, Metal.DAMASCUS_STEEL, MetalForm.PLATE);
         RecipeIngredient copperWire   = ingot(plugin, Metal.COPPER,   MetalForm.WIRE);
+        RecipeIngredient copperPlate  = ingot(plugin, Metal.COPPER,   MetalForm.PLATE);
+        RecipeIngredient bucket = RecipeIngredient.of(Material.BUCKET);
 
         // ---------- Components (T-422) -------------------------------------------------------
 
@@ -93,11 +95,11 @@ public final class ElectronicsRecipes {
                 componentStack(api, plugin, Component.MOTOR_T3, 1),
                 GuideCategory.MATERIAL);
 
-        // circuit_t1: silicon wafer + redstone + copper wire
+        // circuit_t1: quartz crystal + redstone + copper wire (silicon wafers come in era 12)
         RecipeIngredient wafer = component(plugin, Component.SILICON_WAFER);
         register(api, key(plugin, "recipe_circuit_t1"),
                 List.of(copperWire, redstone,  copperWire,
-                        redstone,   wafer,     redstone,
+                        redstone,   quartz,    redstone,
                         copperWire, redstone,  copperWire),
                 componentStack(api, plugin, Component.CIRCUIT_T1, 1),
                 GuideCategory.MATERIAL);
@@ -210,9 +212,9 @@ public final class ElectronicsRecipes {
 
         // capacitor_t3: HV-tier bulk buffer
         register(api, key(plugin, "recipe_capacitor_t3"),
-                List.of(stainlessPlate, component(plugin, Component.RAM_T3), stainlessPlate,
-                        component(plugin, Component.COIL_T3), diamond,       component(plugin, Component.COIL_T3),
-                        stainlessPlate, component(plugin, Component.RAM_T3), stainlessPlate),
+                List.of(stainlessPlate, component(plugin, Component.RAM_T2), stainlessPlate,
+                        component(plugin, Component.COIL_T2), diamond,       component(plugin, Component.COIL_T2),
+                        stainlessPlate, component(plugin, Component.RAM_T2), stainlessPlate),
                 sapientiaStack(api, key(plugin, "capacitor_t3"), 1),
                 GuideCategory.ENERGY);
 
@@ -220,7 +222,7 @@ public final class ElectronicsRecipes {
         register(api, key(plugin, "recipe_transformer_mv_hv"),
                 List.of(stainlessPlate, component(plugin, Component.COIL_T2), stainlessPlate,
                         cableT2,        mvCasing,    cableT3,
-                        stainlessPlate, component(plugin, Component.COIL_T3), stainlessPlate),
+                        stainlessPlate, component(plugin, Component.COIL_T2), stainlessPlate),
                 sapientiaStack(api, key(plugin, "transformer_mv_hv"), 1),
                 GuideCategory.ENERGY);
 
@@ -234,9 +236,9 @@ public final class ElectronicsRecipes {
 
         // gas_turbine
         register(api, key(plugin, "recipe_gas_turbine"),
-                List.of(damascusPlate, motorT2,                   damascusPlate,
-                        component(plugin, Component.COIL_T3), mvCasing, component(plugin, Component.COIL_T3),
-                        damascusPlate, motorT2,                   damascusPlate),
+                List.of(damascusPlate, motorT1,                   damascusPlate,
+                        component(plugin, Component.COIL_T1), mvCasing, component(plugin, Component.COIL_T1),
+                        damascusPlate, motorT1,                   damascusPlate),
                 sapientiaStack(api, key(plugin, "gas_turbine"), 1),
                 GuideCategory.ENERGY);
 
@@ -251,9 +253,9 @@ public final class ElectronicsRecipes {
         // ---------- HV machines (T-423) ------------------------------------------------------
 
         register(api, key(plugin, "recipe_electrolyzer"),
-                List.of(titaniumPlate, ironBlock,                 titaniumPlate,
-                        cableT3,       mvCasing,                  cableT3,
-                        titaniumPlate, component(plugin, Component.RAM_T2), titaniumPlate),
+                List.of(stainlessPlate, ironBlock,                 stainlessPlate,
+                        cableT3,        mvCasing,                  cableT3,
+                        stainlessPlate, component(plugin, Component.RAM_T2), stainlessPlate),
                 sapientiaStack(api, key(plugin, "electrolyzer"), 1),
                 GuideCategory.MACHINE);
 
@@ -267,14 +269,14 @@ public final class ElectronicsRecipes {
         register(api, key(plugin, "recipe_laser_cutter"),
                 List.of(damascusPlate, amethyst,                  damascusPlate,
                         diamond,       mvCasing,                  diamond,
-                        damascusPlate, component(plugin, Component.RAM_T3), damascusPlate),
+                        damascusPlate, component(plugin, Component.RAM_T2), damascusPlate),
                 sapientiaStack(api, key(plugin, "laser_cutter"), 1),
                 GuideCategory.MACHINE);
 
         register(api, key(plugin, "recipe_chemical_reactor"),
-                List.of(titaniumPlate, blaze,                     titaniumPlate,
-                        siliconPlate,  mvCasing,                  siliconPlate,
-                        titaniumPlate, component(plugin, Component.COIL_T3), titaniumPlate),
+                List.of(stainlessPlate, blaze,                     stainlessPlate,
+                        siliconPlate,   mvCasing,                  siliconPlate,
+                        stainlessPlate, component(plugin, Component.COIL_T2), stainlessPlate),
                 sapientiaStack(api, key(plugin, "chemical_reactor"), 1),
                 GuideCategory.MACHINE);
 
@@ -288,23 +290,23 @@ public final class ElectronicsRecipes {
                 GuideCategory.LOGISTICS);
 
         register(api, key(plugin, "recipe_gas_compressor"),
-                List.of(stainlessPlate, motorT2,        stainlessPlate,
+                List.of(stainlessPlate, motorT1,        stainlessPlate,
                         piston,         mvCasing,       piston,
-                        stainlessPlate, motorT2,        stainlessPlate),
+                        stainlessPlate, motorT1,        stainlessPlate),
                 sapientiaStack(api, key(plugin, "gas_compressor"), 1),
                 GuideCategory.MACHINE);
 
         register(api, key(plugin, "recipe_boiler"),
-                List.of(titaniumPlate, blaze,        titaniumPlate,
-                        cableT2,       mvCasing,     cableT2,
-                        titaniumPlate, blaze,        titaniumPlate),
+                List.of(copperPlate, copperPlate,                              copperPlate,
+                        iron,        new RecipeIngredient.Vanilla(Material.FURNACE, 1), iron,
+                        copperPlate, bucket,                                   copperPlate),
                 sapientiaStack(api, key(plugin, "boiler"), 1),
                 GuideCategory.MACHINE);
 
         register(api, key(plugin, "recipe_condenser"),
-                List.of(stainlessPlate, ingotIce(),                  stainlessPlate,
-                        cableT2,        mvCasing,                    cableT2,
-                        stainlessPlate, ingotIce(),                  stainlessPlate),
+                List.of(copperPlate, ingotIce(),                                 copperPlate,
+                        iron,        new RecipeIngredient.Vanilla(Material.CAULDRON, 1), iron,
+                        copperPlate, ingotIce(),                                 copperPlate),
                 sapientiaStack(api, key(plugin, "condenser"), 1),
                 GuideCategory.MACHINE);
 
@@ -318,7 +320,7 @@ public final class ElectronicsRecipes {
         register(api, key(plugin, "recipe_phase_separator"),
                 List.of(damascusPlate, motorT2,                       damascusPlate,
                         cableT3,       mvCasing,                      cableT3,
-                        damascusPlate, component(plugin, Component.COIL_T3), damascusPlate),
+                        damascusPlate, component(plugin, Component.COIL_T2), damascusPlate),
                 sapientiaStack(api, key(plugin, "phase_separator"), 1),
                 GuideCategory.MACHINE);
     }

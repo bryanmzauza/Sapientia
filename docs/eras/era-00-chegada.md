@@ -1,6 +1,6 @@
 # Era 0 — Chegada
 
-**Versão:** 2.0.x · **Status:** planejada · **Sempre liberada**
+**Versão:** 2.0.2 · **Status:** planejada · **Sempre liberada**
 
 ## Resumo
 

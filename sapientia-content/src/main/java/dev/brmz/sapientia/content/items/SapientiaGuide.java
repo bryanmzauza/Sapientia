@@ -2,10 +2,10 @@ package dev.brmz.sapientia.content.items;
 
 import java.util.List;
 
+import dev.brmz.sapientia.content.CatalogItem;
 import dev.brmz.sapientia.api.Sapientia;
 import dev.brmz.sapientia.api.events.SapientiaItemInteractEvent;
 import dev.brmz.sapientia.api.guide.GuideCategory;
-import dev.brmz.sapientia.api.item.SapientiaItem;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
  * {@code PlayerInteractEvent#setCancelled(true)}, stomping on the custom
  * inventory we open. Knowledge books have no vanilla right-click behavior.
  */
-public final class SapientiaGuide implements SapientiaItem {
+public final class SapientiaGuide implements CatalogItem {
 
     private final Plugin plugin;
     private final NamespacedKey id;

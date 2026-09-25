@@ -1,14 +1,14 @@
 package dev.brmz.sapientia.content.electronics;
 
+import dev.brmz.sapientia.content.CatalogItem;
 import dev.brmz.sapientia.api.guide.GuideCategory;
-import dev.brmz.sapientia.api.item.SapientiaItem;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 /** Single Sapientia item backed by a {@link Component} entry (T-422 / 1.6.0). */
-public final class ComponentItem implements SapientiaItem {
+public final class ComponentItem implements CatalogItem {
 
     private final NamespacedKey id;
     private final Component component;

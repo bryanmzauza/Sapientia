@@ -49,6 +49,8 @@ public final class SapientiaEngine implements ChunkBlockIndex.Observer, Activity
 
     private final Map<NamespacedKey, Integer> behaviorIds = new HashMap<>();
     private final Map<NamespacedKey, Integer> initialDelays = new HashMap<>();
+    private final List<NamespacedKey> behaviorBlocks = new ArrayList<>();
+    private volatile boolean[] lockedBehaviors = new boolean[0];
     // Per world id: machine handles by packed chunk. A chunk holds at most a few hundred
     // processors, so finding one machine scans its chunk instead of keeping a per-block map.
     private final List<LongObjectMap<IntList>> machinesByWorld = new ArrayList<>();
@@ -88,8 +90,27 @@ public final class SapientiaEngine implements ChunkBlockIndex.Observer, Activity
         if (behaviorIds.containsKey(blockId)) {
             throw new IllegalStateException("Behaviour already registered for " + blockId);
         }
-        behaviorIds.put(blockId, scheduler.addBehavior(behavior));
+        int index = behaviorBlocks.size();
+        behaviorBlocks.add(blockId);
+        behaviorIds.put(blockId, scheduler.addBehavior(context -> {
+            boolean[] locked = lockedBehaviors;
+            return index < locked.length && locked[index]
+                    ? MachineBehavior.idle(MachineScheduler.MAX_IDLE_DELAY)
+                    : behavior.run(context);
+        }));
         initialDelays.put(blockId, Math.max(1, firstRunSpread));
+    }
+
+    /**
+     * Recomputes which machine types are locked (their era is not unlocked).
+     * Locked machines stay loaded but only check back every 10 seconds.
+     */
+    public void refreshLocks(@NotNull java.util.function.Predicate<NamespacedKey> isLocked) {
+        boolean[] locked = new boolean[behaviorBlocks.size()];
+        for (int i = 0; i < locked.length; i++) {
+            locked[i] = isLocked.test(behaviorBlocks.get(i));
+        }
+        lockedBehaviors = locked;
     }
 
     /** Whether blocks of this id run on the machine scheduler (they count as processors). */

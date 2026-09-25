@@ -1,5 +1,8 @@
 package dev.brmz.sapientia.content.crafting;
 
+import dev.brmz.sapientia.content.ContentEras;
+import dev.brmz.sapientia.api.mining.Mineral;
+import dev.brmz.sapientia.content.mining.MineralCatalog;
 import dev.brmz.sapientia.api.SapientiaAPI;
 import dev.brmz.sapientia.api.machine.MachineRecipe;
 import dev.brmz.sapientia.api.machine.MachineRecipeRegistry;
@@ -18,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>Recipes are intentionally dense around the metallurgy & chemistry tiers
  * so the kinetic loop has something to chew on out of the box. Each metal
- * gets the canonical {@code raw → 2× dust} (macerator),
+ * gets the canonical {@code fragment → 2× dust} (macerator),
  * {@code dust → ingot} (electric furnace), {@code ingot → plate} (plate
  * press), {@code ingot → 4× wire} (extractor), and {@code ingot → rod}
  * (bench saw).
@@ -39,10 +42,32 @@ public final class MachineRecipeData {
         NamespacedKey platePress      = new NamespacedKey(plugin, "plate_press");
         NamespacedKey extractor       = new NamespacedKey(plugin, "extractor");
 
-        // Per-metal canonical recipes (raw metals only).
+        // macerator: mineral fragment → 2× dust of its main metal (iron and gold: vanilla raw metal).
+        for (Mineral mineral : MineralCatalog.minerals()) {
+            ItemStack fragment = stack(api, mineral.fragmentItem(), 1);
+            Metal metal = MineralCatalog.primaryMetal(mineral);
+            String main = mineral.composition().get(0).element();
+            ItemStack output;
+            if (metal != null && mineral.era().isAfter(ContentEras.metalEra(metal))) {
+                continue; // a later mineral of an earlier metal (for example chalcopyrite): its own era's machines
+            } else if (metal != null) {
+                output = stack(api, MetalCatalog.idOf(plugin, metal, MetalForm.DUST), 2);
+            } else if (main.equals("iron")) {
+                output = new ItemStack(Material.RAW_IRON, 2);
+            } else if (main.equals("gold")) {
+                output = new ItemStack(Material.RAW_GOLD, 2);
+            } else {
+                continue;
+            }
+            registry.register(new MachineRecipe(macerator, fragment, output, 64L, 20));
+        }
+        // macerator: quartz → silicon dust (silicon has no mineral; the arc furnace replaces this in era 12).
+        registry.register(new MachineRecipe(macerator, new ItemStack(Material.QUARTZ),
+                stack(api, MetalCatalog.idOf(plugin, Metal.SILICON, MetalForm.DUST), 1), 64L, 20));
+
+        // Per-metal canonical recipes.
         for (Metal metal : Metal.values()) {
             if (metal.isAlloy()) continue;
-            ItemStack raw   = stack(api, MetalCatalog.idOf(plugin, metal, MetalForm.RAW),   1);
             ItemStack dust1 = stack(api, MetalCatalog.idOf(plugin, metal, MetalForm.DUST),  1);
             ItemStack dust2 = stack(api, MetalCatalog.idOf(plugin, metal, MetalForm.DUST),  2);
             ItemStack ingot = stack(api, MetalCatalog.idOf(plugin, metal, MetalForm.INGOT), 1);
@@ -50,8 +75,6 @@ public final class MachineRecipeData {
             ItemStack wire4 = stack(api, MetalCatalog.idOf(plugin, metal, MetalForm.WIRE),  4);
             ItemStack rod   = stack(api, MetalCatalog.idOf(plugin, metal, MetalForm.ROD),   1);
 
-            // macerator: raw → 2× dust
-            registry.register(new MachineRecipe(macerator, raw, dust2, 64L, 20));
             // ore_washer: dust → dust (placeholder cleansing; same item, faster)
             registry.register(new MachineRecipe(oreWasher, dust1.clone(), dust1.clone(), 32L, 10));
             // electric_furnace: dust → ingot

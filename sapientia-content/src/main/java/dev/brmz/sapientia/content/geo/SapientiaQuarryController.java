@@ -1,7 +1,7 @@
 package dev.brmz.sapientia.content.geo;
 
+import dev.brmz.sapientia.content.CatalogBlock;
 import dev.brmz.sapientia.api.Sapientia;
-import dev.brmz.sapientia.api.block.SapientiaBlock;
 import dev.brmz.sapientia.api.energy.EnergyNodeType;
 import dev.brmz.sapientia.api.energy.EnergySpecs;
 import dev.brmz.sapientia.api.energy.EnergyTier;
@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
  * player gets feedback sounds, but the AABB-driven mining tick lands in 1.7.1
  * along with the wrench-driven AABB selector ({@code T-440}).
  */
-public final class SapientiaQuarryController implements SapientiaBlock {
+public final class SapientiaQuarryController implements CatalogBlock {
 
     private final NamespacedKey id;
 

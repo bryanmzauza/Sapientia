@@ -2,9 +2,9 @@ package dev.brmz.sapientia.content.geo;
 
 import java.util.List;
 
+import dev.brmz.sapientia.content.CatalogItem;
 import dev.brmz.sapientia.api.events.SapientiaItemInteractEvent;
 import dev.brmz.sapientia.api.guide.GuideCategory;
-import dev.brmz.sapientia.api.item.SapientiaItem;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
  * the scan is a stub feedback sound. The actual chunk-radius prospect logic
  * lands in 1.7.1 alongside the GPS coverage system.
  */
-public final class SapientiaProspector implements SapientiaItem {
+public final class SapientiaProspector implements CatalogItem {
 
     private final NamespacedKey id;
 

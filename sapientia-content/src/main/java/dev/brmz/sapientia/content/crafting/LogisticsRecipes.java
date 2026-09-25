@@ -48,17 +48,16 @@ public final class LogisticsRecipes {
         RecipeIngredient brassPlate  = ingot(plugin, Metal.BRASS,           MetalForm.PLATE);
         RecipeIngredient brassGear   = ingot(plugin, Metal.BRASS,           MetalForm.GEAR);
         RecipeIngredient circuitT1   = component(plugin, Component.CIRCUIT_T1);
-        RecipeIngredient circuitT2   = component(plugin, Component.CIRCUIT_T2);
-        RecipeIngredient circuitT3   = component(plugin, Component.CIRCUIT_T3);
-        RecipeIngredient motorT2     = component(plugin, Component.MOTOR_T2);
-        RecipeIngredient ramT2       = component(plugin, Component.RAM_T2);
+        RecipeIngredient motorT1     = component(plugin, Component.MOTOR_T1);
+        // Era 10 logistics has no circuit boards yet: repeaters do the control logic.
+        RecipeIngredient repeater    = RecipeIngredient.of(Material.REPEATER);
 
         // ---------- Item logistics extras (T-441) -------------------------------------------
 
         // item_buffer — barrel + circuit + item-cable shell.
         register(api, key(plugin, "recipe_item_buffer"),
                 List.of(itemCable,    barrel,        itemCable,
-                        ironPlate,    circuitT1,     ironPlate,
+                        ironPlate,    repeater,      ironPlate,
                         itemCable,    barrel,        itemCable),
                 stack(api, key(plugin, "item_buffer"), 1),
                 GuideCategory.LOGISTICS);
@@ -66,7 +65,7 @@ public final class LogisticsRecipes {
         // item_splitter — observer-driven 1-in/3-out distributor.
         register(api, key(plugin, "recipe_item_splitter"),
                 List.of(brassPlate,   itemCable,     brassPlate,
-                        observer,     circuitT2,     observer,
+                        observer,     repeater,      observer,
                         brassPlate,   itemCable,     brassPlate),
                 stack(api, key(plugin, "item_splitter"), 1),
                 GuideCategory.LOGISTICS);
@@ -74,7 +73,7 @@ public final class LogisticsRecipes {
         // filter_chamber — multi-pass filter.
         register(api, key(plugin, "recipe_filter_chamber"),
                 List.of(ironPlate,    itemFilter,    ironPlate,
-                        itemFilter,   ramT2,         itemFilter,
+                        itemFilter,   comparator,    itemFilter,
                         ironPlate,    itemFilter,    ironPlate),
                 stack(api, key(plugin, "filter_chamber"), 1),
                 GuideCategory.LOGISTICS);
@@ -82,7 +81,7 @@ public final class LogisticsRecipes {
         // overflow_module — hopper + low-tier circuit.
         register(api, key(plugin, "recipe_overflow_module"),
                 List.of(ironPlate,    hopper,        ironPlate,
-                        hopper,       circuitT1,     hopper,
+                        hopper,       repeater,      hopper,
                         ironPlate,    redstone,      ironPlate),
                 stack(api, key(plugin, "overflow_module"), 1),
                 GuideCategory.LOGISTICS);
@@ -90,15 +89,15 @@ public final class LogisticsRecipes {
         // comparator_sensor — vanilla comparator + sapientia circuit.
         register(api, key(plugin, "recipe_comparator_sensor"),
                 List.of(brassPlate,   comparator,    brassPlate,
-                        redstone,     circuitT1,     redstone,
+                        redstone,     repeater,      redstone,
                         brassPlate,   comparator,    brassPlate),
                 stack(api, key(plugin, "comparator_sensor"), 2),
                 GuideCategory.LOGISTICS);
 
         // packager — dropper + circuit + motor.
         register(api, key(plugin, "recipe_packager"),
-                List.of(brassPlate,   motorT2,       brassPlate,
-                        dropper,      circuitT3,     dropper,
+                List.of(brassPlate,   motorT1,       brassPlate,
+                        dropper,      circuitT1,     dropper,
                         brassPlate,   piston,        brassPlate),
                 stack(api, key(plugin, "packager"), 1),
                 GuideCategory.LOGISTICS);
@@ -106,8 +105,8 @@ public final class LogisticsRecipes {
         // unpackager — dispenser + circuit + motor (mirror of packager).
         register(api, key(plugin, "recipe_unpackager"),
                 List.of(brassPlate,   piston,        brassPlate,
-                        dispenser,    circuitT3,     dispenser,
-                        brassPlate,   motorT2,       brassPlate),
+                        dispenser,    circuitT1,     dispenser,
+                        brassPlate,   motorT1,       brassPlate),
                 stack(api, key(plugin, "unpackager"), 1),
                 GuideCategory.LOGISTICS);
 
@@ -126,7 +125,7 @@ public final class LogisticsRecipes {
         // fluid_valve — pipe + lever; produces a stack of 2.
         register(api, key(plugin, "recipe_fluid_valve"),
                 List.of(ironPlate,    fluidPipe,     ironPlate,
-                        lever,        circuitT1,     lever,
+                        lever,        repeater,      lever,
                         ironPlate,    fluidPipe,     ironPlate),
                 stack(api, key(plugin, "fluid_valve"), 2),
                 GuideCategory.LOGISTICS);
@@ -134,7 +133,7 @@ public final class LogisticsRecipes {
         // fluid_level_sensor — comparator + circuit + fluid pipe.
         register(api, key(plugin, "recipe_fluid_level_sensor"),
                 List.of(ironPlate,    comparator,    ironPlate,
-                        fluidPipe,    circuitT2,     fluidPipe,
+                        fluidPipe,    repeater,      fluidPipe,
                         ironPlate,    comparator,    ironPlate),
                 stack(api, key(plugin, "fluid_level_sensor"), 1),
                 GuideCategory.LOGISTICS);

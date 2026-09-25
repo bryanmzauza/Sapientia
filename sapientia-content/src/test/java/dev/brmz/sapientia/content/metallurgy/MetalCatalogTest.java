@@ -7,28 +7,18 @@ import org.junit.jupiter.api.Test;
 class MetalCatalogTest {
 
     @Test
-    void rawMetalsHaveAllNineForms() {
+    void everyMetalHasEveryForm() {
         for (Metal metal : Metal.values()) {
-            if (metal.isAlloy()) continue;
             assertThat(metal.forms()).hasSize(MetalForm.values().length);
         }
     }
 
     @Test
-    void alloysSkipRawForm() {
-        for (Metal metal : Metal.values()) {
-            if (!metal.isAlloy()) continue;
-            assertThat(metal.forms()).doesNotContain(MetalForm.RAW);
-            assertThat(metal.forms()).hasSize(MetalForm.values().length - 1);
-        }
-    }
-
-    @Test
-    void totalCatalogSizeIs138() {
-        // T-402 + T-403 + T-421 + T-424: 10 raw × 9 forms + 6 alloys × 8 forms = 90 + 48 = 138.
+    void totalCatalogSizeIs128() {
+        // 16 metals and alloys × 8 forms; raw forms were replaced by mineral fragments.
         int total = 0;
         for (Metal metal : Metal.values()) total += metal.forms().size();
-        assertThat(total).isEqualTo(138);
+        assertThat(total).isEqualTo(128);
     }
 
     @Test

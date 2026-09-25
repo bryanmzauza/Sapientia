@@ -1,6 +1,6 @@
 package dev.brmz.sapientia.content.fluids;
 
-import dev.brmz.sapientia.api.block.SapientiaBlock;
+import dev.brmz.sapientia.content.CatalogBlock;
 import dev.brmz.sapientia.api.guide.GuideCategory;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
  * runtime (T-302) as a sensor input. Placement-only in 1.8.0; per-tick read
  * lands with the logic-runtime hookup in 1.8.1.
  */
-public final class SapientiaFluidLevelSensor implements SapientiaBlock {
+public final class SapientiaFluidLevelSensor implements CatalogBlock {
 
     private final NamespacedKey id;
 

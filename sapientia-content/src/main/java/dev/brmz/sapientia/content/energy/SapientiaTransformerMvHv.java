@@ -1,7 +1,7 @@
 package dev.brmz.sapientia.content.energy;
 
+import dev.brmz.sapientia.content.CatalogBlock;
 import dev.brmz.sapientia.api.Sapientia;
-import dev.brmz.sapientia.api.block.SapientiaBlock;
 import dev.brmz.sapientia.api.energy.EnergyNodeType;
 import dev.brmz.sapientia.api.energy.EnergySpecs;
 import dev.brmz.sapientia.api.energy.EnergyTier;
@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
  * MV ↔ HV transformer (T-425 / 1.6.0). Modeled as a single HV-tier capacitor
  * node bridging adjacent MV networks; mirrors {@link SapientiaTransformerLvMv}.
  */
-public final class SapientiaTransformerMvHv implements SapientiaBlock {
+public final class SapientiaTransformerMvHv implements CatalogBlock {
 
     private final NamespacedKey id;
 
