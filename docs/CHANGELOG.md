@@ -21,7 +21,8 @@ terrain and the plant system that every era builds on.
   era is announced in chat (`progression.announce`). Every built-in item and block belongs to an
   era.
 - Era locks. Content of an era that is not unlocked cannot be crafted in the workbench, made by
-  machines, placed or planted, and it is hidden in the guide; machines of a locked era stay idle.
+  machines, placed or planted; machines of a locked era stay idle. The guide lists it as locked,
+  with its name and era, and shows no recipe.
   Items already owned stay in inventories but cannot be used. `sapientia.era.bypass` ignores the
   locks.
 - Research. Players discover Sapientia items by crafting them, picking them up, taking them out of
@@ -29,6 +30,7 @@ terrain and the plant system that every era builds on.
   been discovered, and the player is told. Items already in a player's inventory or ender chest
   count as discovered. With `progression.research: false`, every recipe of an unlocked era is
   available to everyone.
+- Every Sapientia item shows its era at the end of its description.
 - The guide's first page shows the server era and the player's next goal (the key item of the
   first era they have not completed). Locked recipes explain what is missing, in the guide and in
   the workbench.
@@ -50,6 +52,10 @@ terrain and the plant system that every era builds on.
   mineral's tailings for a better method. The machines that separate come with their eras.
 - Plant system for the eras to come: Sapientia plants grow on vanilla crop blocks at no cost and
   drop their own produce when harvested, and wild seeds drop from grass by biome.
+- The Java and Bedrock resource packs are rebuilt at start-up so they always match the bundled
+  textures (`resource-pack.auto-build`). When `resource-pack-sha1` in server.properties points at
+  an older pack, the console and admins joining the server are told to upload the new pack, with
+  its SHA-1; an outdated pack is why new items show without textures.
 - Era coherence check at start-up: every recipe is checked for ingredients from a later era than
   its result, and violations are logged.
 - API: `Era`, `ProgressionService`, `MiningService`, `PlantService`, `SapientiaItem#era()`,
@@ -66,6 +72,9 @@ terrain and the plant system that every era builds on.
   condenser use copper and iron; era 10 logistics, the quarry and the prospector use redstone
   repeaters and comparators instead of later circuits; other recipes use the best components of
   their own era.
+- Existing stacks are brought up to date (name, description and texture) when a player joins,
+  opens a container or picks them up, so items made before textures or era lines existed get
+  them.
 - Sapientia items no longer work as their vanilla base material in vanilla crafting, the crafter,
   furnaces, smokers, blast furnaces, campfires or the smithing table.
 - Player unlocks moved to the new research table (database migration `V011`, automatic).

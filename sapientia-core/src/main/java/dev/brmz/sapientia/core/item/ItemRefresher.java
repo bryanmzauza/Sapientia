@@ -13,20 +13,22 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Converts stacks of removed items to their replacements (same amount) when
- * players join, open a container or pick an item up. Each stack is converted
- * once; stacks nobody touches keep their old id until then, which is harmless
- * because nothing uses it any more.
+ * Keeps existing stacks current when players join, open a container or pick an
+ * item up: stacks of removed items become their replacements (same amount),
+ * and stacks made by an older version get the current name, description (with
+ * the era line) and texture model. Each stack is updated once; the check is a
+ * tag lookup for stacks that are already current.
  */
-public final class LegacyItemMigrator implements Listener {
+public final class ItemRefresher implements Listener {
 
     private final ItemRegistry items;
     private final Map<String, String> replacements;
 
     /** @param replacements full removed id to full replacement id, e.g. {@code sapientia:tin_raw} */
-    public LegacyItemMigrator(@NotNull ItemRegistry items, @NotNull Map<String, String> replacements) {
+    public ItemRefresher(@NotNull ItemRegistry items, @NotNull Map<String, String> replacements) {
         this.items = items;
         this.replacements = Map.copyOf(replacements);
     }
@@ -34,40 +36,45 @@ public final class LegacyItemMigrator implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onJoin(@NotNull PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        convert(player.getInventory());
-        convert(player.getEnderChest());
+        update(player.getInventory());
+        update(player.getEnderChest());
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onOpen(@NotNull InventoryOpenEvent event) {
-        convert(event.getInventory());
+        update(event.getInventory());
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onPickup(@NotNull EntityPickupItemEvent event) {
         Item item = event.getItem();
-        ItemStack replaced = replacement(item.getItemStack());
-        if (replaced != null) item.setItemStack(replaced);
+        ItemStack updated = updated(item.getItemStack());
+        if (updated != null) item.setItemStack(updated);
     }
 
-    /** Converts every legacy stack in {@code inventory}; returns how many stacks changed. */
-    public int convert(@NotNull Inventory inventory) {
+    /** Updates every outdated stack in {@code inventory}; returns how many stacks changed. */
+    public int update(@NotNull Inventory inventory) {
         int changed = 0;
         ItemStack[] contents = inventory.getContents();
         for (int slot = 0; slot < contents.length; slot++) {
-            ItemStack replaced = replacement(contents[slot]);
-            if (replaced != null) {
-                inventory.setItem(slot, replaced);
+            ItemStack updated = updated(contents[slot]);
+            if (updated != null) {
+                inventory.setItem(slot, updated);
                 changed++;
             }
         }
         return changed;
     }
 
-    private ItemStack replacement(ItemStack stack) {
+    /** The updated stack, or {@code null} when it is already current. */
+    private @Nullable ItemStack updated(@Nullable ItemStack stack) {
         String id = items.idOf(stack);
         if (id == null) return null;
         String target = replacements.get(id);
-        return target == null ? null : items.createStack(target, stack.getAmount());
+        if (target != null) {
+            return items.createStack(target, stack.getAmount());
+        }
+        ItemStack copy = stack.clone();
+        return items.refresh(copy) ? copy : null;
     }
 }

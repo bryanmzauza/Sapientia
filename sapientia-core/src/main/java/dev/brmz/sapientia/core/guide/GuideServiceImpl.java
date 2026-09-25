@@ -144,12 +144,11 @@ public final class GuideServiceImpl implements GuideService {
         uiService.open(player, new GuideDetailDescriptor(), entry);
     }
 
-    /** Entries of a category the player can see: content of locked eras is hidden. */
+    /** Entries of a category, earliest era first; entries of locked eras are listed too, as locked. */
     private List<GuideEntry> entriesForCategory(@NotNull GuideCategory category, @NotNull Player player) {
-        boolean bypass = progression.bypasses(player);
         List<GuideEntry> all = new ArrayList<>();
         for (GuideEntry e : entries.values()) {
-            if (e.category() == category && (bypass || progression.isAvailable(e.id()))) all.add(e);
+            if (e.category() == category) all.add(e);
         }
         all.sort(Comparator.comparing((GuideEntry e) -> progression.eraOf(e.id()).number())
                 .thenComparing(e -> e.id().toString()));
@@ -160,14 +159,26 @@ public final class GuideServiceImpl implements GuideService {
         return entriesForCategory(category, player).size();
     }
 
-    /** Entries of a category hidden because their era is locked. */
+    /** Entries of a category whose era is not unlocked yet. */
     private int lockedInCategory(@NotNull GuideCategory category, @NotNull Player player) {
         if (progression.bypasses(player)) return 0;
         int n = 0;
         for (GuideEntry e : entries.values()) {
-            if (e.category() == category && !progression.isAvailable(e.id())) n++;
+            if (e.category() == category && isEraLocked(e, player)) n++;
         }
         return n;
+    }
+
+    private boolean isEraLocked(@NotNull GuideEntry entry, @NotNull Player player) {
+        return !progression.bypasses(player) && !progression.isAvailable(entry.id());
+    }
+
+    /** "Era N: name" for an entry. */
+    private Component eraLine(@NotNull GuideEntry entry) {
+        Era era = progression.eraOf(entry.id());
+        return messages.component("era.lore",
+                Placeholder.unparsed("number", Integer.toString(era.number())),
+                Placeholder.component("era", messages.component(era.nameKey())));
     }
 
     private boolean isVisible(@NotNull GuideEntry entry, @NotNull Player player) {
@@ -365,7 +376,9 @@ public final class GuideServiceImpl implements GuideService {
             for (int i = from, idx = 0; i < to; i++, idx++) {
                 int slot = CATEGORY_ENTRY_SLOTS[idx];
                 GuideEntry entry = all.get(i);
-                if (isVisible(entry, player)) {
+                if (isEraLocked(entry, player)) {
+                    inventory.setItem(slot, renderLockedEra(entry));
+                } else if (isVisible(entry, player)) {
                     inventory.setItem(slot, renderIndexEntry(entry));
                     slotIndex.put(slot, entry);
                 } else {
@@ -477,6 +490,7 @@ public final class GuideServiceImpl implements GuideService {
                                 Placeholder.parsed("category",
                                         messages.plain(categoryNameKey(entry.category()))))
                         .decoration(TextDecoration.ITALIC, false));
+                lore.add(eraLine(entry).decoration(TextDecoration.ITALIC, false));
                 String descKey = descriptionKeyFor(entry.displayNameKey());
                 if (descKey != null && messages.hasKey(descKey)) {
                     lore.add(Component.empty());
@@ -502,7 +516,23 @@ public final class GuideServiceImpl implements GuideService {
                 meta.lore(List.of(messages.component("guide.detail.category",
                                 Placeholder.parsed("category",
                                         messages.plain(categoryNameKey(entry.category()))))
-                        .decoration(TextDecoration.ITALIC, false)));
+                        .decoration(TextDecoration.ITALIC, false),
+                        eraLine(entry).decoration(TextDecoration.ITALIC, false)));
+                stack.setItemMeta(meta);
+            }
+            return stack;
+        }
+
+        /** An entry of an era not unlocked yet: its name and era, no recipe. */
+        private ItemStack renderLockedEra(GuideEntry entry) {
+            ItemStack stack = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
+            ItemMeta meta = stack.getItemMeta();
+            if (meta != null) {
+                meta.displayName(messages.component("guide.locked-era.name",
+                        Placeholder.component("name", messages.component(entry.displayNameKey())))
+                        .style(noItalic()));
+                meta.lore(List.of(eraLine(entry).decoration(TextDecoration.ITALIC, false),
+                        messages.component("guide.locked-era.lore").decoration(TextDecoration.ITALIC, false)));
                 stack.setItemMeta(meta);
             }
             return stack;
@@ -569,6 +599,7 @@ public final class GuideServiceImpl implements GuideService {
                                 Placeholder.parsed("category",
                                         messages.plain(categoryNameKey(entry.category()))))
                         .decoration(TextDecoration.ITALIC, false));
+                lore.add(eraLine(entry).decoration(TextDecoration.ITALIC, false));
                 String descKey = descriptionKeyFor(entry.displayNameKey());
                 if (descKey != null && messages.hasKey(descKey)) {
                     lore.add(Component.empty());
@@ -684,10 +715,10 @@ public final class GuideServiceImpl implements GuideService {
         @Override
         public void open(@NotNull Player player, @NotNull CategoryView view) {
             List<GuideEntry> all = entriesForCategory(view.category(), player);
-            // Keep only unlocked entries — Bedrock SimpleForm has no greyed state.
+            // Entries of locked eras are listed with their era but open nothing.
             List<GuideEntry> visible = new ArrayList<>();
             for (GuideEntry e : all) {
-                if (isVisible(e, player)) {
+                if (isEraLocked(e, player) || isVisible(e, player)) {
                     visible.add(e);
                 }
             }
@@ -705,8 +736,12 @@ public final class GuideServiceImpl implements GuideService {
                             .title(title)
                             .content(content);
             for (GuideEntry e : visible) {
-                form.button(dev.brmz.sapientia.core.i18n.TextAdapter.toPlainBedrock(
-                        messages.component(e.displayNameKey())));
+                Component label = isEraLocked(e, player)
+                        ? messages.component("guide.locked-era.bedrock",
+                                Placeholder.component("name", messages.component(e.displayNameKey())),
+                                Placeholder.unparsed("number", Integer.toString(progression.eraOf(e.id()).number())))
+                        : messages.component(e.displayNameKey());
+                form.button(dev.brmz.sapientia.core.i18n.TextAdapter.toPlainBedrock(label));
             }
             // Append an explicit back-to-index button.
             String backLabel = dev.brmz.sapientia.core.i18n.TextAdapter.toPlainBedrock(
@@ -723,6 +758,10 @@ public final class GuideServiceImpl implements GuideService {
                 }
                 if (idx >= snapshot.size()) return;
                 GuideEntry chosen = snapshot.get(idx);
+                if (isEraLocked(chosen, player)) {
+                    Bukkit.getScheduler().runTask(plugin, () -> openCategory(player, view));
+                    return;
+                }
                 Bukkit.getScheduler().runTask(plugin, () -> openDetail(player, chosen));
             });
             form.send(player);
@@ -743,6 +782,8 @@ public final class GuideServiceImpl implements GuideService {
                     messages.component("guide.detail.category",
                             Placeholder.parsed("category",
                                     messages.plain(categoryNameKey(entry.category()))))))
+                    .append('\n')
+                    .append(dev.brmz.sapientia.core.i18n.TextAdapter.toPlainBedrock(eraLine(entry)))
                     .append('\n');
             String descKey = descriptionKeyFor(entry.displayNameKey());
             if (descKey != null && messages.hasKey(descKey)) {

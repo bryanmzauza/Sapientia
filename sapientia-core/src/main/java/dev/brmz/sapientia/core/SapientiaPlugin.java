@@ -66,7 +66,7 @@ import dev.brmz.sapientia.core.mining.TerrainListener;
 import dev.brmz.sapientia.core.agriculture.PlantListener;
 import dev.brmz.sapientia.core.agriculture.PlantServiceImpl;
 import dev.brmz.sapientia.core.agriculture.PlantTracker;
-import dev.brmz.sapientia.core.item.LegacyItemMigrator;
+import dev.brmz.sapientia.core.item.ItemRefresher;
 import dev.brmz.sapientia.api.agriculture.PlantService;
 import dev.brmz.sapientia.api.mining.MiningService;
 import dev.brmz.sapientia.api.progression.Era;
@@ -119,6 +119,8 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
     private ProgressionServiceImpl progression;
     private MiningServiceImpl mining;
     private PlantServiceImpl plants;
+    /** SHA-1 of the freshly built pack when server.properties still points at an older one. */
+    private volatile String outdatedPackSha;
     private ChunkBlockIndex chunkBlockIndex;
     private EnergyServiceImpl energyService;
     private EnergySolver energySolver;
@@ -291,6 +293,13 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
                 event -> getServer().getPluginManager().callEvent(event),
                 uuid -> getServer().getPlayer(uuid) != null);
         this.progression.setRecipes(this::researchEntries, recipeRegistry::revision);
+        // Every item's description ends with the era it belongs to.
+        this.itemRegistry.setEraLine(id -> {
+            Era era = progression.eraOf(id);
+            return messages.component("era.lore",
+                    Placeholder.unparsed("number", Integer.toString(era.number())),
+                    Placeholder.component("era", messages.component(era.nameKey())));
+        });
         this.unlockService = new UnlockServiceImpl(progression);
 
         // Minerals from natural terrain and Sapientia plants (Foundation 2).
@@ -310,6 +319,10 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         if (getConfig().getBoolean("resource-pack.item-models", true)) {
             this.itemRegistry.setItemModels(bundledPack.itemModelIds());
         }
+        // Stacks made by another version, language or texture set are refreshed when seen.
+        this.itemRegistry.setRevision(java.util.Objects.hash(getPluginMeta().getVersion(),
+                getConfig().getString("locale", "en"), getConfig().getBoolean("resource-pack.item-models", true),
+                bundledPack.itemModelIds(), 2));
         this.resourcePackBuilder = new ResourcePackBuilder(
                 getLogger(),
                 getDataFolder().toPath(),
@@ -453,6 +466,8 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
             }
         }, this);
         this.engineTask = getServer().getScheduler().runTaskTimer(this, engine::tick, 1L, 1L);
+
+        checkResourcePack();
 
         getLogger().info(messages.plain("plugin.enabled",
                 Placeholder.parsed("version", getPluginMeta().getVersion())));
@@ -636,7 +651,18 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         java.util.Map<String, String> legacy = new java.util.HashMap<>();
         dev.brmz.sapientia.content.mining.LegacyItemIds.replacements()
                 .forEach((from, to) -> legacy.put("sapientia:" + from, "sapientia:" + to));
-        pm.registerEvents(new LegacyItemMigrator(itemRegistry, legacy), this);
+        pm.registerEvents(new ItemRefresher(itemRegistry, legacy), this);
+        pm.registerEvents(new org.bukkit.event.Listener() {
+            @org.bukkit.event.EventHandler
+            public void onJoin(org.bukkit.event.player.PlayerJoinEvent event) {
+                String sha = outdatedPackSha;
+                if (sha != null && event.getPlayer().hasPermission("sapientia.command.pack")) {
+                    event.getPlayer().sendMessage(messages.component("plugin.pack.outdated-join",
+                            Placeholder.unparsed("path", "plugins/Sapientia/sapientia-resources.zip"),
+                            Placeholder.unparsed("sha1", sha)));
+                }
+            }
+        }, this);
         pm.registerEvents(new org.bukkit.event.Listener() {
             @org.bukkit.event.EventHandler
             public void onEraChange(dev.brmz.sapientia.api.events.SapientiaEraChangeEvent event) {
@@ -650,6 +676,47 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
                 }
             }
         }, this);
+    }
+
+    /**
+     * Rebuilds the resource packs in the background so they always match the
+     * bundled textures, and warns when server.properties still points at an
+     * older Java pack (players would see new items without textures).
+     */
+    @SuppressWarnings("deprecation")
+    private void checkResourcePack() {
+        if (!getConfig().getBoolean("resource-pack.auto-build", true)) return;
+        String configured = getServer().getResourcePackHash();
+        getServer().getScheduler().runTaskAsynchronously(this, () -> {
+            try {
+                java.nio.file.Path zip = getDataFolder().toPath().resolve("sapientia-resources.zip");
+                String previous = java.nio.file.Files.exists(zip) ? sha1Of(zip) : null;
+                ResourcePackBuilder.JavaPackResult java = resourcePackBuilder.buildJavaPack();
+                if (!java.sha1().equals(previous)) {
+                    resourcePackBuilder.buildBedrockPack(); // new mcpack and Geyser mappings
+                }
+                String path = "plugins/Sapientia/sapientia-resources.zip";
+                if (configured == null || configured.isBlank()) {
+                    getLogger().info(messages.plain("plugin.pack.unset",
+                            Placeholder.unparsed("path", path), Placeholder.unparsed("sha1", java.sha1())));
+                } else if (!configured.equalsIgnoreCase(java.sha1())) {
+                    outdatedPackSha = java.sha1();
+                    getLogger().warning(messages.plain("plugin.pack.outdated",
+                            Placeholder.unparsed("path", path), Placeholder.unparsed("sha1", java.sha1())));
+                }
+            } catch (java.io.IOException | RuntimeException e) {
+                getLogger().log(java.util.logging.Level.WARNING, "Could not rebuild the resource packs", e);
+            }
+        });
+    }
+
+    private static String sha1Of(java.nio.file.Path file) throws java.io.IOException {
+        try {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-1");
+            return java.util.HexFormat.of().formatHex(digest.digest(java.nio.file.Files.readAllBytes(file)));
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     /** Era of an item, block (or its item form) or workbench recipe; {@code null} when unknown. */

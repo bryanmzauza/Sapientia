@@ -6,6 +6,10 @@ plugin:
   reload:
     success: "<green>Configuration reloaded in <white><ms>ms</white>.</green>"
     failure: "<red>Reload failed: <white><error></white></red>"
+  pack:
+    outdated: "The server resource pack in server.properties is out of date, so players see new Sapientia items without textures. Upload <path> and set resource-pack-sha1=<sha1>."
+    outdated-join: "<yellow>The server resource pack is out of date: new Sapientia items show without textures. Upload <white><path></white> and set <white>resource-pack-sha1=<sha1></white> in server.properties.</yellow>"
+    unset: "Sapientia textures need the resource pack <path> (SHA-1 <sha1>). Host it and set it as the server resource pack in server.properties."
 
 command:
   perf:
@@ -399,6 +403,10 @@ fluid:
 guide:
   title: "<gold>Sapientia Guide</gold>"
   locked: "<dark_gray>Locked</dark_gray>"
+  locked-era:
+    name: "<gray><name></gray> <dark_gray>(locked)</dark_gray>"
+    lore: "<dark_gray>Unlocks when the server reaches this era.</dark_gray>"
+    bedrock: "<name> (era <number>, locked)"
   entry:
     click: "<yellow>» Click for recipe</yellow>"
   index:
@@ -412,7 +420,7 @@ guide:
     goal-done: "<gray>Every unlocked era is complete. The next era comes when the admin unlocks it.</gray>"
   category:
     title: "<gold>Guide</gold> <gray>·</gray> <white><category></white>"
-    locked-eras: "<dark_gray><count> more in eras not unlocked yet</dark_gray>"
+    locked-eras: "<dark_gray><count> in eras not unlocked yet</dark_gray>"
     back:
       name: "<yellow>« Back to Categories</yellow>"
       lore: "<gray>Return to the category list.</gray>"
@@ -931,6 +939,7 @@ era:
     name: "Singularity"
     summary: "Transmutation, programmable matter and the Dyson sphere."
   announce: "<gold>A new era begins: <white><number> — <era></white>!</gold> <gray><summary></gray>"
+  lore: "<dark_gray>Era <number>: <era></dark_gray>"
   locked:
     place: "<red>This belongs to era <number> (<era>), which is not unlocked on this server yet.</red>"
 

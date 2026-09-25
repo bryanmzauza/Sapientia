@@ -15,6 +15,10 @@ resource-pack:
   # server resource pack in server.properties); without it these items render
   # as missing textures. Set to false to keep vanilla appearances.
   item-models: true
+  # Rebuild the Java and Bedrock packs at start-up so they always match the
+  # bundled textures, and warn when resource-pack-sha1 in server.properties
+  # points at an older pack.
+  auto-build: true
 
 # Live readout rendered while a player aims at a Sapientia energy block
 # holding the wrench. Costs one ray-trace + one packet per wrench holder per

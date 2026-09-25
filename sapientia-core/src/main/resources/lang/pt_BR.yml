@@ -6,6 +6,10 @@ plugin:
   reload:
     success: "<green>Configuração recarregada em <white><ms>ms</white>.</green>"
     failure: "<red>Falha ao recarregar: <white><error></white></red>"
+  pack:
+    outdated: "O pacote de recursos do server.properties está desatualizado, e os jogadores veem os itens novos do Sapientia sem textura. Envie <path> e defina resource-pack-sha1=<sha1>."
+    outdated-join: "<yellow>O pacote de recursos do servidor está desatualizado: itens novos do Sapientia aparecem sem textura. Envie <white><path></white> e defina <white>resource-pack-sha1=<sha1></white> no server.properties.</yellow>"
+    unset: "As texturas do Sapientia precisam do pacote de recursos <path> (SHA-1 <sha1>). Hospede-o e defina-o como pacote do servidor no server.properties."
 
 command:
   perf:
@@ -399,6 +403,10 @@ fluid:
 guide:
   title: "<gold>Guia Sapientia</gold>"
   locked: "<dark_gray>Bloqueado</dark_gray>"
+  locked-era:
+    name: "<gray><name></gray> <dark_gray>(bloqueado)</dark_gray>"
+    lore: "<dark_gray>Liberado quando o servidor chegar a esta era.</dark_gray>"
+    bedrock: "<name> (era <number>, bloqueado)"
   entry:
     click: "<yellow>» Clique para ver a receita</yellow>"
   index:
@@ -412,7 +420,7 @@ guide:
     goal-done: "<gray>Todas as eras liberadas foram concluídas. A próxima vem quando o admin liberar.</gray>"
   category:
     title: "<gold>Guia</gold> <gray>·</gray> <white><category></white>"
-    locked-eras: "<dark_gray>mais <count> em eras ainda não liberadas</dark_gray>"
+    locked-eras: "<dark_gray><count> em eras ainda não liberadas</dark_gray>"
     back:
       name: "<yellow>« Voltar as Categorias</yellow>"
       lore: "<gray>Retornar a lista de categorias.</gray>"
@@ -931,6 +939,7 @@ era:
     name: "Singularidade"
     summary: "Transmutação, matéria programável e esfera de Dyson."
   announce: "<gold>Uma nova era começa: <white><number> — <era></white>!</gold> <gray><summary></gray>"
+  lore: "<dark_gray>Era <number>: <era></dark_gray>"
   locked:
     place: "<red>Isto pertence à era <number> (<era>), que ainda não foi liberada neste servidor.</red>"
 
