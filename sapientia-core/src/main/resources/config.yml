@@ -23,6 +23,15 @@ resource-pack:
 # Live readout rendered while a player aims at a Sapientia energy block
 # holding the wrench. Costs one ray-trace + one packet per wrench holder per
 # interval-ticks; negligible for typical player counts.
+look-at:
+  # Shows the name and era of the Sapientia block or dropped item under the
+  # crosshair on the action bar. One short ray trace per player per run.
+  enabled: true
+  # Max distance (in blocks).
+  range: 6
+  # How often it runs, in server ticks (20 ticks = 1 s).
+  interval-ticks: 10
+
 inspector:
   # Display mode. Values: actionbar | bossbar | off.
   display: actionbar

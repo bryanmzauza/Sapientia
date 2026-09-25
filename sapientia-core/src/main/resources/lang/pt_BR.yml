@@ -137,6 +137,10 @@ item:
     name: "<gold>Guia Sapientia</gold>"
     lore: "<gray>Clique direito para abrir o guia.</gray>"
     desc: "Seu manual de campo. Abre uma UI em bau listando todos\nos itens, blocos e receitas Sapientia desbloqueados."
+  era_almanac:
+    name: "<gold>Almanaque das Eras</gold>"
+    lore: "<gray>Clique direito para ver o que cada era traz.</gray>"
+    desc: "Lista as 25 eras e todos os itens, blocos e máquinas\nde cada uma, inclusive das eras ainda bloqueadas."
   prospector:
     name: "<aqua>Prospector</aqua>"
     lore: "<gray>Clique direito para escanear o chunk em busca de minerios.</gray>"
@@ -399,6 +403,32 @@ fluid:
     name: "<gray>Dioxido de Carbono</gray>"
   liquid_oxygen:
     name: "<aqua>Oxigenio Liquido</aqua>"
+
+almanac:
+  title: "<gold>Almanaque das Eras</gold>"
+  header:
+    name: "<gold><bold>Almanaque das Eras</bold></gold>"
+    lore: "<gray>Tudo o que cada era traz.\nEscolha uma era para ver seus\nitens, blocos e máquinas.</gray>"
+  era:
+    name: "<white>Era <number>: <era></white>"
+    title: "<gold>Almanaque</gold> <gray>·</gray> <white>Era <number></white>"
+    current: "<green>Era atual do servidor</green>"
+    locked: "<red>Ainda não liberada neste servidor</red>"
+    click: "<yellow>» Clique para ver o que ela traz</yellow>"
+    bedrock: "Era <number>: <era>"
+    bedrock-locked: "Era <number>: <era> (bloqueada)"
+  entry:
+    known: "<green>Pesquisado</green>"
+    unknown: "<gray>Ainda não pesquisado</gray>"
+  back:
+    name: "<yellow>« Voltar às Eras</yellow>"
+    lore: "<gray>Volta para a lista de eras.</gray>"
+
+hud:
+  look-at:
+    block: "<white><name></white> <dark_gray>·</dark_gray> <gray>Era <number>: <era></gray>"
+    item: "<white><name></white> <gray>x<amount></gray> <dark_gray>·</dark_gray> <gray>Era <number>: <era></gray>"
+    locked: " <red>(bloqueada)</red>"
 
 guide:
   title: "<gold>Guia Sapientia</gold>"

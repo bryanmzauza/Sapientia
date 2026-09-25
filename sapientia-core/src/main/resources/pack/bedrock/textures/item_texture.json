@@ -8,6 +8,9 @@
     "sapientia.guide": {
       "textures": "textures/items/guide"
     },
+    "sapientia.era_almanac": {
+      "textures": "textures/items/era_almanac"
+    },
     "sapientia.prospector": {
       "textures": "textures/items/prospector"
     },

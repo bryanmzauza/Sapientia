@@ -21,7 +21,7 @@ public final class ContentEras {
     private static final Map<String, Era> ERAS = new HashMap<>();
 
     static {
-        put(Era.ARRIVAL, "guide", "workbench");
+        put(Era.ARRIVAL, "guide", "era_almanac", "workbench");
         put(Era.COPPER_AGE, "pedestal");
         put(Era.INDUSTRIAL_REVOLUTION, "boiler", "condenser", "fluid_pipe", "fluid_pump", "fluid_tank", "fluid_drain");
         put(Era.ELECTRICITY, "generator", "cable", "capacitor", "consumer", "console", "wrench", "machine_casing",

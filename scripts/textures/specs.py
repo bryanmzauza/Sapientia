@@ -653,6 +653,25 @@ GUIDE = [
     "................",
 ]
 
+ALMANAC = [
+    "................",
+    "................",
+    "..kkkkkkkkkkk...",
+    "..kCDDDDDDDDk...",
+    "..kCDyyyyyyDk...",
+    "..kCDDyDDyDDk...",
+    "..kCDDDyyDDDk...",
+    "..kCDDDyyDDDk...",
+    "..kCDDyDDyDDk...",
+    "..kCDyyyyyyDk...",
+    "..kCDDDDDDDDk...",
+    "..kCEEEEEEEEk...",
+    "..kCwwwwwwwwk...",
+    "..kkkkkkkkkkk...",
+    "................",
+    "................",
+]
+
 PROSPECTOR = [
     "................",
     "...........kk...",
@@ -715,6 +734,7 @@ def wrench() -> Image.Image:
 TOOLS: dict[str, Spec] = {
     "wrench": item(wrench, HANDHELD),
     "guide": item(lambda: render_mask(GUIDE, accent=ramp("#2f8fa8"))),
+    "era_almanac": item(lambda: render_mask(ALMANAC, accent=ramp("#8a5a2f"))),
     "prospector": item(lambda: render_mask(PROSPECTOR, accent=tier_ramp(3)), HANDHELD),
     "gps_handheld_map": item(lambda: render_mask(GPS_MAP, accent=tier_ramp(2))),
 }

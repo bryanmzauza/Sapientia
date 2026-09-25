@@ -25,6 +25,11 @@ public interface GuideService {
     /** Looks up a specific entry by its id. */
     @NotNull java.util.Optional<GuideEntry> find(@NotNull NamespacedKey id);
 
-    /** Opens the guide UI for the given player. */
+    /** Opens the guide UI for the given player, on the page they left it. */
     void open(@NotNull Player player);
+
+    /** Opens the era almanac: every entry grouped by the era it belongs to. */
+    default void openEras(@NotNull Player player) {
+        open(player);
+    }
 }

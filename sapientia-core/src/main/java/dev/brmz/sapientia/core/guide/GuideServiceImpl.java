@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import dev.brmz.sapientia.api.Sapientia;
 import dev.brmz.sapientia.api.crafting.RecipeIngredient;
@@ -43,6 +44,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Default {@link GuideService} implementation. Three-level navigation:
@@ -51,6 +53,9 @@ import org.jetbrains.annotations.NotNull;
  *   <li>Category — paginated entry list (28 per page, prev/next/back).</li>
  *   <li>Detail — recipe + description, back returns to the category.</li>
  * </ol>
+ * The last view is kept in the player's data, so the guide reopens where the
+ * player left it. The era almanac ({@link EraAlmanac}) lists the same entries
+ * by era.
  */
 public final class GuideServiceImpl implements GuideService {
 
@@ -87,14 +92,16 @@ public final class GuideServiceImpl implements GuideService {
     private static final int DETAIL_BACK_SLOT   = 49;
 
     // Border slots reused across all three views.
-    private static final int[] CHEST_BORDER = chestBorderSlots54();
+    static final int[] CHEST_BORDER = chestBorderSlots54();
 
     private final Plugin plugin;
-    private final Map<NamespacedKey, GuideEntry> entries = new LinkedHashMap<>();
+    final Map<NamespacedKey, GuideEntry> entries = new LinkedHashMap<>();
     private final UIService uiService;
     private final UnlockService unlockService;
     private final ProgressionServiceImpl progression;
     private final Messages messages;
+    private final NamespacedKey viewKey;
+    private final EraAlmanac almanac;
 
     public GuideServiceImpl(
             @NotNull Plugin plugin,
@@ -110,6 +117,8 @@ public final class GuideServiceImpl implements GuideService {
         uiService.register(new GuideIndexDescriptor());
         uiService.register(new GuideCategoryDescriptor());
         uiService.register(new GuideDetailDescriptor());
+        this.viewKey = new NamespacedKey(plugin, "guide_view");
+        this.almanac = new EraAlmanac(this, plugin, uiService, progression, messages);
     }
 
     @Override
@@ -132,17 +141,72 @@ public final class GuideServiceImpl implements GuideService {
         return Optional.ofNullable(entries.get(id));
     }
 
+    /** Reopens the view the player left the guide on, or the index. */
     @Override
     public void open(@NotNull Player player) {
+        String saved = player.getPersistentDataContainer().get(viewKey, PersistentDataType.STRING);
+        String[] parts = saved == null ? new String[0] : saved.split("\\|");
+        GuideCategory category = parts.length >= 3 ? categoryOf(parts[parts.length - 2]) : null;
+        int page = parts.length >= 3 ? parseInt(parts[parts.length - 1]) : 0;
+        if (category != null && parts[0].equals("category")) {
+            openCategory(player, new CategoryView(category, page));
+            return;
+        }
+        if (category != null && parts[0].equals("entry") && parts.length == 4) {
+            NamespacedKey id = NamespacedKey.fromString(parts[1]);
+            GuideEntry entry = id == null ? null : entries.get(id);
+            if (entry != null && !isEraLocked(entry, player) && isVisible(entry, player)) {
+                openDetail(player, entry, new CategoryView(category, page));
+            } else {
+                openCategory(player, new CategoryView(category, page));
+            }
+            return;
+        }
+        openIndex(player);
+    }
+
+    @Override
+    public void openEras(@NotNull Player player) {
+        almanac.open(player);
+    }
+
+    private void openIndex(@NotNull Player player) {
+        remember(player, "index");
         uiService.open(player, new GuideIndexDescriptor(), player);
     }
 
     private void openCategory(@NotNull Player player, @NotNull CategoryView view) {
+        remember(player, "category|" + view.category().name() + "|" + view.page());
         uiService.open(player, new GuideCategoryDescriptor(), view);
     }
 
-    private void openDetail(@NotNull Player player, @NotNull GuideEntry entry) {
-        uiService.open(player, new GuideDetailDescriptor(), entry);
+    private void openDetail(@NotNull Player player, @NotNull GuideEntry entry, @NotNull CategoryView from) {
+        remember(player, "entry|" + entry.id() + "|" + from.category().name() + "|" + from.page());
+        openDetail(player, entry, p -> openCategory(p, from));
+    }
+
+    /** Opens an entry's detail page; its back button runs {@code back}. */
+    void openDetail(@NotNull Player player, @NotNull GuideEntry entry, @NotNull Consumer<Player> back) {
+        uiService.open(player, new GuideDetailDescriptor(), new DetailView(entry, back));
+    }
+
+    private void remember(@NotNull Player player, @NotNull String view) {
+        player.getPersistentDataContainer().set(viewKey, PersistentDataType.STRING, view);
+    }
+
+    private static @Nullable GuideCategory categoryOf(@NotNull String name) {
+        for (GuideCategory category : GuideCategory.values()) {
+            if (category.name().equals(name)) return category;
+        }
+        return null;
+    }
+
+    static int parseInt(@NotNull String raw) {
+        try {
+            return Math.max(0, Integer.parseInt(raw));
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     /** Entries of a category, earliest era first; entries of locked eras are listed too, as locked. */
@@ -170,24 +234,24 @@ public final class GuideServiceImpl implements GuideService {
         return n;
     }
 
-    private boolean isEraLocked(@NotNull GuideEntry entry, @NotNull Player player) {
+    boolean isEraLocked(@NotNull GuideEntry entry, @NotNull Player player) {
         return !progression.bypasses(player) && !progression.isAvailable(entry.id());
     }
 
     /** "Era N: name" for an entry. */
-    private Component eraLine(@NotNull GuideEntry entry) {
+    Component eraLine(@NotNull GuideEntry entry) {
         Era era = progression.eraOf(entry.id());
         return messages.component("era.lore",
                 Placeholder.unparsed("number", Integer.toString(era.number())),
                 Placeholder.component("era", messages.component(era.nameKey())));
     }
 
-    private boolean isVisible(@NotNull GuideEntry entry, @NotNull Player player) {
+    boolean isVisible(@NotNull GuideEntry entry, @NotNull Player player) {
         return entry.discoveredByDefault() || unlockService.isUnlocked(player.getUniqueId(), entry.id());
     }
 
     /** Server era and the player's next goal, as lore or text lines. */
-    private List<Component> progressLines(@NotNull Player player) {
+    List<Component> progressLines(@NotNull Player player) {
         List<Component> lines = new ArrayList<>();
         Era era = progression.serverEra();
         lines.add(messages.component("guide.index.era",
@@ -236,6 +300,9 @@ public final class GuideServiceImpl implements GuideService {
     /** Context for the paginated category view. */
     private record CategoryView(GuideCategory category, int page) {}
 
+    /** Context for an entry's detail page: the entry and where its back button leads. */
+    private record DetailView(GuideEntry entry, Consumer<Player> back) {}
+
     // -- descriptors -----------------------------------------------------------
 
     private final class GuideIndexDescriptor implements UIDescriptor<Player> {
@@ -254,10 +321,10 @@ public final class GuideServiceImpl implements GuideService {
         }
     }
 
-    private final class GuideDetailDescriptor implements UIDescriptor<GuideEntry> {
+    private final class GuideDetailDescriptor implements UIDescriptor<DetailView> {
         @Override public @NotNull NamespacedKey key() { return DETAIL_KEY; }
-        @Override public @NotNull JavaInventoryRenderer<GuideEntry> javaRenderer() { return new GuideDetailRenderer(); }
-        @Override public dev.brmz.sapientia.api.ui.BedrockFormRenderer<GuideEntry> bedrockRenderer() {
+        @Override public @NotNull JavaInventoryRenderer<DetailView> javaRenderer() { return new GuideDetailRenderer(); }
+        @Override public dev.brmz.sapientia.api.ui.BedrockFormRenderer<DetailView> bedrockRenderer() {
             return new GuideDetailBedrockRenderer();
         }
     }
@@ -350,6 +417,7 @@ public final class GuideServiceImpl implements GuideService {
         private final Map<Integer, GuideEntry> slotIndex = new HashMap<>();
         private boolean hasPrev;
         private boolean hasNext;
+        private int shownPage;
 
         @Override public int size(@NotNull Player player, @NotNull CategoryView ctx) { return 54; }
 
@@ -368,6 +436,7 @@ public final class GuideServiceImpl implements GuideService {
             List<GuideEntry> all = entriesForCategory(view.category(), player);
             int totalPages = Math.max(1, (all.size() + PAGE_SIZE - 1) / PAGE_SIZE);
             int page = Math.max(0, Math.min(view.page(), totalPages - 1));
+            shownPage = page;
 
             inventory.setItem(CATEGORY_HEADER_SLOT, categoryHeader(view.category(), page, totalPages, all.size(),
                     lockedInCategory(view.category(), player)));
@@ -398,25 +467,26 @@ public final class GuideServiceImpl implements GuideService {
         public void onClick(@NotNull Player player, @NotNull CategoryView ctx, int slot) {
             if (slot == CATEGORY_BACK_SLOT) {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.6f, 1.4f);
-                Bukkit.getScheduler().runTask(plugin, () -> open(player));
+                Bukkit.getScheduler().runTask(plugin, () -> openIndex(player));
                 return;
             }
             if (slot == CATEGORY_PREV_SLOT && hasPrev) {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.6f, 1.5f);
-                CategoryView next = new CategoryView(ctx.category(), ctx.page() - 1);
+                CategoryView next = new CategoryView(ctx.category(), shownPage - 1);
                 Bukkit.getScheduler().runTask(plugin, () -> openCategory(player, next));
                 return;
             }
             if (slot == CATEGORY_NEXT_SLOT && hasNext) {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.6f, 1.5f);
-                CategoryView next = new CategoryView(ctx.category(), ctx.page() + 1);
+                CategoryView next = new CategoryView(ctx.category(), shownPage + 1);
                 Bukkit.getScheduler().runTask(plugin, () -> openCategory(player, next));
                 return;
             }
             GuideEntry entry = slotIndex.get(slot);
             if (entry == null) return;
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.6f, 1.6f);
-            Bukkit.getScheduler().runTask(plugin, () -> openDetail(player, entry));
+            CategoryView from = new CategoryView(ctx.category(), shownPage);
+            Bukkit.getScheduler().runTask(plugin, () -> openDetail(player, entry, from));
         }
 
         private ItemStack categoryHeader(GuideCategory cat, int page, int totalPages, int totalEntries,
@@ -510,7 +580,7 @@ public final class GuideServiceImpl implements GuideService {
         }
 
         private ItemStack renderLocked(GuideEntry entry) {
-            ItemStack stack = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
+            ItemStack stack = new ItemStack(Material.BARRIER);
             ItemMeta meta = stack.getItemMeta();
             if (meta != null) {
                 meta.displayName(messages.component("guide.locked").style(noItalic()));
@@ -526,7 +596,7 @@ public final class GuideServiceImpl implements GuideService {
 
         /** An entry of an era not unlocked yet: its name and era, no recipe. */
         private ItemStack renderLockedEra(GuideEntry entry) {
-            ItemStack stack = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
+            ItemStack stack = new ItemStack(Material.BARRIER);
             ItemMeta meta = stack.getItemMeta();
             if (meta != null) {
                 meta.displayName(messages.component("guide.locked-era.name",
@@ -542,18 +612,19 @@ public final class GuideServiceImpl implements GuideService {
 
     // -- detail ---------------------------------------------------------------
 
-    private final class GuideDetailRenderer implements JavaInventoryRenderer<GuideEntry> {
+    private final class GuideDetailRenderer implements JavaInventoryRenderer<DetailView> {
 
-        @Override public int size(@NotNull Player player, @NotNull GuideEntry ctx) { return 54; }
+        @Override public int size(@NotNull Player player, @NotNull DetailView ctx) { return 54; }
 
         @Override
-        public @NotNull Component title(@NotNull Player player, @NotNull GuideEntry ctx) {
+        public @NotNull Component title(@NotNull Player player, @NotNull DetailView ctx) {
             return messages.component("guide.detail.title",
-                    Placeholder.parsed("name", messages.plain(ctx.displayNameKey())));
+                    Placeholder.parsed("name", messages.plain(ctx.entry().displayNameKey())));
         }
 
         @Override
-        public void render(@NotNull Inventory inventory, @NotNull Player player, @NotNull GuideEntry entry) {
+        public void render(@NotNull Inventory inventory, @NotNull Player player, @NotNull DetailView view) {
+            GuideEntry entry = view.entry();
             ItemStack border = decorativePane(Material.BLUE_STAINED_GLASS_PANE);
             for (int slot : CHEST_BORDER) inventory.setItem(slot, border);
 
@@ -603,11 +674,10 @@ public final class GuideServiceImpl implements GuideService {
         }
 
         @Override
-        public void onClick(@NotNull Player player, @NotNull GuideEntry context, int slot) {
+        public void onClick(@NotNull Player player, @NotNull DetailView context, int slot) {
             if (slot != DETAIL_BACK_SLOT) return;
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.6f, 1.4f);
-            Bukkit.getScheduler().runTask(plugin,
-                    () -> openCategory(player, new CategoryView(context.category(), 0)));
+            Bukkit.getScheduler().runTask(plugin, () -> context.back().accept(player));
         }
 
         private ItemStack headerIcon(GuideEntry entry) {
@@ -784,8 +854,7 @@ public final class GuideServiceImpl implements GuideService {
             form.onClick(idx -> {
                 if (idx < 0) return;
                 if (idx == snapshot.size()) {
-                    Bukkit.getScheduler().runTask(plugin,
-                            () -> GuideServiceImpl.this.open(player));
+                    Bukkit.getScheduler().runTask(plugin, () -> openIndex(player));
                     return;
                 }
                 if (idx >= snapshot.size()) return;
@@ -794,17 +863,18 @@ public final class GuideServiceImpl implements GuideService {
                     Bukkit.getScheduler().runTask(plugin, () -> openCategory(player, view));
                     return;
                 }
-                Bukkit.getScheduler().runTask(plugin, () -> openDetail(player, chosen));
+                Bukkit.getScheduler().runTask(plugin, () -> openDetail(player, chosen, view));
             });
             form.send(player);
         }
     }
 
     private final class GuideDetailBedrockRenderer
-            implements dev.brmz.sapientia.api.ui.BedrockFormRenderer<GuideEntry> {
+            implements dev.brmz.sapientia.api.ui.BedrockFormRenderer<DetailView> {
 
         @Override
-        public void open(@NotNull Player player, @NotNull GuideEntry entry) {
+        public void open(@NotNull Player player, @NotNull DetailView view) {
+            GuideEntry entry = view.entry();
             String title = dev.brmz.sapientia.core.i18n.TextAdapter.toPlainBedrock(
                     messages.component("guide.detail.title",
                             Placeholder.parsed("name", messages.plain(entry.displayNameKey()))));
@@ -862,8 +932,7 @@ public final class GuideServiceImpl implements GuideService {
                     .title(title)
                     .content(body.toString())
                     .button(backLabel)
-                    .onClick(idx -> Bukkit.getScheduler().runTask(plugin,
-                            () -> openCategory(player, new CategoryView(entry.category(), 0))))
+                    .onClick(idx -> Bukkit.getScheduler().runTask(plugin, () -> view.back().accept(player)))
                     .send(player);
         }
 
@@ -930,14 +999,14 @@ public final class GuideServiceImpl implements GuideService {
         return null;
     }
 
-    private static String descriptionKeyFor(String displayNameKey) {
+    static String descriptionKeyFor(String displayNameKey) {
         if (displayNameKey.endsWith(".name")) {
             return displayNameKey.substring(0, displayNameKey.length() - ".name".length()) + ".desc";
         }
         return null;
     }
 
-    private static String categoryNameKey(GuideCategory cat) {
+    static String categoryNameKey(GuideCategory cat) {
         return "guide.category." + cat.name().toLowerCase(Locale.ROOT) + ".name";
     }
 
@@ -972,11 +1041,11 @@ public final class GuideServiceImpl implements GuideService {
      * carries the item's bundled model. Falls back to the plain base material
      * for ids that are not registered items (callers overwrite name and lore).
      */
-    private static ItemStack sapientiaIcon(NamespacedKey id, Material fallback) {
+    static ItemStack sapientiaIcon(NamespacedKey id, Material fallback) {
         return Sapientia.get().createStack(id, 1).orElseGet(() -> new ItemStack(fallback));
     }
 
-    private static List<Component> splitLore(String raw, NamedTextColor color) {
+    static List<Component> splitLore(String raw, NamedTextColor color) {
         List<Component> out = new ArrayList<>();
         for (String line : raw.split("\\r?\\n")) {
             out.add(Component.text(line, color).decoration(TextDecoration.ITALIC, false));
@@ -984,7 +1053,7 @@ public final class GuideServiceImpl implements GuideService {
         return out;
     }
 
-    private static ItemStack decorativePane(Material material) {
+    static ItemStack decorativePane(Material material) {
         ItemStack stack = new ItemStack(material);
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
@@ -994,7 +1063,7 @@ public final class GuideServiceImpl implements GuideService {
         return stack;
     }
 
-    private static Style noItalic() {
+    static Style noItalic() {
         return Style.style().decoration(TextDecoration.ITALIC, false).build();
     }
 
@@ -1020,7 +1089,7 @@ public final class GuideServiceImpl implements GuideService {
     }
 
     /** Inner 7x4 area = rows 1..4, columns 1..7 (28 slots). */
-    private static int[] innerSlots54() {
+    static int[] innerSlots54() {
         int[] arr = new int[28];
         int idx = 0;
         for (int row = 1; row <= 4; row++) {

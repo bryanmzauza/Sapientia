@@ -47,7 +47,7 @@ Sapientia 2 is the era-based rewrite of the plugin. Its versions follow the eras
 3. Tasks use `F<foundation>.<n>` and `E<era>.<n>` codes, which are also used in commit messages
    (`Refs: E3.2`).
 
-**Current cycle:** 2.0.2 (era 0), ready for testing on a server.
+**Current cycle:** 2.0.3 (era 0 fixes: guide memory, barriers, era almanac, look-at display).
 
 ---
 
@@ -128,7 +128,7 @@ drops, research and the guide are covered by unit tests and still need a play te
 
 | Era | Version | Name | Highlights | Document |
 |-----|---------|------|------------|----------|
-| 0 | 2.0.2 | Arrival | Guide, Sapientia Workbench (done) | [era-00](eras/era-00-chegada.md) |
+| 0 | 2.0.2 | Arrival | Guide, Era Almanac, Sapientia Workbench (done) | [era-00](eras/era-00-chegada.md) |
 | 1 | 2.1.x | Stone Age | Agriculture (flax, herbs, quern, bread), charcoal pit, fire clay, clay furnace | [era-01](eras/era-01-pedra.md) |
 | 2 | 2.2.x | Copper Age | Native copper, gold and silver; rice; salt pan; hand loom | [era-02](eras/era-02-cobre.md) |
 | 3 | 2.3.x | Bronze Age | Tin, bronze, gold pan, scythe, cheese, pedal loom | [era-03](eras/era-03-bronze.md) |
@@ -178,6 +178,7 @@ Details for each version are in [CHANGELOG.md](CHANGELOG.md).
 
 | Version | Theme | Highlights |
 |---------|-------|------------|
+| 2.0.2 | Era 0 | Guide on first join, vanilla recipes for the guide and the workbench, workbench tools |
 | 2.0.1 | Foundation 2 | Eras and research, era locks, 46 minerals from natural terrain, veins, separation rules, plant system |
 | 2.0.0 | Foundation 1 | Budgeted engine, activity radius, per-chunk limits, compact storage, background persistence |
 | 1.11.0 | Platform | Minecraft 26.3; bundled textures for all items and blocks; Java and Bedrock pack pipeline |

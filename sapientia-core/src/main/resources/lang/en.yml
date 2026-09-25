@@ -137,6 +137,10 @@ item:
     name: "<gold>Sapientia Guide</gold>"
     lore: "<gray>Right-click to open the in-game guide.</gray>"
     desc: "Your field manual. Opens a chest UI listing every\nSapientia item, block and recipe you have unlocked."
+  era_almanac:
+    name: "<gold>Era Almanac</gold>"
+    lore: "<gray>Right-click to see what each era brings.</gray>"
+    desc: "Lists the 25 eras and every item, block and machine\neach one brings, including eras not unlocked yet."
   prospector:
     name: "<aqua>Prospector</aqua>"
     lore: "<gray>Right-click to scan the chunk for ore signals.</gray>"
@@ -399,6 +403,32 @@ fluid:
     name: "<gray>Carbon Dioxide</gray>"
   liquid_oxygen:
     name: "<aqua>Liquid Oxygen</aqua>"
+
+almanac:
+  title: "<gold>Era Almanac</gold>"
+  header:
+    name: "<gold><bold>Era Almanac</bold></gold>"
+    lore: "<gray>Everything each era brings.\nPick an era to see its items,\nblocks and machines.</gray>"
+  era:
+    name: "<white>Era <number>: <era></white>"
+    title: "<gold>Almanac</gold> <gray>·</gray> <white>Era <number></white>"
+    current: "<green>Current server era</green>"
+    locked: "<red>Not unlocked on this server yet</red>"
+    click: "<yellow>» Click to see what it brings</yellow>"
+    bedrock: "Era <number>: <era>"
+    bedrock-locked: "Era <number>: <era> (locked)"
+  entry:
+    known: "<green>Researched</green>"
+    unknown: "<gray>Not researched yet</gray>"
+  back:
+    name: "<yellow>« Back to Eras</yellow>"
+    lore: "<gray>Return to the era list.</gray>"
+
+hud:
+  look-at:
+    block: "<white><name></white> <dark_gray>·</dark_gray> <gray>Era <number>: <era></gray>"
+    item: "<white><name></white> <gray>x<amount></gray> <dark_gray>·</dark_gray> <gray>Era <number>: <era></gray>"
+    locked: " <red>(locked)</red>"
 
 guide:
   title: "<gold>Sapientia Guide</gold>"

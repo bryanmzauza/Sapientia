@@ -55,6 +55,7 @@ import dev.brmz.sapientia.content.geo.SapientiaGpsMarker;
 import dev.brmz.sapientia.content.geo.SapientiaGpsTransmitter;
 import dev.brmz.sapientia.content.geo.SapientiaProspector;
 import dev.brmz.sapientia.content.geo.SapientiaQuarryController;
+import dev.brmz.sapientia.content.items.SapientiaEraAlmanac;
 import dev.brmz.sapientia.content.items.SapientiaGuide;
 import dev.brmz.sapientia.content.items.SapientiaWrench;
 import dev.brmz.sapientia.content.logistics.SapientiaComparatorSensor;
@@ -107,6 +108,7 @@ public final class ContentBootstrap {
         // Items
         api.registerItem(new SapientiaWrench(plugin));
         api.registerItem(new SapientiaGuide(plugin));
+        api.registerItem(new SapientiaEraAlmanac(plugin));
 
         // Blocks (decorative + demo)
         api.registerBlock(new SapientiaPedestal(plugin));

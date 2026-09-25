@@ -13,7 +13,7 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Era 0 (Arrival): the two items made on the vanilla crafting table, before the
+ * Era 0 (Arrival): the items made on the vanilla crafting table, before the
  * Sapientia Workbench exists. See {@code docs/eras/era-00-chegada.md}.
  */
 public final class ArrivalRecipes {
@@ -25,6 +25,11 @@ public final class ArrivalRecipes {
         api.recipes().registerVanilla(VanillaRecipe.shapeless(
                 new NamespacedKey(plugin, "vanilla_guide"), new NamespacedKey(plugin, "guide"), 1,
                 Set.of(Material.BOOK), Set.of(Material.FLINT)));
+
+        // Era almanac: 1 book + 1 flint + 1 paper, shapeless.
+        api.recipes().registerVanilla(VanillaRecipe.shapeless(
+                new NamespacedKey(plugin, "vanilla_era_almanac"), new NamespacedKey(plugin, "era_almanac"), 1,
+                Set.of(Material.BOOK), Set.of(Material.FLINT), Set.of(Material.PAPER)));
 
         // Workbench: crafting table in the centre, cobblestone in the corners,
         // planks above and below, flint on the sides.

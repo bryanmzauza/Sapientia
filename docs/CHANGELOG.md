@@ -10,7 +10,29 @@ Versions 0.1.0 through 1.10.0 were development milestones; no binaries were publ
 
 ## [Unreleased]
 
-Era 0 (Arrival), planned as **2.0.2**: how a new player starts.
+Fixes and additions to era 0, planned as **2.0.3**.
+
+### Added
+
+- Era Almanac: a new era 0 item (1 book, 1 flint and 1 paper on the vanilla crafting table) that
+  lists the 25 eras and every item, block and machine each one brings. Eras not unlocked yet list
+  their entries by name. Entries of unlocked eras open their recipe in the guide. Available on Java
+  and Bedrock.
+- Looking at a Sapientia block or a dropped Sapientia item shows its name and era on the action bar
+  (`look-at.enabled`, `look-at.range`, `look-at.interval-ticks`). Energy nodes inspected with the
+  wrench keep the energy inspector's display.
+- API: `GuideService#openEras(Player)`.
+
+### Changed
+
+- The guide reopens on the page the player left it (category and page, or the entry being read),
+  also after relogging. The back button of an entry returns to the page it was opened from.
+- Entries of eras not unlocked yet, and entries not researched yet, are shown as barriers in the
+  guide.
+
+## [2.0.2] - 2026-09-25
+
+Era 0 (Arrival): how a new player starts.
 
 ### Added
 

@@ -466,6 +466,14 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         });
         engine.addSystemTask("logic", 5, 9, logicService::tickAll);
         engine.addSystemTask("androids", 1, 21, androidTicker::tick);
+        if (getConfig().getBoolean("look-at.enabled", true)) {
+            dev.brmz.sapientia.core.ui.LookAtHud lookAt = new dev.brmz.sapientia.core.ui.LookAtHud(
+                    chunkBlockIndex, itemRegistry, energyService, progression, messages,
+                    getConfig().getDouble("look-at.range", 6.0));
+            getServer().getPluginManager().registerEvents(lookAt, this);
+            engine.addSystemTask("look-at", Math.max(1, getConfig().getInt("look-at.interval-ticks", 10)), 3,
+                    lookAt::tick);
+        }
         getServer().getPluginManager().registerEvents(new org.bukkit.event.Listener() {
             @org.bukkit.event.EventHandler
             public void onWorldUnload(org.bukkit.event.world.WorldUnloadEvent event) {
