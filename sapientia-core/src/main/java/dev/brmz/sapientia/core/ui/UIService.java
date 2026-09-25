@@ -65,6 +65,11 @@ public final class UIService implements Listener {
         open(player, (UIDescriptor<Object>) descriptor, context);
     }
 
+    /** Whether an inventory belongs to one of the plugin's screens. */
+    public static boolean isPluginScreen(@org.jetbrains.annotations.Nullable InventoryHolder holder) {
+        return holder instanceof SapientiaInventoryHolder<?>;
+    }
+
     /** Called by the Java provider to track the open inventory for event dispatch. */
     <C> void trackOpen(@NotNull Player player, @NotNull SapientiaInventoryHolder<C> holder) {
         openHolders.put(player.getUniqueId(), holder);

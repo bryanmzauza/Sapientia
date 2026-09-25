@@ -1,6 +1,6 @@
 package dev.brmz.sapientia.content.blocks;
 
-import dev.brmz.sapientia.api.block.SapientiaBlock;
+import dev.brmz.sapientia.content.CatalogBlock;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.Plugin;
@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
  * Purely decorative Sapientia block. Proves the block registration + persistence
  * path end-to-end without any custom logic (T-180).
  */
-public final class SapientiaPedestal implements SapientiaBlock {
+public final class SapientiaPedestal implements CatalogBlock {
 
     private final NamespacedKey id;
 

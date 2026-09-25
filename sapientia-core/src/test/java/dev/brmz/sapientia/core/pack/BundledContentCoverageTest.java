@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Every catalogue entry with a display name (item, block, metal, component,
- * android block and upgrade sections of the language files) must ship with a
+ * android block and upgrade, and mineral sections of the language files) must ship with a
  * Java model and a Bedrock icon, and every bundled model must belong to such
  * an entry. Regenerate with {@code scripts/textures/generate_textures.py}.
  */
@@ -24,7 +24,7 @@ final class BundledContentCoverageTest {
 
     private static final List<List<String>> SECTIONS = List.of(
             List.of("item"), List.of("block"), List.of("metal"), List.of("component"),
-            List.of("android", "block"), List.of("android", "upgrade"));
+            List.of("android", "block"), List.of("android", "upgrade"), List.of("mineral"));
 
     private final BundledPack pack = BundledPack.fromClassLoader(getClass().getClassLoader());
 

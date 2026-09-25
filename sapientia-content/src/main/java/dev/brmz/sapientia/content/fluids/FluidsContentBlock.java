@@ -1,5 +1,6 @@
 package dev.brmz.sapientia.content.fluids;
 
+import dev.brmz.sapientia.content.CatalogBlock;
 import dev.brmz.sapientia.api.Sapientia;
 import dev.brmz.sapientia.api.block.SapientiaBlock;
 import dev.brmz.sapientia.api.energy.EnergyTier;
@@ -17,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
  * Shared scaffolding for {@link SapientiaBlock} implementations that contribute
  * a fluid logistics node (T-301 / 1.2.0). Mirrors {@code LogisticsContentBlock}.
  */
-abstract class FluidsContentBlock implements SapientiaBlock {
+abstract class FluidsContentBlock implements CatalogBlock {
 
     private final NamespacedKey id;
     private final Material material;

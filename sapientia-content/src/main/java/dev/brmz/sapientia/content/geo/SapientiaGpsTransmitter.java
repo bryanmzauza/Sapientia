@@ -1,6 +1,6 @@
 package dev.brmz.sapientia.content.geo;
 
-import dev.brmz.sapientia.api.block.SapientiaBlock;
+import dev.brmz.sapientia.content.CatalogBlock;
 import dev.brmz.sapientia.api.guide.GuideCategory;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
  * the transmitter is a placement-only block; the coverage radius scan,
  * persistence and overlay rendering land in 1.7.1.
  */
-public final class SapientiaGpsTransmitter implements SapientiaBlock {
+public final class SapientiaGpsTransmitter implements CatalogBlock {
 
     private final NamespacedKey id;
 

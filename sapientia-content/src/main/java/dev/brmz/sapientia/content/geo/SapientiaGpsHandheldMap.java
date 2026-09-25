@@ -2,9 +2,9 @@ package dev.brmz.sapientia.content.geo;
 
 import java.util.List;
 
+import dev.brmz.sapientia.content.CatalogItem;
 import dev.brmz.sapientia.api.events.SapientiaItemInteractEvent;
 import dev.brmz.sapientia.api.guide.GuideCategory;
-import dev.brmz.sapientia.api.item.SapientiaItem;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
  * feedback sound — the marker query, coverage check and overlay land in 1.7.1
  * (T-440 Bedrock parity adds the {@code CustomForm} numeric editor for AABBs).
  */
-public final class SapientiaGpsHandheldMap implements SapientiaItem {
+public final class SapientiaGpsHandheldMap implements CatalogItem {
 
     private final NamespacedKey id;
 

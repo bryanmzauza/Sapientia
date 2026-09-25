@@ -1,6 +1,6 @@
 package dev.brmz.sapientia.content.petroleum;
 
-import dev.brmz.sapientia.api.block.SapientiaBlock;
+import dev.brmz.sapientia.content.CatalogBlock;
 import dev.brmz.sapientia.api.events.SapientiaBlockInteractEvent;
 import dev.brmz.sapientia.api.guide.GuideCategory;
 import dev.brmz.sapientia.api.multiblock.MultiblockShapeValidator;
@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
  * block does not yet register as a fluid node — that is added when the recipe
  * pipeline is wired in. See {@code docs/internal/content-spec-T-41x.md}.
  */
-public final class SapientiaOilRefineryController implements SapientiaBlock {
+public final class SapientiaOilRefineryController implements CatalogBlock {
 
     private final NamespacedKey id;
 

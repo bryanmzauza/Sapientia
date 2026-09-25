@@ -1,22 +1,26 @@
 package dev.brmz.sapientia.core.item;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 import dev.brmz.sapientia.api.item.SapientiaItem;
 import dev.brmz.sapientia.api.overrides.BlockOverride;
 import dev.brmz.sapientia.api.overrides.ContentOverrides;
 import dev.brmz.sapientia.api.overrides.ItemOverride;
 import dev.brmz.sapientia.core.i18n.Messages;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
@@ -48,13 +52,30 @@ public final class ItemRegistry {
     private final NamespacedKey idKey;
     private final Map<String, ItemDefinition> definitions = new LinkedHashMap<>();
     private final Map<NamespacedKey, SapientiaItem> sapientiaItems = new LinkedHashMap<>();
+    private final NamespacedKey revisionKey;
     private @Nullable ContentOverrides overrides;
     private Set<String> itemModelIds = Set.of();
+    private @Nullable Function<NamespacedKey, Component> eraLine;
+    private int revision;
 
     public ItemRegistry(@NotNull Plugin plugin, @NotNull Messages messages) {
         this.plugin = plugin;
         this.messages = messages;
         this.idKey = new NamespacedKey(plugin, "item_id");
+        this.revisionKey = new NamespacedKey(plugin, "item_revision");
+    }
+
+    /** Adds a last lore line naming the item's era (see {@link #setRevision}). */
+    public void setEraLine(@Nullable Function<NamespacedKey, Component> eraLine) {
+        this.eraLine = eraLine;
+    }
+
+    /**
+     * Revision of how stacks look (plugin version, language, models). Stacks
+     * stamped with another revision are refreshed by {@link #refresh}.
+     */
+    public void setRevision(int revision) {
+        this.revision = revision;
     }
 
     /** Injects the override source. Safe to call post-construction / on reload wiring (T-160). */
@@ -138,30 +159,64 @@ public final class ItemRegistry {
             return null;
         }
         Effective eff = effective(def);
-        NamespacedKey key = NamespacedKey.fromString(id);
+        ItemStack stack = new ItemStack(eff.material(), Math.max(1, amount));
+        stack.editMeta(meta -> stamp(meta, def, eff));
+        return stack;
+    }
+
+    /**
+     * Brings an existing stack up to date (name, lore with era, model) when it
+     * was made by another revision, for example before item models or era
+     * lines existed. Returns whether the stack changed.
+     */
+    public boolean refresh(@Nullable ItemStack stack) {
+        String id = idOf(stack);
+        if (id == null) return false;
+        ItemDefinition def = definitions.get(id);
+        if (def == null) return false;
+        Integer stamped = stack.getItemMeta().getPersistentDataContainer().get(revisionKey, PersistentDataType.INTEGER);
+        if (stamped != null && stamped == revision) return false;
+        Effective eff = effective(def);
+        stack.editMeta(meta -> stamp(meta, def, eff));
+        return true;
+    }
+
+    /** Writes everything the plugin controls on a stack of this item. */
+    private void stamp(ItemMeta meta, ItemDefinition def, Effective eff) {
+        NamespacedKey key = NamespacedKey.fromString(def.id());
         boolean bundledModel = key != null
                 && BUNDLED_NAMESPACE.equals(key.getNamespace())
                 && itemModelIds.contains(key.getKey());
         Style plain = Style.style().decoration(TextDecoration.ITALIC, false).build();
-        ItemStack stack = new ItemStack(eff.material(), Math.max(1, amount));
-        stack.editMeta(meta -> {
-            meta.displayName(messages.component(eff.displayNameKey()).style(plain));
-            if (!eff.loreKeys().isEmpty()) {
-                meta.lore(eff.loreKeys().stream()
-                        .map(loreKey -> messages.component(loreKey).style(plain))
-                        .toList());
+        meta.displayName(messages.component(eff.displayNameKey()).style(plain));
+        List<Component> lore = new ArrayList<>();
+        for (String loreKey : eff.loreKeys()) {
+            lore.add(messages.component(loreKey).style(plain));
+        }
+        SapientiaItem item = key == null ? null : sapientiaItems.get(key);
+        int toolUses = item == null ? 0 : item.benchToolUses();
+        if (toolUses > 0) {
+            lore.add(messages.component("workbench.tool",
+                    net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.unparsed("uses",
+                            Integer.toString(toolUses))).style(plain));
+            meta.setMaxStackSize(1);
+            if (meta instanceof org.bukkit.inventory.meta.Damageable damageable) {
+                damageable.setMaxDamage(toolUses);
             }
-            if (bundledModel) {
-                meta.setItemModel(key);
-            }
-            if (eff.customModelData() > 0) {
-                CustomModelDataComponent cmd = meta.getCustomModelDataComponent();
-                cmd.setFloats(List.of((float) eff.customModelData()));
-                meta.setCustomModelDataComponent(cmd);
-            }
-            meta.getPersistentDataContainer().set(idKey, PersistentDataType.STRING, def.id());
-        });
-        return stack;
+        }
+        Function<NamespacedKey, Component> era = eraLine;
+        if (era != null && key != null) {
+            lore.add(era.apply(key).decoration(TextDecoration.ITALIC, false));
+        }
+        meta.lore(lore.isEmpty() ? null : lore);
+        meta.setItemModel(bundledModel ? key : null);
+        if (eff.customModelData() > 0) {
+            CustomModelDataComponent cmd = meta.getCustomModelDataComponent();
+            cmd.setFloats(List.of((float) eff.customModelData()));
+            meta.setCustomModelDataComponent(cmd);
+        }
+        meta.getPersistentDataContainer().set(idKey, PersistentDataType.STRING, def.id());
+        meta.getPersistentDataContainer().set(revisionKey, PersistentDataType.INTEGER, revision);
     }
 
     /** Base material for the given id after overrides, or throws if the id is unknown. */

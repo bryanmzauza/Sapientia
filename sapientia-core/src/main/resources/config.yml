@@ -15,6 +15,10 @@ resource-pack:
   # server resource pack in server.properties); without it these items render
   # as missing textures. Set to false to keep vanilla appearances.
   item-models: true
+  # Rebuild the Java and Bedrock packs at start-up so they always match the
+  # bundled textures, and warn when resource-pack-sha1 in server.properties
+  # points at an older pack.
+  auto-build: true
 
 # Live readout rendered while a player aims at a Sapientia energy block
 # holding the wrench. Costs one ray-trace + one packet per wrench holder per
@@ -47,3 +51,38 @@ performance:
     # Per-block overrides, for example:
     #   "sapientia:quarry_controller": 1
     per-type: {}
+
+# Eras and research (Foundation 2). The admin unlocks eras in order; content of
+# a locked era cannot be crafted, placed, processed or found in the world.
+progression:
+  # Era of a new server (0 to 24). Era 0 is always unlocked. Used only until
+  # the era is first changed with /sapientia era; the current era is saved.
+  starting-era: 1
+  # Announce in chat when a new era is unlocked.
+  announce: true
+  # Recipes need their Sapientia ingredients discovered first (crafted, picked
+  # up, taken from a container or harvested). false: every recipe of an
+  # unlocked era is available to everyone.
+  research: true
+  # Give the Sapientia Guide to each player on their first join (era 0).
+  give-guide-on-join: true
+
+# Minerals from natural terrain (Foundation 2). Breaking natural rock may drop
+# a mineral fragment; placed, formed or moved blocks and explosions never do.
+mining:
+  enabled: true
+  # Chunks generated before Sapientia was installed: natural (yield minerals)
+  # or placed (only chunks generated from now on yield minerals).
+  legacy-chunks: natural
+  # Base chance per host block, in percent (Fortune raises it, veins triple it).
+  # Unlisted blocks keep the defaults; set a block to 0 to disable it.
+  host-chance: {}
+  #   stone: 2.0
+  #   granite: 4.0
+  vein:
+    # Veins cover square regions of this many chunks, derived from the world seed.
+    region-chunks: 4
+    # Chance that a region holds a vein.
+    chance: 0.3
+    # Fragment chance multiplier inside a vein, for the vein's mineral.
+    multiplier: 3.0

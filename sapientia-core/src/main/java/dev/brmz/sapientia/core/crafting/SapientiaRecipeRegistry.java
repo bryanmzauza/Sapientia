@@ -7,16 +7,23 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 import dev.brmz.sapientia.api.crafting.RecipeIngredient;
 import dev.brmz.sapientia.api.crafting.RecipeRegistry;
 import dev.brmz.sapientia.api.crafting.SapientiaRecipe;
+import dev.brmz.sapientia.api.crafting.VanillaRecipe;
 import dev.brmz.sapientia.api.overrides.ContentOverrides;
 import dev.brmz.sapientia.api.overrides.RecipeOverride;
 import dev.brmz.sapientia.core.item.ItemRegistry;
+import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.RecipeChoice;
+import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.ShapelessRecipe;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,6 +39,9 @@ public final class SapientiaRecipeRegistry implements RecipeRegistry {
     private final Map<NamespacedKey, SapientiaRecipe> recipes = new LinkedHashMap<>();
     private WorkbenchListener workbench;
     private @Nullable ContentOverrides overrides;
+    private volatile int revision;
+    private final Map<NamespacedKey, VanillaRecipe> vanillaRecipes = new LinkedHashMap<>();
+    private final List<NamespacedKey> installedVanilla = new ArrayList<>();
 
     public SapientiaRecipeRegistry(@NotNull ItemRegistry itemRegistry) {
         this.itemRegistry = itemRegistry;
@@ -79,6 +89,73 @@ public final class SapientiaRecipeRegistry implements RecipeRegistry {
         if (recipes.putIfAbsent(recipe.id(), recipe) != null) {
             throw new IllegalStateException("Duplicate Sapientia recipe id: " + recipe.id());
         }
+        revision++;
+    }
+
+    @Override
+    public void registerVanilla(@NotNull VanillaRecipe recipe) {
+        if (vanillaRecipes.putIfAbsent(recipe.id(), recipe) != null) {
+            throw new IllegalStateException("Duplicate vanilla recipe id: " + recipe.id());
+        }
+    }
+
+    @Override
+    public @NotNull Collection<VanillaRecipe> vanillaRecipes() {
+        return Collections.unmodifiableCollection(new ArrayList<>(vanillaRecipes.values()));
+    }
+
+    /** The vanilla crafting table recipe that makes {@code item}, if any. */
+    public @Nullable VanillaRecipe vanillaRecipeFor(@NotNull NamespacedKey item) {
+        for (VanillaRecipe recipe : vanillaRecipes.values()) {
+            if (recipe.result().equals(item)) return recipe;
+        }
+        return null;
+    }
+
+    /**
+     * Adds the registered vanilla recipes to the server, with Sapientia stacks as
+     * results. Returns their keys, for discovering them in players' recipe books.
+     */
+    public @NotNull List<NamespacedKey> installVanilla(@NotNull Logger logger) {
+        for (VanillaRecipe recipe : vanillaRecipes.values()) {
+            ItemStack result = itemRegistry.createStack(recipe.result().toString(), recipe.amount());
+            if (result == null) {
+                logger.warning("Vanilla recipe " + recipe.id() + " makes unknown item " + recipe.result());
+                continue;
+            }
+            Recipe bukkit;
+            if (recipe.isShaped()) {
+                ShapedRecipe shaped = new ShapedRecipe(recipe.id(), result);
+                shaped.shape(recipe.shape().toArray(String[]::new));
+                recipe.ingredients().forEach((key, materials) ->
+                        shaped.setIngredient(key, new RecipeChoice.MaterialChoice(List.copyOf(materials))));
+                bukkit = shaped;
+            } else {
+                ShapelessRecipe shapeless = new ShapelessRecipe(recipe.id(), result);
+                recipe.ingredients().values().forEach(materials ->
+                        shapeless.addIngredient(new RecipeChoice.MaterialChoice(List.copyOf(materials))));
+                bukkit = shapeless;
+            }
+            Bukkit.removeRecipe(recipe.id());
+            if (Bukkit.addRecipe(bukkit)) {
+                installedVanilla.add(recipe.id());
+            }
+        }
+        logger.info("Added " + installedVanilla.size() + " Sapientia recipe(s) to the vanilla crafting table.");
+        return List.copyOf(installedVanilla);
+    }
+
+    /** Removes the vanilla recipes added by {@link #installVanilla}. */
+    public void uninstallVanilla() {
+        for (NamespacedKey key : installedVanilla) {
+            Bukkit.removeRecipe(key);
+        }
+        installedVanilla.clear();
+    }
+
+    /** Increments whenever a recipe is registered, so indexes over recipes know when to rebuild. */
+    public int revision() {
+        return revision;
     }
 
     @Override

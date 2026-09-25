@@ -6,6 +6,10 @@ plugin:
   reload:
     success: "<green>Configuração recarregada em <white><ms>ms</white>.</green>"
     failure: "<red>Falha ao recarregar: <white><error></white></red>"
+  pack:
+    outdated: "O pacote de recursos do server.properties está desatualizado, e os jogadores veem os itens novos do Sapientia sem textura. Envie <path> e defina resource-pack-sha1=<sha1>."
+    outdated-join: "<yellow>O pacote de recursos do servidor está desatualizado: itens novos do Sapientia aparecem sem textura. Envie <white><path></white> e defina <white>resource-pack-sha1=<sha1></white> no server.properties.</yellow>"
+    unset: "As texturas do Sapientia precisam do pacote de recursos <path> (SHA-1 <sha1>). Hospede-o e defina-o como pacote do servidor no server.properties."
 
 command:
   perf:
@@ -18,6 +22,19 @@ command:
   unknown: "<red>Comando desconhecido. Tente <white>/sapientia help</white>.</red>"
   no-permission: "<red>Você não tem permissão para fazer isso.</red>"
   players-only: "<red>Este comando só pode ser executado por jogadores.</red>"
+  era:
+    current: "<gold>Era do servidor:</gold> <white><number> — <era></white>"
+    summary: "<gray><summary></gray>"
+    next-up: "<gray>Próxima era: <white><number> — <era></white></gray>"
+    set: "<green>Era do servidor definida como <white><number> — <era></white>.</green>"
+    lowered: "<yellow>A era baixou: o conteúdo das eras seguintes volta a ficar bloqueado.</yellow>"
+    last: "<yellow>Esta já é a última era.</yellow>"
+    usage: "<red>Uso: /sapientia era [info|set <0-24>|next]</red>"
+    invalid: "<red>Era desconhecida: <white><value></white>. Use um número de 0 a 24.</red>"
+  mining:
+    usage: "<red>Uso: /sapientia mining mark <x1> <y1> <z1> <x2> <y2> <z2></red>"
+    too-large: "<red>Essa área é grande demais (no máximo <white><max></white> blocos).</red>"
+    marked: "<green><white><count></white> blocos marcados como colocados. Eles não darão minérios.</green>"
   help:
     header: "<gold>=== Ajuda do Sapientia ===</gold>"
     entry: "<yellow><usage></yellow> <gray>-</gray> <white><description></white>"
@@ -33,6 +50,8 @@ command:
       fluids: "Inspeciona redes de fluidos do Sapientia."
       logic: "Gerencia programas de logica programavel (DAG)."
       perf: "Mostra o custo por tick de cada subsistema do Sapientia."
+      era: "Mostra a era do servidor ou a altera (set, next)."
+      mining: "Marca uma área como blocos colocados, para que nunca dê minérios."
   logistics:
     usage: "<red>Uso: /sapientia logistics <info|policy|filter></red>"
     info:
@@ -191,7 +210,7 @@ block:
     desc: "Carcaca compartilhada tier MV. Nucleo de toda maquina MV e do forno de inducao."
   macerator:
     name: "<gold>Britador</gold>"
-    desc: "Maquina tier LV. Tritura minerio bruto em 2x po."
+    desc: "Maquina tier LV. Tritura fragmentos de mineral em 2x po do metal principal."
   ore_washer:
     name: "<gold>Lavador de Minerio</gold>"
     desc: "Maquina tier LV. Lava o po removendo impurezas e recuperando subprodutos."
@@ -383,7 +402,12 @@ fluid:
 
 guide:
   title: "<gold>Guia Sapientia</gold>"
+  welcome: "<gold>Bem-vindo ao Sapientia!</gold> <gray>Este guia mostra a era do servidor, seu próximo objetivo e todas as receitas. Clique com o botão direito para abrir. Comece fazendo a <white>Bancada Sapientia</white> numa mesa de trabalho.</gray>"
   locked: "<dark_gray>Bloqueado</dark_gray>"
+  locked-era:
+    name: "<gray><name></gray> <dark_gray>(bloqueado)</dark_gray>"
+    lore: "<dark_gray>Liberado quando o servidor chegar a esta era.</dark_gray>"
+    bedrock: "<name> (era <number>, bloqueado)"
   entry:
     click: "<yellow>» Clique para ver a receita</yellow>"
   index:
@@ -392,8 +416,12 @@ guide:
       lore: "<gray>Escolha uma categoria para\nnavegar pelos itens, blocos e maquinas.</gray>"
     button:
       count: "<dark_gray><count> entradas</dark_gray>"
+    era: "<gray>Era do servidor:</gray> <white><number> — <era></white>"
+    goal: "<gray>Próximo objetivo:</gray> <yellow>fazer <item></yellow> <gray>(<era>)</gray>"
+    goal-done: "<gray>Todas as eras liberadas foram concluídas. A próxima vem quando o admin liberar.</gray>"
   category:
     title: "<gold>Guia</gold> <gray>·</gray> <white><category></white>"
+    locked-eras: "<dark_gray><count> em eras ainda não liberadas</dark_gray>"
     back:
       name: "<yellow>« Voltar as Categorias</yellow>"
       lore: "<gray>Retornar a lista de categorias.</gray>"
@@ -429,6 +457,10 @@ guide:
       header: "<aqua><bold>Receita</bold></aqua>"
       none: "<gray>Este item nao possui receita.\nObtenha por drops no mundo, pelo\ncomando /sapientia give ou via admin.</gray>"
     yields: "<gray>Produz <white><amount>x</white> por craft.</gray>"
+    vanilla:
+      name: "<aqua><bold>Mesa de trabalho vanilla</bold></aqua>"
+      lore: "<gray>Feito numa mesa de trabalho comum,
+não na Bancada Sapientia.</gray>"
     category: "<dark_gray>Categoria:</dark_gray> <gray><category></gray>"
     back:
       name: "<yellow>« Voltar a Categoria</yellow>"
@@ -469,9 +501,6 @@ ui:
       failed: "<red>Não foi possível atribuir o programa <program>.</red>"
 
 metal:
-  copper_raw:
-    name: "<gold>Cobre Bruto</gold>"
-    desc: "Minerado do minério de cobre vanilla (drop de cobre bruto).\nMacere para obter pó de cobre, depois funda em lingote."
   copper_dust:
     name: "<gold>Po de Cobre</gold>"
   copper_ingot:
@@ -488,9 +517,6 @@ metal:
     name: "<gold>Engrenagem de Cobre</gold>"
   copper_screw:
     name: "<gold>Parafuso de Cobre</gold>"
-  tin_raw:
-    name: "<white>Estanho Bruto</white>"
-    desc: "O minério de estanho chega na 2.0.0; até lá use\n/sapientia give. Macere para virar pó, depois funda."
   tin_dust:
     name: "<white>Po de Estanho</white>"
   tin_ingot:
@@ -507,9 +533,6 @@ metal:
     name: "<white>Engrenagem de Estanho</white>"
   tin_screw:
     name: "<white>Parafuso de Estanho</white>"
-  zinc_raw:
-    name: "<gray>Zinco Bruto</gray>"
-    desc: "O minério de zinco chega na 2.0.0; até lá use\n/sapientia give. Macere para virar pó, depois funda."
   zinc_dust:
     name: "<gray>Po de Zinco</gray>"
   zinc_ingot:
@@ -526,9 +549,6 @@ metal:
     name: "<gray>Engrenagem de Zinco</gray>"
   zinc_screw:
     name: "<gray>Parafuso de Zinco</gray>"
-  lead_raw:
-    name: "<dark_gray>Chumbo Bruto</dark_gray>"
-    desc: "O minério de chumbo chega na 2.0.0; até lá use\n/sapientia give. Macere para virar pó, depois funda."
   lead_dust:
     name: "<dark_gray>Po de Chumbo</dark_gray>"
   lead_ingot:
@@ -545,9 +565,6 @@ metal:
     name: "<dark_gray>Engrenagem de Chumbo</dark_gray>"
   lead_screw:
     name: "<dark_gray>Parafuso de Chumbo</dark_gray>"
-  silver_raw:
-    name: "<white>Prata Bruta</white>"
-    desc: "O minério de prata chega na 2.0.0; até lá use\n/sapientia give. Macere para virar pó, depois funda."
   silver_dust:
     name: "<white>Po de Prata</white>"
   silver_ingot:
@@ -564,9 +581,6 @@ metal:
     name: "<white>Engrenagem de Prata</white>"
   silver_screw:
     name: "<white>Parafuso de Prata</white>"
-  nickel_raw:
-    name: "<yellow>Niquel Bruto</yellow>"
-    desc: "O minério de níquel chega na 2.0.0; até lá use\n/sapientia give. Macere para virar pó, depois funda."
   nickel_dust:
     name: "<yellow>Po de Niquel</yellow>"
   nickel_ingot:
@@ -635,9 +649,6 @@ metal:
   electrum_screw:
     name: "<aqua>Parafuso de Eletro</aqua>"
 
-  aluminum_raw:
-    name: "<gray>Aluminio Bruto</gray>"
-    desc: "A bauxita chega na 2.0.0; até lá use\n/sapientia give aluminum_raw. Macere, funda e\nprense em chapas e fios para o tier HV."
   aluminum_dust:
     name: "<gray>Po de Aluminio</gray>"
   aluminum_ingot:
@@ -654,9 +665,6 @@ metal:
     name: "<gray>Engrenagem de Aluminio</gray>"
   aluminum_screw:
     name: "<gray>Parafuso de Aluminio</gray>"
-  silicon_raw:
-    name: "<dark_gray>Silicio Bruto</dark_gray>"
-    desc: "O minério de silício chega na 2.0.0; até lá use\n/sapientia give silicon_raw. Macere, funda em lingote\ne corte no laser para virar wafer (processadores/circuitos)."
   silicon_dust:
     name: "<dark_gray>Po de Silicio</dark_gray>"
   silicon_ingot:
@@ -673,9 +681,6 @@ metal:
     name: "<dark_gray>Engrenagem de Silicio</dark_gray>"
   silicon_screw:
     name: "<dark_gray>Parafuso de Silicio</dark_gray>"
-  titanium_raw:
-    name: "<white>Titanio Bruto</white>"
-    desc: "O minério de titânio chega na 2.0.0; até lá use\n/sapientia give titanium_raw. Macere, funda e prense\nem chapas para motores e carcaças HV."
   titanium_dust:
     name: "<white>Po de Titanio</white>"
   titanium_ingot:
@@ -692,9 +697,6 @@ metal:
     name: "<white>Engrenagem de Titanio</white>"
   titanium_screw:
     name: "<white>Parafuso de Titanio</white>"
-  lithium_raw:
-    name: "<light_purple>Litio Bruto</light_purple>"
-    desc: "O minério de lítio chega na 2.0.0; até lá use\n/sapientia give lithium_raw. Macere e funda em lingote\npara baterias e receitas químicas."
   lithium_dust:
     name: "<light_purple>Po de Litio</light_purple>"
   lithium_ingot:
@@ -864,3 +866,372 @@ limit:
     blocks: "<red>Este chunk já tem <white><limit></white> blocos do Sapientia, o máximo por chunk.</red>"
     processors: "<red>Este chunk já tem <white><limit></white> máquinas, o máximo por chunk.</red>"
     same-type: "<red>Este chunk já tem <white><limit></white> de <block><red>, o máximo por chunk.</red>"
+
+era:
+  arrival:
+    name: "Chegada"
+    summary: "O guia e a Bancada Sapientia."
+  stone_age:
+    name: "Idade da Pedra"
+    summary: "Agricultura, ferramentas de sílex, carvoaria e forno de argila."
+  copper_age:
+    name: "Idade do Cobre"
+    summary: "Cobre, ouro e prata nativos; arroz, salina e tear manual."
+  bronze_age:
+    name: "Idade do Bronze"
+    summary: "Estanho e bronze, bateia, foice e queijo."
+  iron_age:
+    name: "Idade do Ferro"
+    summary: "Forno de lupa e fole, chumbo, copelação, mercúrio e cal."
+  classical_antiquity:
+    name: "Antiguidade Clássica"
+    summary: "Roda d'água, máquinas mecânicas, aquedutos, vinho e latão."
+  middle_ages:
+    name: "Idade Média"
+    summary: "Moinho de vento, alto-forno, aço de Damasco e ácidos."
+  renaissance:
+    name: "Renascença e Navegações"
+    summary: "Mecanismos de precisão, vidro óptico, imprensa e plantas do Novo Mundo."
+  industrial_revolution:
+    name: "Revolução Industrial"
+    summary: "Vapor, coque, aço Bessemer e agricultura mecanizada."
+  electricity:
+    name: "Eletricidade"
+    summary: "Rede LV, máquinas elétricas, eletrólise e alumínio."
+  steel_age:
+    name: "Era do Aço"
+    summary: "Rede MV, ligas de aço, flotação, pedreira e fertilizantes."
+  oil_and_chemistry:
+    name: "Petróleo e Química"
+    summary: "Refinaria, plásticos, borracha sintética, biocombustíveis e remédios."
+  electronics:
+    name: "Eletrônica"
+    summary: "Rede HV, silício, sala limpa e processadores."
+  atomic_age:
+    name: "Era Atômica"
+    summary: "Enriquecimento de urânio, reatores de fissão e rede EV."
+  space_age:
+    name: "Era Espacial"
+    summary: "Titânio, foguetes, satélites, GPS e RTG."
+  information_age:
+    name: "Era da Informação"
+    summary: "Computadores com programas de lógica, terras raras e rede IV."
+  robotics:
+    name: "Robótica"
+    summary: "Androides agindo no mundo, baterias de lítio e drones agrícolas."
+  renewable_energy:
+    name: "Energia Renovável"
+    summary: "Solar, eólica, células de combustível, reciclagem e fazenda vertical."
+  fusion:
+    name: "Fusão"
+    summary: "Supercondutores, reator de fusão e rede LuV."
+  nanotechnology:
+    name: "Nanotecnologia"
+    summary: "Grafeno, montador molecular e edição genética."
+  orbital_age:
+    name: "Era Orbital"
+    summary: "Estações orbitais, mineração de asteroides e rede ZPM."
+  quantum_age:
+    name: "Era Quântica"
+    summary: "Computação quântica, teletransporte de itens e armazenamento quântico."
+  antimatter:
+    name: "Antimatéria"
+    summary: "Acelerador de partículas, células de antimatéria e rede UV."
+  interstellar:
+    name: "Era Interestelar"
+    summary: "Matéria exótica, nêutronio e núcleo de dobra."
+  singularity:
+    name: "Singularidade"
+    summary: "Transmutação, matéria programável e esfera de Dyson."
+  announce: "<gold>Uma nova era começa: <white><number> — <era></white>!</gold> <gray><summary></gray>"
+  lore: "<dark_gray>Era <number>: <era></dark_gray>"
+  locked:
+    place: "<red>Isto pertence à era <number> (<era>), que ainda não foi liberada neste servidor.</red>"
+
+research:
+  unlocked: "<aqua>Nova receita:</aqua> <white><recipe></white>"
+  locked:
+    name: "<red>Receita bloqueada</red>"
+    era: "<gray>Liberada na era <white><number></white> (<era>).</gray>"
+    missing: "<gray>Descubra antes:</gray>"
+
+mineral:
+  native_copper_fragment:
+    name: "<gray>Fragmento de cobre nativo</gray>"
+    desc: "Principal: Cobre.\nSubprodutos: prata (traço).\nCai de rocha natural. Separe-o nos seus elementos."
+  native_copper_tailings:
+    name: "<dark_gray>Rejeito de cobre nativo</dark_gray>"
+    desc: "O que a separação deixou de cobre nativo.\nUm método melhor recupera o resto uma vez."
+  malachite_fragment:
+    name: "<gray>Fragmento de malaquita</gray>"
+    desc: "Principal: Cobre.\nSubprodutos: zinco (traço).\nCai de rocha natural. Separe-o nos seus elementos."
+  malachite_tailings:
+    name: "<dark_gray>Rejeito de malaquita</dark_gray>"
+    desc: "O que a separação deixou de malaquita.\nUm método melhor recupera o resto uma vez."
+  native_gold_fragment:
+    name: "<gray>Fragmento de ouro nativo</gray>"
+    desc: "Principal: Ouro.\nSubprodutos: prata (secundário).\nCai de rocha natural. Separe-o nos seus elementos."
+  native_gold_tailings:
+    name: "<dark_gray>Rejeito de ouro nativo</dark_gray>"
+    desc: "O que a separação deixou de ouro nativo.\nUm método melhor recupera o resto uma vez."
+  native_silver_fragment:
+    name: "<gray>Fragmento de prata nativa</gray>"
+    desc: "Principal: Prata.\nSubprodutos: cobre (secundário).\nCai de rocha natural. Separe-o nos seus elementos."
+  native_silver_tailings:
+    name: "<dark_gray>Rejeito de prata nativa</dark_gray>"
+    desc: "O que a separação deixou de prata nativa.\nUm método melhor recupera o resto uma vez."
+  chalcopyrite_fragment:
+    name: "<gray>Fragmento de calcopirita</gray>"
+    desc: "Principal: Cobre.\nSubprodutos: ferro (secundário), ouro (traço), selênio (traço), telúrio (traço).\nCai de rocha natural. Separe-o nos seus elementos."
+  chalcopyrite_tailings:
+    name: "<dark_gray>Rejeito de calcopirita</dark_gray>"
+    desc: "O que a separação deixou de calcopirita.\nUm método melhor recupera o resto uma vez."
+  cassiterite_fragment:
+    name: "<gray>Fragmento de cassiterita</gray>"
+    desc: "Principal: Estanho.\nSubprodutos: nióbio (traço), tântalo (traço).\nCai de rocha natural. Separe-o nos seus elementos."
+  cassiterite_tailings:
+    name: "<dark_gray>Rejeito de cassiterita</dark_gray>"
+    desc: "O que a separação deixou de cassiterita.\nUm método melhor recupera o resto uma vez."
+  arsenopyrite_fragment:
+    name: "<gray>Fragmento de arsenopirita</gray>"
+    desc: "Principal: Arsênio.\nSubprodutos: ferro (secundário), ouro (traço).\nCai de rocha natural. Separe-o nos seus elementos."
+  arsenopyrite_tailings:
+    name: "<dark_gray>Rejeito de arsenopirita</dark_gray>"
+    desc: "O que a separação deixou de arsenopirita.\nUm método melhor recupera o resto uma vez."
+  hematite_fragment:
+    name: "<gray>Fragmento de hematita</gray>"
+    desc: "Principal: Ferro.\nSubprodutos: manganês (traço).\nCai de rocha natural. Separe-o nos seus elementos."
+  hematite_tailings:
+    name: "<dark_gray>Rejeito de hematita</dark_gray>"
+    desc: "O que a separação deixou de hematita.\nUm método melhor recupera o resto uma vez."
+  magnetite_fragment:
+    name: "<gray>Fragmento de magnetita</gray>"
+    desc: "Principal: Ferro.\nSubprodutos: titânio (secundário), vanádio (traço).\nCai de rocha natural. Separe-o nos seus elementos."
+  magnetite_tailings:
+    name: "<dark_gray>Rejeito de magnetita</dark_gray>"
+    desc: "O que a separação deixou de magnetita.\nUm método melhor recupera o resto uma vez."
+  galena_fragment:
+    name: "<gray>Fragmento de galena</gray>"
+    desc: "Principal: Chumbo.\nSubprodutos: prata (secundário), bismuto (traço), antimônio (traço).\nCai de rocha natural. Separe-o nos seus elementos."
+  galena_tailings:
+    name: "<dark_gray>Rejeito de galena</dark_gray>"
+    desc: "O que a separação deixou de galena.\nUm método melhor recupera o resto uma vez."
+  cinnabar_fragment:
+    name: "<gray>Fragmento de cinábrio</gray>"
+    desc: "Principal: Mercúrio.\nCai de rocha natural. Separe-o nos seus elementos."
+  cinnabar_tailings:
+    name: "<dark_gray>Rejeito de cinábrio</dark_gray>"
+    desc: "O que a separação deixou de cinábrio.\nUm método melhor recupera o resto uma vez."
+  sphalerite_fragment:
+    name: "<gray>Fragmento de esfalerita</gray>"
+    desc: "Principal: Zinco.\nSubprodutos: cádmio (secundário), ferro (secundário), índio (traço), germânio (traço), gálio (traço).\nCai de rocha natural. Separe-o nos seus elementos."
+  sphalerite_tailings:
+    name: "<dark_gray>Rejeito de esfalerita</dark_gray>"
+    desc: "O que a separação deixou de esfalerita.\nUm método melhor recupera o resto uma vez."
+  stibnite_fragment:
+    name: "<gray>Fragmento de estibinita</gray>"
+    desc: "Principal: Antimônio.\nSubprodutos: ouro (traço).\nCai de rocha natural. Separe-o nos seus elementos."
+  stibnite_tailings:
+    name: "<dark_gray>Rejeito de estibinita</dark_gray>"
+    desc: "O que a separação deixou de estibinita.\nUm método melhor recupera o resto uma vez."
+  bismuthinite_fragment:
+    name: "<gray>Fragmento de bismutinita</gray>"
+    desc: "Principal: Bismuto.\nCai de rocha natural. Separe-o nos seus elementos."
+  bismuthinite_tailings:
+    name: "<dark_gray>Rejeito de bismutinita</dark_gray>"
+    desc: "O que a separação deixou de bismutinita.\nUm método melhor recupera o resto uma vez."
+  pyrolusite_fragment:
+    name: "<gray>Fragmento de pirolusita</gray>"
+    desc: "Principal: Manganês.\nSubprodutos: ferro (secundário).\nCai de rocha natural. Separe-o nos seus elementos."
+  pyrolusite_tailings:
+    name: "<dark_gray>Rejeito de pirolusita</dark_gray>"
+    desc: "O que a separação deixou de pirolusita.\nUm método melhor recupera o resto uma vez."
+  cobaltite_fragment:
+    name: "<gray>Fragmento de cobaltita</gray>"
+    desc: "Principal: Cobalto.\nSubprodutos: arsênio (secundário), níquel (traço).\nCai de rocha natural. Separe-o nos seus elementos."
+  cobaltite_tailings:
+    name: "<dark_gray>Rejeito de cobaltita</dark_gray>"
+    desc: "O que a separação deixou de cobaltita.\nUm método melhor recupera o resto uma vez."
+  native_platinum_fragment:
+    name: "<gray>Fragmento de platina nativa</gray>"
+    desc: "Principal: Platina.\nSubprodutos: paládio (secundário), irídio (secundário), ósmio (traço), ródio (traço), rutênio (traço).\nCai de rocha natural. Separe-o nos seus elementos."
+  native_platinum_tailings:
+    name: "<dark_gray>Rejeito de platina nativa</dark_gray>"
+    desc: "O que a separação deixou de platina nativa.\nUm método melhor recupera o resto uma vez."
+  pentlandite_fragment:
+    name: "<gray>Fragmento de pentlandita</gray>"
+    desc: "Principal: Níquel.\nSubprodutos: ferro (secundário), cobalto (secundário), platina (traço), paládio (traço).\nCai de rocha natural. Separe-o nos seus elementos."
+  pentlandite_tailings:
+    name: "<dark_gray>Rejeito de pentlandita</dark_gray>"
+    desc: "O que a separação deixou de pentlandita.\nUm método melhor recupera o resto uma vez."
+  chromite_fragment:
+    name: "<gray>Fragmento de cromita</gray>"
+    desc: "Principal: Cromo.\nSubprodutos: ferro (secundário).\nCai de rocha natural. Separe-o nos seus elementos."
+  chromite_tailings:
+    name: "<dark_gray>Rejeito de cromita</dark_gray>"
+    desc: "O que a separação deixou de cromita.\nUm método melhor recupera o resto uma vez."
+  wolframite_fragment:
+    name: "<gray>Fragmento de volframita</gray>"
+    desc: "Principal: Tungstênio.\nSubprodutos: ferro (secundário), manganês (secundário), estanho (traço).\nCai de rocha natural. Separe-o nos seus elementos."
+  wolframite_tailings:
+    name: "<dark_gray>Rejeito de volframita</dark_gray>"
+    desc: "O que a separação deixou de volframita.\nUm método melhor recupera o resto uma vez."
+  molybdenite_fragment:
+    name: "<gray>Fragmento de molibdenita</gray>"
+    desc: "Principal: Molibdênio.\nSubprodutos: rênio (traço).\nCai de rocha natural. Separe-o nos seus elementos."
+  molybdenite_tailings:
+    name: "<dark_gray>Rejeito de molibdenita</dark_gray>"
+    desc: "O que a separação deixou de molibdenita.\nUm método melhor recupera o resto uma vez."
+  ilmenite_fragment:
+    name: "<gray>Fragmento de ilmenita</gray>"
+    desc: "Principal: Titânio.\nSubprodutos: ferro (secundário).\nCai de rocha natural. Separe-o nos seus elementos."
+  ilmenite_tailings:
+    name: "<dark_gray>Rejeito de ilmenita</dark_gray>"
+    desc: "O que a separação deixou de ilmenita.\nUm método melhor recupera o resto uma vez."
+  bauxite_fragment:
+    name: "<gray>Fragmento de bauxita</gray>"
+    desc: "Principal: Alumínio.\nSubprodutos: ferro (secundário), titânio (secundário), gálio (traço).\nCai de rocha natural. Separe-o nos seus elementos."
+  bauxite_tailings:
+    name: "<dark_gray>Rejeito de bauxita</dark_gray>"
+    desc: "O que a separação deixou de bauxita.\nUm método melhor recupera o resto uma vez."
+  magnesite_fragment:
+    name: "<gray>Fragmento de magnesita</gray>"
+    desc: "Principal: Magnésio.\nCai de rocha natural. Separe-o nos seus elementos."
+  magnesite_tailings:
+    name: "<dark_gray>Rejeito de magnesita</dark_gray>"
+    desc: "O que a separação deixou de magnesita.\nUm método melhor recupera o resto uma vez."
+  vanadinite_fragment:
+    name: "<gray>Fragmento de vanadinita</gray>"
+    desc: "Principal: Vanádio.\nSubprodutos: chumbo (secundário).\nCai de rocha natural. Separe-o nos seus elementos."
+  vanadinite_tailings:
+    name: "<dark_gray>Rejeito de vanadinita</dark_gray>"
+    desc: "O que a separação deixou de vanadinita.\nUm método melhor recupera o resto uma vez."
+  beryl_fragment:
+    name: "<gray>Fragmento de berilo</gray>"
+    desc: "Principal: Berílio.\nSubprodutos: alumínio (secundário).\nCai de rocha natural. Separe-o nos seus elementos."
+  beryl_tailings:
+    name: "<dark_gray>Rejeito de berilo</dark_gray>"
+    desc: "O que a separação deixou de berilo.\nUm método melhor recupera o resto uma vez."
+  spodumene_fragment:
+    name: "<gray>Fragmento de espodumênio</gray>"
+    desc: "Principal: Lítio.\nSubprodutos: alumínio (secundário).\nCai de rocha natural. Separe-o nos seus elementos."
+  spodumene_tailings:
+    name: "<dark_gray>Rejeito de espodumênio</dark_gray>"
+    desc: "O que a separação deixou de espodumênio.\nUm método melhor recupera o resto uma vez."
+  uraninite_fragment:
+    name: "<gray>Fragmento de uraninita</gray>"
+    desc: "Principal: Urânio.\nSubprodutos: tório (secundário), rádio (traço), chumbo (traço).\nCai de rocha natural. Separe-o nos seus elementos."
+  uraninite_tailings:
+    name: "<dark_gray>Rejeito de uraninita</dark_gray>"
+    desc: "O que a separação deixou de uraninita.\nUm método melhor recupera o resto uma vez."
+  thorianite_fragment:
+    name: "<gray>Fragmento de torianita</gray>"
+    desc: "Principal: Tório.\nSubprodutos: urânio (secundário).\nCai de rocha natural. Separe-o nos seus elementos."
+  thorianite_tailings:
+    name: "<dark_gray>Rejeito de torianita</dark_gray>"
+    desc: "O que a separação deixou de torianita.\nUm método melhor recupera o resto uma vez."
+  zircon_fragment:
+    name: "<gray>Fragmento de zircão</gray>"
+    desc: "Principal: Zircônio.\nSubprodutos: háfnio (secundário), urânio (traço).\nCai de rocha natural. Separe-o nos seus elementos."
+  zircon_tailings:
+    name: "<dark_gray>Rejeito de zircão</dark_gray>"
+    desc: "O que a separação deixou de zircão.\nUm método melhor recupera o resto uma vez."
+  rutile_fragment:
+    name: "<gray>Fragmento de rutilo</gray>"
+    desc: "Principal: Titânio.\nCai de rocha natural. Separe-o nos seus elementos."
+  rutile_tailings:
+    name: "<dark_gray>Rejeito de rutilo</dark_gray>"
+    desc: "O que a separação deixou de rutilo.\nUm método melhor recupera o resto uma vez."
+  coltan_fragment:
+    name: "<gray>Fragmento de coltan</gray>"
+    desc: "Principal: Nióbio.\nSubprodutos: tântalo (secundário), estanho (traço).\nCai de rocha natural. Separe-o nos seus elementos."
+  coltan_tailings:
+    name: "<dark_gray>Rejeito de coltan</dark_gray>"
+    desc: "O que a separação deixou de coltan.\nUm método melhor recupera o resto uma vez."
+  lepidolite_fragment:
+    name: "<gray>Fragmento de lepidolita</gray>"
+    desc: "Principal: Lítio.\nSubprodutos: rubídio (secundário), césio (secundário).\nCai de rocha natural. Separe-o nos seus elementos."
+  lepidolite_tailings:
+    name: "<dark_gray>Rejeito de lepidolita</dark_gray>"
+    desc: "O que a separação deixou de lepidolita.\nUm método melhor recupera o resto uma vez."
+  monazite_fragment:
+    name: "<gray>Fragmento de monazita</gray>"
+    desc: "Principal: Cério, lantânio e neodímio.\nSubprodutos: tório (secundário), ítrio (traço).\nCai de rocha natural. Separe-o nos seus elementos."
+  monazite_tailings:
+    name: "<dark_gray>Rejeito de monazita</dark_gray>"
+    desc: "O que a separação deixou de monazita.\nUm método melhor recupera o resto uma vez."
+  bastnasite_fragment:
+    name: "<gray>Fragmento de bastnasita</gray>"
+    desc: "Principal: Cério, lantânio e neodímio.\nSubprodutos: európio (traço).\nCai de rocha natural. Separe-o nos seus elementos."
+  bastnasite_tailings:
+    name: "<dark_gray>Rejeito de bastnasita</dark_gray>"
+    desc: "O que a separação deixou de bastnasita.\nUm método melhor recupera o resto uma vez."
+  xenotime_fragment:
+    name: "<gray>Fragmento de xenotima</gray>"
+    desc: "Principal: Ítrio.\nSubprodutos: disprósio (secundário), térbio (secundário).\nCai de rocha natural. Separe-o nos seus elementos."
+  xenotime_tailings:
+    name: "<dark_gray>Rejeito de xenotima</dark_gray>"
+    desc: "O que a separação deixou de xenotima.\nUm método melhor recupera o resto uma vez."
+  calaverite_fragment:
+    name: "<gray>Fragmento de calaverita</gray>"
+    desc: "Principal: Telúrio.\nSubprodutos: ouro (secundário).\nCai de rocha natural. Separe-o nos seus elementos."
+  calaverite_tailings:
+    name: "<dark_gray>Rejeito de calaverita</dark_gray>"
+    desc: "O que a separação deixou de calaverita.\nUm método melhor recupera o resto uma vez."
+  meteorite_fragment:
+    name: "<gray>Fragmento de meteorito</gray>"
+    desc: "Principal: Ferro e níquel.\nSubprodutos: cobalto (secundário), irídio (traço), platina (traço).\nCai de rocha natural. Separe-o nos seus elementos."
+  meteorite_tailings:
+    name: "<dark_gray>Rejeito de meteorito</dark_gray>"
+    desc: "O que a separação deixou de meteorito.\nUm método melhor recupera o resto uma vez."
+  halite_fragment:
+    name: "<gray>Fragmento de halita</gray>"
+    desc: "Principal: Sal.\nCai de rocha natural. Separe-o nos seus elementos."
+  halite_tailings:
+    name: "<dark_gray>Rejeito de halita</dark_gray>"
+    desc: "O que a separação deixou de halita.\nUm método melhor recupera o resto uma vez."
+  native_sulfur_fragment:
+    name: "<gray>Fragmento de enxofre nativo</gray>"
+    desc: "Principal: Enxofre.\nCai de rocha natural. Separe-o nos seus elementos."
+  native_sulfur_tailings:
+    name: "<dark_gray>Rejeito de enxofre nativo</dark_gray>"
+    desc: "O que a separação deixou de enxofre nativo.\nUm método melhor recupera o resto uma vez."
+  saltpeter_fragment:
+    name: "<gray>Fragmento de salitre</gray>"
+    desc: "Principal: Nitrato de potássio.\nCai de rocha natural. Separe-o nos seus elementos."
+  saltpeter_tailings:
+    name: "<dark_gray>Rejeito de salitre</dark_gray>"
+    desc: "O que a separação deixou de salitre.\nUm método melhor recupera o resto uma vez."
+  phosphorite_fragment:
+    name: "<gray>Fragmento de fosforita</gray>"
+    desc: "Principal: Fosfato.\nCai de rocha natural. Separe-o nos seus elementos."
+  phosphorite_tailings:
+    name: "<dark_gray>Rejeito de fosforita</dark_gray>"
+    desc: "O que a separação deixou de fosforita.\nUm método melhor recupera o resto uma vez."
+  graphite_fragment:
+    name: "<gray>Fragmento de grafite</gray>"
+    desc: "Principal: Grafite.\nCai de rocha natural. Separe-o nos seus elementos."
+  graphite_tailings:
+    name: "<dark_gray>Rejeito de grafite</dark_gray>"
+    desc: "O que a separação deixou de grafite.\nUm método melhor recupera o resto uma vez."
+  sylvite_fragment:
+    name: "<gray>Fragmento de silvita</gray>"
+    desc: "Principal: Potássio.\nCai de rocha natural. Separe-o nos seus elementos."
+  sylvite_tailings:
+    name: "<dark_gray>Rejeito de silvita</dark_gray>"
+    desc: "O que a separação deixou de silvita.\nUm método melhor recupera o resto uma vez."
+  fluorite_fragment:
+    name: "<gray>Fragmento de fluorita</gray>"
+    desc: "Principal: Flúor.\nCai de rocha natural. Separe-o nos seus elementos."
+  fluorite_tailings:
+    name: "<dark_gray>Rejeito de fluorita</dark_gray>"
+    desc: "O que a separação deixou de fluorita.\nUm método melhor recupera o resto uma vez."
+  borax_fragment:
+    name: "<gray>Fragmento de bórax</gray>"
+    desc: "Principal: Boro.\nCai de rocha natural. Separe-o nos seus elementos."
+  borax_tailings:
+    name: "<dark_gray>Rejeito de bórax</dark_gray>"
+    desc: "O que a separação deixou de bórax.\nUm método melhor recupera o resto uma vez."
+
+workbench:
+  tool: "<gray>Ferramenta de bancada: <white><uses></white> usos, não é consumida</gray>"

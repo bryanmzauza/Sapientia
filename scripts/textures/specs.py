@@ -303,7 +303,6 @@ def metal_spec(metal: str, form: str) -> Spec:
         return block(lambda: {"all": finish(metal_block_face(r, sum(map(ord, metal))))})
     makers = {
         "ingot": lambda: render_mask(INGOT, r),
-        "raw": lambda: render_mask(RAW, r),
         "dust": lambda: render_mask(DUST, r),
         "wire": lambda: render_mask(WIRE, r),
         "rod": lambda: render_mask(ROD, r),
@@ -313,6 +312,65 @@ def metal_spec(metal: str, form: str) -> Spec:
     }
     make = makers[form]
     return item(lambda: finish(make()))
+
+
+# =============================================================================
+# Minerals: fragments (rock chunk with specks) and tailings (greyish heap)
+# =============================================================================
+
+MINERAL_COLORS = {
+    "native_copper": ("#c8703a", "#f0a868"), "malachite": ("#2e8b57", "#8fe0b0"),
+    "native_gold": ("#8a7a5a", "#ffd84a"), "native_silver": ("#8a8e94", "#eef2f6"),
+    "chalcopyrite": ("#b8963a", "#6fa86a"), "cassiterite": ("#4a3a32", "#b09a80"),
+    "arsenopyrite": ("#a8a8a0", "#e8e8d8"), "hematite": ("#8a3a30", "#d8705a"),
+    "magnetite": ("#3a3a40", "#8a8a98"), "galena": ("#6b6f8a", "#c8cce0"),
+    "cinnabar": ("#a8302a", "#f06a5a"), "sphalerite": ("#6a4a2a", "#d8a860"),
+    "stibnite": ("#707880", "#c8d0d8"), "bismuthinite": ("#7a7a8a", "#d890e8"),
+    "pyrolusite": ("#2e2e2e", "#707070"), "cobaltite": ("#a8a0b0", "#5a78d8"),
+    "native_platinum": ("#9a9ea4", "#f4f6f8"), "pentlandite": ("#a89058", "#e0d090"),
+    "chromite": ("#2a2a30", "#7a6a5a"), "wolframite": ("#3a3028", "#8a7a60"),
+    "molybdenite": ("#6a7280", "#c0c8d4"), "ilmenite": ("#2e2a2c", "#7a6a70"),
+    "bauxite": ("#b86a3a", "#e8b080"), "magnesite": ("#d8d4c8", "#9a9280"),
+    "vanadinite": ("#b8401a", "#ff8a4a"), "beryl": ("#5ab890", "#b8f0dc"),
+    "spodumene": ("#c8a8c0", "#f0dcec"), "uraninite": ("#1f2a1f", "#7af05a"),
+    "thorianite": ("#4a4038", "#a89878"), "zircon": ("#a85a3a", "#f0b080"),
+    "rutile": ("#7a321a", "#d87a4a"), "coltan": ("#2a2830", "#7a78a0"),
+    "lepidolite": ("#a880b8", "#f0d8ff"), "monazite": ("#b88a48", "#f0cc88"),
+    "bastnasite": ("#b87a4a", "#f0c49a"), "xenotime": ("#7a5a30", "#d8b878"),
+    "calaverite": ("#b8b07a", "#fff4c0"), "meteorite": ("#3a3638", "#a89ca4"),
+    "halite": ("#d8d8e4", "#a8c0f0"), "native_sulfur": ("#c8b820", "#fff48a"),
+    "saltpeter": ("#e4e4dc", "#b8b0a0"), "phosphorite": ("#6a5a4a", "#c0b0a0"),
+    "graphite": ("#2a2a2e", "#6a6a7a"), "sylvite": ("#d8a8a0", "#fff0ec"),
+    "fluorite": ("#7a4ab8", "#6ad8c0"), "borax": ("#e4e4e8", "#9ab8d8"),
+}
+
+
+def _speckle(img: Image.Image, mask: list[str], color: str, seed: int, every: int = 5) -> Image.Image:
+    """Scatters `color` over the interior shades (2 to 5) of a mask, deterministically per seed."""
+    px = img.load()
+    rgba = art.hex_rgba(color)
+    for y, row in enumerate(mask):
+        for x, ch in enumerate(row):
+            h = (x * 73856093) ^ (y * 19349663) ^ (seed * 83492791)
+            h = (h ^ (h >> 13)) * 0x5BD1E995 & 0xFFFFFFFF
+            if ch in "2345" and (h >> 7) % every == 0:
+                px[x, y] = rgba
+    return img
+
+
+def _greyed(base: str, amount: float = 0.55) -> str:
+    r, g, b, _ = art.hex_rgba(base)
+    grey = (r + g + b) / 3
+    mix = [round(c * (1 - amount) + grey * amount * 0.85) for c in (r, g, b)]
+    return "#%02x%02x%02x" % tuple(max(0, min(255, c)) for c in mix)
+
+
+def mineral_spec(mineral: str, kind: str) -> Spec:
+    base, speck = MINERAL_COLORS[mineral]
+    seed = sum(map(ord, mineral))
+    if kind == "fragment":
+        return item(lambda: _speckle(render_mask(RAW, ramp(base)), RAW, speck, seed))
+    return item(lambda: _speckle(render_mask(DUST, ramp(_greyed(base))), DUST, speck, seed, every=7))
 
 
 # =============================================================================
@@ -1196,6 +1254,10 @@ def lookup(item_id: str) -> Spec | None:
         prefix = metal + "_"
         if item_id.startswith(prefix):
             form = item_id[len(prefix):]
-            if form in ("raw", "dust", "ingot", "block", "plate", "wire", "rod", "gear", "screw"):
+            if form in ("dust", "ingot", "block", "plate", "wire", "rod", "gear", "screw"):
                 return metal_spec(metal, form)
+    for kind in ("fragment", "tailings"):
+        suffix = "_" + kind
+        if item_id.endswith(suffix) and item_id[: -len(suffix)] in MINERAL_COLORS:
+            return mineral_spec(item_id[: -len(suffix)], kind)
     return component_spec(item_id) or upgrade_spec(item_id)

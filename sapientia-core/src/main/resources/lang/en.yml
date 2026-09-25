@@ -6,6 +6,10 @@ plugin:
   reload:
     success: "<green>Configuration reloaded in <white><ms>ms</white>.</green>"
     failure: "<red>Reload failed: <white><error></white></red>"
+  pack:
+    outdated: "The server resource pack in server.properties is out of date, so players see new Sapientia items without textures. Upload <path> and set resource-pack-sha1=<sha1>."
+    outdated-join: "<yellow>The server resource pack is out of date: new Sapientia items show without textures. Upload <white><path></white> and set <white>resource-pack-sha1=<sha1></white> in server.properties.</yellow>"
+    unset: "Sapientia textures need the resource pack <path> (SHA-1 <sha1>). Host it and set it as the server resource pack in server.properties."
 
 command:
   perf:
@@ -18,6 +22,19 @@ command:
   unknown: "<red>Unknown command. Try <white>/sapientia help</white>.</red>"
   no-permission: "<red>You do not have permission to do that.</red>"
   players-only: "<red>This command can only be run by players.</red>"
+  era:
+    current: "<gold>Server era:</gold> <white><number> — <era></white>"
+    summary: "<gray><summary></gray>"
+    next-up: "<gray>Next era: <white><number> — <era></white></gray>"
+    set: "<green>Server era set to <white><number> — <era></white>.</green>"
+    lowered: "<yellow>The era went down: content of later eras is locked again.</yellow>"
+    last: "<yellow>This is already the last era.</yellow>"
+    usage: "<red>Usage: /sapientia era [info|set <0-24>|next]</red>"
+    invalid: "<red>Unknown era: <white><value></white>. Use a number from 0 to 24.</red>"
+  mining:
+    usage: "<red>Usage: /sapientia mining mark <x1> <y1> <z1> <x2> <y2> <z2></red>"
+    too-large: "<red>That box is too large (at most <white><max></white> blocks).</red>"
+    marked: "<green>Marked <white><count></white> blocks as placed. They will not yield minerals.</green>"
   help:
     header: "<gold>=== Sapientia Help ===</gold>"
     entry: "<yellow><usage></yellow> <gray>-</gray> <white><description></white>"
@@ -33,6 +50,8 @@ command:
       fluids: "Inspect Sapientia fluid logistics networks."
       logic: "Manage programmable-logic DAG programs."
       perf: "Show the tick cost of each Sapientia subsystem."
+      era: "Show the server era, or change it (set, next)."
+      mining: "Mark a box as placed blocks so it never yields minerals."
   logistics:
     usage: "<red>Usage: /sapientia logistics <info|policy|filter></red>"
     info:
@@ -191,7 +210,7 @@ block:
     desc: "Shared MV-tier casing. Used as the core ingredient in every MV machine recipe and the induction furnace."
   macerator:
     name: "<gold>Macerator</gold>"
-    desc: "LV-tier machine. Grinds raw ore into 2x dust."
+    desc: "LV-tier machine. Grinds mineral fragments into 2x dust of their main metal."
   ore_washer:
     name: "<gold>Ore Washer</gold>"
     desc: "LV-tier machine. Washes dust to remove impurities and recover byproducts."
@@ -383,7 +402,12 @@ fluid:
 
 guide:
   title: "<gold>Sapientia Guide</gold>"
+  welcome: "<gold>Welcome to Sapientia!</gold> <gray>This guide shows the server era, your next goal and every recipe. Right-click it to open. Start by making the <white>Sapientia Workbench</white> on a crafting table.</gray>"
   locked: "<dark_gray>Locked</dark_gray>"
+  locked-era:
+    name: "<gray><name></gray> <dark_gray>(locked)</dark_gray>"
+    lore: "<dark_gray>Unlocks when the server reaches this era.</dark_gray>"
+    bedrock: "<name> (era <number>, locked)"
   entry:
     click: "<yellow>» Click for recipe</yellow>"
   index:
@@ -392,8 +416,12 @@ guide:
       lore: "<gray>Pick a category to browse\nits items, blocks and machines.</gray>"
     button:
       count: "<dark_gray><count> entries</dark_gray>"
+    era: "<gray>Server era:</gray> <white><number> — <era></white>"
+    goal: "<gray>Next goal:</gray> <yellow>make <item></yellow> <gray>(<era>)</gray>"
+    goal-done: "<gray>Every unlocked era is complete. The next era comes when the admin unlocks it.</gray>"
   category:
     title: "<gold>Guide</gold> <gray>·</gray> <white><category></white>"
+    locked-eras: "<dark_gray><count> in eras not unlocked yet</dark_gray>"
     back:
       name: "<yellow>« Back to Categories</yellow>"
       lore: "<gray>Return to the category list.</gray>"
@@ -429,6 +457,10 @@ guide:
       header: "<aqua><bold>Recipe</bold></aqua>"
       none: "<gray>This item has no crafting recipe.\nObtain it from world drops, the\n/sapientia give command, or admins.</gray>"
     yields: "<gray>Yields <white><amount>x</white> per craft.</gray>"
+    vanilla:
+      name: "<aqua><bold>Vanilla crafting table</bold></aqua>"
+      lore: "<gray>Made on a normal crafting table,
+not on the Sapientia Workbench.</gray>"
     category: "<dark_gray>Category:</dark_gray> <gray><category></gray>"
     back:
       name: "<yellow>« Back to Category</yellow>"
@@ -469,9 +501,6 @@ ui:
       failed: "<red>Could not assign program <program>.</red>"
 
 metal:
-  copper_raw:
-    name: "<gold>Raw Copper</gold>"
-    desc: "Mined from vanilla copper ore (drops as raw copper).\nMacerate into copper dust, then smelt to ingot."
   copper_dust:
     name: "<gold>Copper Dust</gold>"
   copper_ingot:
@@ -488,9 +517,6 @@ metal:
     name: "<gold>Copper Gear</gold>"
   copper_screw:
     name: "<gold>Copper Screw</gold>"
-  tin_raw:
-    name: "<white>Raw Tin</white>"
-    desc: "Tin ore world-gen ships in 2.0.0; until then use\n/sapientia give. Macerate to tin dust, then smelt to ingot."
   tin_dust:
     name: "<white>Tin Dust</white>"
   tin_ingot:
@@ -507,9 +533,6 @@ metal:
     name: "<white>Tin Gear</white>"
   tin_screw:
     name: "<white>Tin Screw</white>"
-  zinc_raw:
-    name: "<gray>Raw Zinc</gray>"
-    desc: "Zinc ore world-gen ships in 2.0.0; until then use\n/sapientia give. Macerate to zinc dust, then smelt to ingot."
   zinc_dust:
     name: "<gray>Zinc Dust</gray>"
   zinc_ingot:
@@ -526,9 +549,6 @@ metal:
     name: "<gray>Zinc Gear</gray>"
   zinc_screw:
     name: "<gray>Zinc Screw</gray>"
-  lead_raw:
-    name: "<dark_gray>Raw Lead</dark_gray>"
-    desc: "Lead ore world-gen ships in 2.0.0; until then use\n/sapientia give. Macerate to lead dust, then smelt to ingot."
   lead_dust:
     name: "<dark_gray>Lead Dust</dark_gray>"
   lead_ingot:
@@ -545,9 +565,6 @@ metal:
     name: "<dark_gray>Lead Gear</dark_gray>"
   lead_screw:
     name: "<dark_gray>Lead Screw</dark_gray>"
-  silver_raw:
-    name: "<white>Raw Silver</white>"
-    desc: "Silver ore world-gen ships in 2.0.0; until then use\n/sapientia give. Macerate to silver dust, then smelt to ingot."
   silver_dust:
     name: "<white>Silver Dust</white>"
   silver_ingot:
@@ -564,9 +581,6 @@ metal:
     name: "<white>Silver Gear</white>"
   silver_screw:
     name: "<white>Silver Screw</white>"
-  nickel_raw:
-    name: "<yellow>Raw Nickel</yellow>"
-    desc: "Nickel ore world-gen ships in 2.0.0; until then use\n/sapientia give. Macerate to nickel dust, then smelt to ingot."
   nickel_dust:
     name: "<yellow>Nickel Dust</yellow>"
   nickel_ingot:
@@ -635,9 +649,6 @@ metal:
   electrum_screw:
     name: "<aqua>Electrum Screw</aqua>"
 
-  aluminum_raw:
-    name: "<gray>Raw Aluminum</gray>"
-    desc: "Bauxite ore world-gen ships in 2.0.0; until then use\n/sapientia give aluminum_raw. Macerate to dust, smelt\nto ingot, then press into plates and wires for HV gear."
   aluminum_dust:
     name: "<gray>Aluminum Dust</gray>"
   aluminum_ingot:
@@ -654,9 +665,6 @@ metal:
     name: "<gray>Aluminum Gear</gray>"
   aluminum_screw:
     name: "<gray>Aluminum Screw</gray>"
-  silicon_raw:
-    name: "<dark_gray>Raw Silicon</dark_gray>"
-    desc: "Silicon ore world-gen ships in 2.0.0; until then use\n/sapientia give silicon_raw. Macerate to dust, smelt to\ningot, laser-cut into wafers for processors and circuits."
   silicon_dust:
     name: "<dark_gray>Silicon Dust</dark_gray>"
   silicon_ingot:
@@ -673,9 +681,6 @@ metal:
     name: "<dark_gray>Silicon Gear</dark_gray>"
   silicon_screw:
     name: "<dark_gray>Silicon Screw</dark_gray>"
-  titanium_raw:
-    name: "<white>Raw Titanium</white>"
-    desc: "Titanium ore world-gen ships in 2.0.0; until then use\n/sapientia give titanium_raw. Macerate to dust, smelt\nto ingot, press into plates for HV motors and casings."
   titanium_dust:
     name: "<white>Titanium Dust</white>"
   titanium_ingot:
@@ -692,9 +697,6 @@ metal:
     name: "<white>Titanium Gear</white>"
   titanium_screw:
     name: "<white>Titanium Screw</white>"
-  lithium_raw:
-    name: "<light_purple>Raw Lithium</light_purple>"
-    desc: "Lithium ore world-gen ships in 2.0.0; until then use\n/sapientia give lithium_raw. Macerate to dust, then\nsmelt to ingot for batteries and chemistry recipes."
   lithium_dust:
     name: "<light_purple>Lithium Dust</light_purple>"
   lithium_ingot:
@@ -864,3 +866,372 @@ limit:
     blocks: "<red>This chunk already has <white><limit></white> Sapientia blocks, the maximum per chunk.</red>"
     processors: "<red>This chunk already has <white><limit></white> machines, the maximum per chunk.</red>"
     same-type: "<red>This chunk already has <white><limit></white> of <block><red>, the maximum per chunk.</red>"
+
+era:
+  arrival:
+    name: "Arrival"
+    summary: "The guide and the Sapientia Workbench."
+  stone_age:
+    name: "Stone Age"
+    summary: "Farming, flint tools, the charcoal pit and the clay furnace."
+  copper_age:
+    name: "Copper Age"
+    summary: "Native copper, gold and silver; rice, salt pans and hand looms."
+  bronze_age:
+    name: "Bronze Age"
+    summary: "Tin and bronze, the gold pan, scythes and cheese."
+  iron_age:
+    name: "Iron Age"
+    summary: "Bloomery and bellows, lead, cupellation, mercury and lime."
+  classical_antiquity:
+    name: "Classical Antiquity"
+    summary: "Water wheels, mechanical machines, aqueducts, wine and brass."
+  middle_ages:
+    name: "Middle Ages"
+    summary: "Windmills, the blast furnace, Damascus steel and acids."
+  renaissance:
+    name: "Renaissance"
+    summary: "Precision mechanisms, optical glass, the printing press and New World crops."
+  industrial_revolution:
+    name: "Industrial Revolution"
+    summary: "Steam, coke, Bessemer steel and mechanised farming."
+  electricity:
+    name: "Electricity"
+    summary: "The LV network, electric machines, electrolysis and aluminium."
+  steel_age:
+    name: "Age of Steel"
+    summary: "The MV network, steel alloys, flotation, the quarry and fertilisers."
+  oil_and_chemistry:
+    name: "Oil and Chemistry"
+    summary: "Refineries, plastics, synthetic rubber, biofuels and medicine."
+  electronics:
+    name: "Electronics"
+    summary: "The HV network, silicon, clean rooms and processors."
+  atomic_age:
+    name: "Atomic Age"
+    summary: "Uranium enrichment, fission reactors and the EV network."
+  space_age:
+    name: "Space Age"
+    summary: "Titanium, rockets, satellites, GPS and the RTG."
+  information_age:
+    name: "Information Age"
+    summary: "Computers running logic programs, rare earths and the IV network."
+  robotics:
+    name: "Robotics"
+    summary: "Androids working in the world, lithium batteries and farm drones."
+  renewable_energy:
+    name: "Renewable Energy"
+    summary: "Solar, wind, fuel cells, recycling and vertical farms."
+  fusion:
+    name: "Fusion"
+    summary: "Superconductors, the fusion reactor and the LuV network."
+  nanotechnology:
+    name: "Nanotechnology"
+    summary: "Graphene, the molecular assembler and gene editing."
+  orbital_age:
+    name: "Orbital Age"
+    summary: "Orbital stations, asteroid mining and the ZPM network."
+  quantum_age:
+    name: "Quantum Age"
+    summary: "Quantum computers, item teleportation and quantum storage."
+  antimatter:
+    name: "Antimatter"
+    summary: "Particle accelerators, antimatter cells and the UV network."
+  interstellar:
+    name: "Interstellar Age"
+    summary: "Exotic matter, neutronium and the warp core."
+  singularity:
+    name: "Singularity"
+    summary: "Transmutation, programmable matter and the Dyson sphere."
+  announce: "<gold>A new era begins: <white><number> — <era></white>!</gold> <gray><summary></gray>"
+  lore: "<dark_gray>Era <number>: <era></dark_gray>"
+  locked:
+    place: "<red>This belongs to era <number> (<era>), which is not unlocked on this server yet.</red>"
+
+research:
+  unlocked: "<aqua>New recipe:</aqua> <white><recipe></white>"
+  locked:
+    name: "<red>Recipe locked</red>"
+    era: "<gray>Unlocks in era <white><number></white> (<era>).</gray>"
+    missing: "<gray>Discover first:</gray>"
+
+mineral:
+  native_copper_fragment:
+    name: "<gray>Native Copper Fragment</gray>"
+    desc: "Main: Copper.\nByproducts: silver (trace).\nDrops from natural rock. Separate it into its elements."
+  native_copper_tailings:
+    name: "<dark_gray>Native Copper Tailings</dark_gray>"
+    desc: "What separation left of native copper.\nA better method recovers the rest once."
+  malachite_fragment:
+    name: "<gray>Malachite Fragment</gray>"
+    desc: "Main: Copper.\nByproducts: zinc (trace).\nDrops from natural rock. Separate it into its elements."
+  malachite_tailings:
+    name: "<dark_gray>Malachite Tailings</dark_gray>"
+    desc: "What separation left of malachite.\nA better method recovers the rest once."
+  native_gold_fragment:
+    name: "<gray>Native Gold Fragment</gray>"
+    desc: "Main: Gold.\nByproducts: silver (secondary).\nDrops from natural rock. Separate it into its elements."
+  native_gold_tailings:
+    name: "<dark_gray>Native Gold Tailings</dark_gray>"
+    desc: "What separation left of native gold.\nA better method recovers the rest once."
+  native_silver_fragment:
+    name: "<gray>Native Silver Fragment</gray>"
+    desc: "Main: Silver.\nByproducts: copper (secondary).\nDrops from natural rock. Separate it into its elements."
+  native_silver_tailings:
+    name: "<dark_gray>Native Silver Tailings</dark_gray>"
+    desc: "What separation left of native silver.\nA better method recovers the rest once."
+  chalcopyrite_fragment:
+    name: "<gray>Chalcopyrite Fragment</gray>"
+    desc: "Main: Copper.\nByproducts: iron (secondary), gold (trace), selenium (trace), tellurium (trace).\nDrops from natural rock. Separate it into its elements."
+  chalcopyrite_tailings:
+    name: "<dark_gray>Chalcopyrite Tailings</dark_gray>"
+    desc: "What separation left of chalcopyrite.\nA better method recovers the rest once."
+  cassiterite_fragment:
+    name: "<gray>Cassiterite Fragment</gray>"
+    desc: "Main: Tin.\nByproducts: niobium (trace), tantalum (trace).\nDrops from natural rock. Separate it into its elements."
+  cassiterite_tailings:
+    name: "<dark_gray>Cassiterite Tailings</dark_gray>"
+    desc: "What separation left of cassiterite.\nA better method recovers the rest once."
+  arsenopyrite_fragment:
+    name: "<gray>Arsenopyrite Fragment</gray>"
+    desc: "Main: Arsenic.\nByproducts: iron (secondary), gold (trace).\nDrops from natural rock. Separate it into its elements."
+  arsenopyrite_tailings:
+    name: "<dark_gray>Arsenopyrite Tailings</dark_gray>"
+    desc: "What separation left of arsenopyrite.\nA better method recovers the rest once."
+  hematite_fragment:
+    name: "<gray>Hematite Fragment</gray>"
+    desc: "Main: Iron.\nByproducts: manganese (trace).\nDrops from natural rock. Separate it into its elements."
+  hematite_tailings:
+    name: "<dark_gray>Hematite Tailings</dark_gray>"
+    desc: "What separation left of hematite.\nA better method recovers the rest once."
+  magnetite_fragment:
+    name: "<gray>Magnetite Fragment</gray>"
+    desc: "Main: Iron.\nByproducts: titanium (secondary), vanadium (trace).\nDrops from natural rock. Separate it into its elements."
+  magnetite_tailings:
+    name: "<dark_gray>Magnetite Tailings</dark_gray>"
+    desc: "What separation left of magnetite.\nA better method recovers the rest once."
+  galena_fragment:
+    name: "<gray>Galena Fragment</gray>"
+    desc: "Main: Lead.\nByproducts: silver (secondary), bismuth (trace), antimony (trace).\nDrops from natural rock. Separate it into its elements."
+  galena_tailings:
+    name: "<dark_gray>Galena Tailings</dark_gray>"
+    desc: "What separation left of galena.\nA better method recovers the rest once."
+  cinnabar_fragment:
+    name: "<gray>Cinnabar Fragment</gray>"
+    desc: "Main: Mercury.\nDrops from natural rock. Separate it into its elements."
+  cinnabar_tailings:
+    name: "<dark_gray>Cinnabar Tailings</dark_gray>"
+    desc: "What separation left of cinnabar.\nA better method recovers the rest once."
+  sphalerite_fragment:
+    name: "<gray>Sphalerite Fragment</gray>"
+    desc: "Main: Zinc.\nByproducts: cadmium (secondary), iron (secondary), indium (trace), germanium (trace), gallium (trace).\nDrops from natural rock. Separate it into its elements."
+  sphalerite_tailings:
+    name: "<dark_gray>Sphalerite Tailings</dark_gray>"
+    desc: "What separation left of sphalerite.\nA better method recovers the rest once."
+  stibnite_fragment:
+    name: "<gray>Stibnite Fragment</gray>"
+    desc: "Main: Antimony.\nByproducts: gold (trace).\nDrops from natural rock. Separate it into its elements."
+  stibnite_tailings:
+    name: "<dark_gray>Stibnite Tailings</dark_gray>"
+    desc: "What separation left of stibnite.\nA better method recovers the rest once."
+  bismuthinite_fragment:
+    name: "<gray>Bismuthinite Fragment</gray>"
+    desc: "Main: Bismuth.\nDrops from natural rock. Separate it into its elements."
+  bismuthinite_tailings:
+    name: "<dark_gray>Bismuthinite Tailings</dark_gray>"
+    desc: "What separation left of bismuthinite.\nA better method recovers the rest once."
+  pyrolusite_fragment:
+    name: "<gray>Pyrolusite Fragment</gray>"
+    desc: "Main: Manganese.\nByproducts: iron (secondary).\nDrops from natural rock. Separate it into its elements."
+  pyrolusite_tailings:
+    name: "<dark_gray>Pyrolusite Tailings</dark_gray>"
+    desc: "What separation left of pyrolusite.\nA better method recovers the rest once."
+  cobaltite_fragment:
+    name: "<gray>Cobaltite Fragment</gray>"
+    desc: "Main: Cobalt.\nByproducts: arsenic (secondary), nickel (trace).\nDrops from natural rock. Separate it into its elements."
+  cobaltite_tailings:
+    name: "<dark_gray>Cobaltite Tailings</dark_gray>"
+    desc: "What separation left of cobaltite.\nA better method recovers the rest once."
+  native_platinum_fragment:
+    name: "<gray>Native Platinum Fragment</gray>"
+    desc: "Main: Platinum.\nByproducts: palladium (secondary), iridium (secondary), osmium (trace), rhodium (trace), ruthenium (trace).\nDrops from natural rock. Separate it into its elements."
+  native_platinum_tailings:
+    name: "<dark_gray>Native Platinum Tailings</dark_gray>"
+    desc: "What separation left of native platinum.\nA better method recovers the rest once."
+  pentlandite_fragment:
+    name: "<gray>Pentlandite Fragment</gray>"
+    desc: "Main: Nickel.\nByproducts: iron (secondary), cobalt (secondary), platinum (trace), palladium (trace).\nDrops from natural rock. Separate it into its elements."
+  pentlandite_tailings:
+    name: "<dark_gray>Pentlandite Tailings</dark_gray>"
+    desc: "What separation left of pentlandite.\nA better method recovers the rest once."
+  chromite_fragment:
+    name: "<gray>Chromite Fragment</gray>"
+    desc: "Main: Chromium.\nByproducts: iron (secondary).\nDrops from natural rock. Separate it into its elements."
+  chromite_tailings:
+    name: "<dark_gray>Chromite Tailings</dark_gray>"
+    desc: "What separation left of chromite.\nA better method recovers the rest once."
+  wolframite_fragment:
+    name: "<gray>Wolframite Fragment</gray>"
+    desc: "Main: Tungsten.\nByproducts: iron (secondary), manganese (secondary), tin (trace).\nDrops from natural rock. Separate it into its elements."
+  wolframite_tailings:
+    name: "<dark_gray>Wolframite Tailings</dark_gray>"
+    desc: "What separation left of wolframite.\nA better method recovers the rest once."
+  molybdenite_fragment:
+    name: "<gray>Molybdenite Fragment</gray>"
+    desc: "Main: Molybdenum.\nByproducts: rhenium (trace).\nDrops from natural rock. Separate it into its elements."
+  molybdenite_tailings:
+    name: "<dark_gray>Molybdenite Tailings</dark_gray>"
+    desc: "What separation left of molybdenite.\nA better method recovers the rest once."
+  ilmenite_fragment:
+    name: "<gray>Ilmenite Fragment</gray>"
+    desc: "Main: Titanium.\nByproducts: iron (secondary).\nDrops from natural rock. Separate it into its elements."
+  ilmenite_tailings:
+    name: "<dark_gray>Ilmenite Tailings</dark_gray>"
+    desc: "What separation left of ilmenite.\nA better method recovers the rest once."
+  bauxite_fragment:
+    name: "<gray>Bauxite Fragment</gray>"
+    desc: "Main: Aluminum.\nByproducts: iron (secondary), titanium (secondary), gallium (trace).\nDrops from natural rock. Separate it into its elements."
+  bauxite_tailings:
+    name: "<dark_gray>Bauxite Tailings</dark_gray>"
+    desc: "What separation left of bauxite.\nA better method recovers the rest once."
+  magnesite_fragment:
+    name: "<gray>Magnesite Fragment</gray>"
+    desc: "Main: Magnesium.\nDrops from natural rock. Separate it into its elements."
+  magnesite_tailings:
+    name: "<dark_gray>Magnesite Tailings</dark_gray>"
+    desc: "What separation left of magnesite.\nA better method recovers the rest once."
+  vanadinite_fragment:
+    name: "<gray>Vanadinite Fragment</gray>"
+    desc: "Main: Vanadium.\nByproducts: lead (secondary).\nDrops from natural rock. Separate it into its elements."
+  vanadinite_tailings:
+    name: "<dark_gray>Vanadinite Tailings</dark_gray>"
+    desc: "What separation left of vanadinite.\nA better method recovers the rest once."
+  beryl_fragment:
+    name: "<gray>Beryl Fragment</gray>"
+    desc: "Main: Beryllium.\nByproducts: aluminum (secondary).\nDrops from natural rock. Separate it into its elements."
+  beryl_tailings:
+    name: "<dark_gray>Beryl Tailings</dark_gray>"
+    desc: "What separation left of beryl.\nA better method recovers the rest once."
+  spodumene_fragment:
+    name: "<gray>Spodumene Fragment</gray>"
+    desc: "Main: Lithium.\nByproducts: aluminum (secondary).\nDrops from natural rock. Separate it into its elements."
+  spodumene_tailings:
+    name: "<dark_gray>Spodumene Tailings</dark_gray>"
+    desc: "What separation left of spodumene.\nA better method recovers the rest once."
+  uraninite_fragment:
+    name: "<gray>Uraninite Fragment</gray>"
+    desc: "Main: Uranium.\nByproducts: thorium (secondary), radium (trace), lead (trace).\nDrops from natural rock. Separate it into its elements."
+  uraninite_tailings:
+    name: "<dark_gray>Uraninite Tailings</dark_gray>"
+    desc: "What separation left of uraninite.\nA better method recovers the rest once."
+  thorianite_fragment:
+    name: "<gray>Thorianite Fragment</gray>"
+    desc: "Main: Thorium.\nByproducts: uranium (secondary).\nDrops from natural rock. Separate it into its elements."
+  thorianite_tailings:
+    name: "<dark_gray>Thorianite Tailings</dark_gray>"
+    desc: "What separation left of thorianite.\nA better method recovers the rest once."
+  zircon_fragment:
+    name: "<gray>Zircon Fragment</gray>"
+    desc: "Main: Zirconium.\nByproducts: hafnium (secondary), uranium (trace).\nDrops from natural rock. Separate it into its elements."
+  zircon_tailings:
+    name: "<dark_gray>Zircon Tailings</dark_gray>"
+    desc: "What separation left of zircon.\nA better method recovers the rest once."
+  rutile_fragment:
+    name: "<gray>Rutile Fragment</gray>"
+    desc: "Main: Titanium.\nDrops from natural rock. Separate it into its elements."
+  rutile_tailings:
+    name: "<dark_gray>Rutile Tailings</dark_gray>"
+    desc: "What separation left of rutile.\nA better method recovers the rest once."
+  coltan_fragment:
+    name: "<gray>Coltan Fragment</gray>"
+    desc: "Main: Niobium.\nByproducts: tantalum (secondary), tin (trace).\nDrops from natural rock. Separate it into its elements."
+  coltan_tailings:
+    name: "<dark_gray>Coltan Tailings</dark_gray>"
+    desc: "What separation left of coltan.\nA better method recovers the rest once."
+  lepidolite_fragment:
+    name: "<gray>Lepidolite Fragment</gray>"
+    desc: "Main: Lithium.\nByproducts: rubidium (secondary), cesium (secondary).\nDrops from natural rock. Separate it into its elements."
+  lepidolite_tailings:
+    name: "<dark_gray>Lepidolite Tailings</dark_gray>"
+    desc: "What separation left of lepidolite.\nA better method recovers the rest once."
+  monazite_fragment:
+    name: "<gray>Monazite Fragment</gray>"
+    desc: "Main: Cerium, lanthanum and neodymium.\nByproducts: thorium (secondary), yttrium (trace).\nDrops from natural rock. Separate it into its elements."
+  monazite_tailings:
+    name: "<dark_gray>Monazite Tailings</dark_gray>"
+    desc: "What separation left of monazite.\nA better method recovers the rest once."
+  bastnasite_fragment:
+    name: "<gray>Bastnäsite Fragment</gray>"
+    desc: "Main: Cerium, lanthanum and neodymium.\nByproducts: europium (trace).\nDrops from natural rock. Separate it into its elements."
+  bastnasite_tailings:
+    name: "<dark_gray>Bastnäsite Tailings</dark_gray>"
+    desc: "What separation left of bastnäsite.\nA better method recovers the rest once."
+  xenotime_fragment:
+    name: "<gray>Xenotime Fragment</gray>"
+    desc: "Main: Yttrium.\nByproducts: dysprosium (secondary), terbium (secondary).\nDrops from natural rock. Separate it into its elements."
+  xenotime_tailings:
+    name: "<dark_gray>Xenotime Tailings</dark_gray>"
+    desc: "What separation left of xenotime.\nA better method recovers the rest once."
+  calaverite_fragment:
+    name: "<gray>Calaverite Fragment</gray>"
+    desc: "Main: Tellurium.\nByproducts: gold (secondary).\nDrops from natural rock. Separate it into its elements."
+  calaverite_tailings:
+    name: "<dark_gray>Calaverite Tailings</dark_gray>"
+    desc: "What separation left of calaverite.\nA better method recovers the rest once."
+  meteorite_fragment:
+    name: "<gray>Meteorite Fragment</gray>"
+    desc: "Main: Iron and nickel.\nByproducts: cobalt (secondary), iridium (trace), platinum (trace).\nDrops from natural rock. Separate it into its elements."
+  meteorite_tailings:
+    name: "<dark_gray>Meteorite Tailings</dark_gray>"
+    desc: "What separation left of meteorite.\nA better method recovers the rest once."
+  halite_fragment:
+    name: "<gray>Halite Fragment</gray>"
+    desc: "Main: Salt.\nDrops from natural rock. Separate it into its elements."
+  halite_tailings:
+    name: "<dark_gray>Halite Tailings</dark_gray>"
+    desc: "What separation left of halite.\nA better method recovers the rest once."
+  native_sulfur_fragment:
+    name: "<gray>Native Sulfur Fragment</gray>"
+    desc: "Main: Sulfur.\nDrops from natural rock. Separate it into its elements."
+  native_sulfur_tailings:
+    name: "<dark_gray>Native Sulfur Tailings</dark_gray>"
+    desc: "What separation left of native sulfur.\nA better method recovers the rest once."
+  saltpeter_fragment:
+    name: "<gray>Saltpeter Fragment</gray>"
+    desc: "Main: Potassium nitrate.\nDrops from natural rock. Separate it into its elements."
+  saltpeter_tailings:
+    name: "<dark_gray>Saltpeter Tailings</dark_gray>"
+    desc: "What separation left of saltpeter.\nA better method recovers the rest once."
+  phosphorite_fragment:
+    name: "<gray>Phosphorite Fragment</gray>"
+    desc: "Main: Phosphate.\nDrops from natural rock. Separate it into its elements."
+  phosphorite_tailings:
+    name: "<dark_gray>Phosphorite Tailings</dark_gray>"
+    desc: "What separation left of phosphorite.\nA better method recovers the rest once."
+  graphite_fragment:
+    name: "<gray>Graphite Fragment</gray>"
+    desc: "Main: Graphite.\nDrops from natural rock. Separate it into its elements."
+  graphite_tailings:
+    name: "<dark_gray>Graphite Tailings</dark_gray>"
+    desc: "What separation left of graphite.\nA better method recovers the rest once."
+  sylvite_fragment:
+    name: "<gray>Sylvite Fragment</gray>"
+    desc: "Main: Potassium.\nDrops from natural rock. Separate it into its elements."
+  sylvite_tailings:
+    name: "<dark_gray>Sylvite Tailings</dark_gray>"
+    desc: "What separation left of sylvite.\nA better method recovers the rest once."
+  fluorite_fragment:
+    name: "<gray>Fluorite Fragment</gray>"
+    desc: "Main: Fluorine.\nDrops from natural rock. Separate it into its elements."
+  fluorite_tailings:
+    name: "<dark_gray>Fluorite Tailings</dark_gray>"
+    desc: "What separation left of fluorite.\nA better method recovers the rest once."
+  borax_fragment:
+    name: "<gray>Borax Fragment</gray>"
+    desc: "Main: Boron.\nDrops from natural rock. Separate it into its elements."
+  borax_tailings:
+    name: "<dark_gray>Borax Tailings</dark_gray>"
+    desc: "What separation left of borax.\nA better method recovers the rest once."
+
+workbench:
+  tool: "<gray>Workbench tool: <white><uses></white> uses, not consumed</gray>"

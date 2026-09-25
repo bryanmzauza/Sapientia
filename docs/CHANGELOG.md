@@ -10,9 +10,109 @@ Versions 0.1.0 through 1.10.0 were development milestones; no binaries were publ
 
 ## [Unreleased]
 
-Development of **2.0.0**, the era-based rewrite of Sapientia, begins. 2.0.0 will contain the
-performance and progression foundations plus era 0; each following era ships as its own minor
-version (era 1 as 2.1.0, era 2 as 2.2.0, and so on), with fixes as patch versions.
+Era 0 (Arrival), planned as **2.0.2**: how a new player starts.
+
+### Added
+
+- New players receive the Sapientia Guide on their first join, with a short welcome message
+  (`progression.give-guide-on-join`).
+- The guide (1 book and 1 flint) and the Sapientia Workbench (a crafting table surrounded by
+  cobblestone, planks and flint) are made on the vanilla crafting table, and appear in every
+  player's recipe book. The guide shows these recipes too, on Java and Bedrock.
+- Workbench tools: items that the Sapientia Workbench uses as an ingredient without consuming them,
+  losing one use per craft and breaking when none are left. They show a durability bar and do not
+  stack. The first ones arrive with era 1.
+- API: `VanillaRecipe`, `RecipeRegistry#registerVanilla` and `RecipeRegistry#vanillaRecipes` for
+  Sapientia items made on the vanilla crafting table, and `SapientiaItem#benchToolUses()` for
+  workbench tools.
+
+### Changed
+
+- Placing a Sapientia block counts as discovering it, so blocks received from an admin also
+  advance research and the guide's next goal.
+- Sapientia items made on the vanilla crafting table follow the era locks.
+
+## [2.0.1] - 2026-09-25
+
+Foundation 2 of Sapientia 2: eras, player research, minerals from natural terrain and the plant
+system that every era builds on.
+
+### Added
+
+- Eras. The server has a current era (0 to 24), saved in the database. `/sapientia era` shows it;
+  `/sapientia era set <0-24>` and `/sapientia era next` change it (permission
+  `sapientia.command.era`). New servers start in era 1 (`progression.starting-era`), and each new
+  era is announced in chat (`progression.announce`). Every built-in item and block belongs to an
+  era.
+- Era locks. Content of an era that is not unlocked cannot be crafted in the workbench, made by
+  machines, placed or planted; machines of a locked era stay idle. The guide lists it as locked,
+  with its name and era, and shows no recipe.
+  Items already owned stay in inventories but cannot be used. `sapientia.era.bypass` ignores the
+  locks.
+- Research. Players discover Sapientia items by crafting them, picking them up, taking them out of
+  containers or harvesting them. A workbench recipe unlocks once every Sapientia ingredient has
+  been discovered, and the player is told. Items already in a player's inventory or ender chest
+  count as discovered. With `progression.research: false`, every recipe of an unlocked era is
+  available to everyone.
+- Every Sapientia item shows its era at the end of its description.
+- The guide's first page shows the server era and the player's next goal (the key item of the
+  first era they have not completed). Locked recipes explain what is missing, in the guide and in
+  the workbench.
+- Minerals. Breaking natural rock can drop one of 46 mineral fragments: 38 metal ores, from native
+  copper to meteorite fragments, and 8 non-metallic minerals such as halite and sulfur. The mineral
+  depends on the block, height, biome and dimension. Minerals of locked eras do not drop, each era
+  needs a better pickaxe, Fortune raises the chance and Silk Touch prevents it. Base chances per
+  block are configurable under `mining.host-chance`.
+- Only natural terrain yields minerals. Blocks placed by players or endermen, formed by lava and
+  water, or moved by pistons are remembered in the chunk and never drop fragments, and explosions
+  never do. Chunks generated before Sapientia was installed count as natural unless
+  `mining.legacy-chunks` is `placed`. `/sapientia mining mark` (permission `sapientia.command.mining`)
+  marks a pasted build as placed.
+- Mineral veins derived from the world seed: some 4×4-chunk regions concentrate one mineral and
+  triple its chance there (`mining.vein`).
+- Mineral composition and separation. Every mineral lists its main elements, byproducts and traces,
+  and eleven separation methods, from the stone hammer (era 1) to molecular separation (era 19),
+  recover more of them. What is not recovered, including elements of locked eras, stays in the
+  mineral's tailings for a better method. The machines that separate come with their eras.
+- Plant system for the eras to come: Sapientia plants grow on vanilla crop blocks at no cost and
+  drop their own produce when harvested, and wild seeds drop from grass by biome.
+- The Java and Bedrock resource packs are rebuilt at start-up so they always match the bundled
+  textures (`resource-pack.auto-build`). When `resource-pack-sha1` in server.properties points at
+  an older pack, the console and admins joining the server are told to upload the new pack, with
+  its SHA-1; an outdated pack is why new items show without textures.
+- Era coherence check at start-up: every recipe is checked for ingredients from a later era than
+  its result, and violations are logged.
+- API: `Era`, `ProgressionService`, `MiningService`, `PlantService`, `SapientiaItem#era()`,
+  `SapientiaBlock#era()`, `MachineRecipeRegistry#all()`, and the events `SapientiaEraChangeEvent`
+  and `SapientiaDiscoveryEvent`. `UnlockService` now answers from research.
+
+### Changed
+
+- The ten raw metal items (`copper_raw`, `tin_raw` and so on) were replaced by mineral fragments.
+  Existing stacks are converted when a player joins, opens a container or picks them up; raw
+  silicon becomes silicon dust. The macerator turns fragments into two dusts of their main metal
+  (raw iron or raw gold for iron and gold minerals) and quartz into silicon dust.
+- Recipes follow the era rule. Electrum is made from silver dust and gold ingots; the boiler and
+  condenser use copper and iron; era 10 logistics, the quarry and the prospector use redstone
+  repeaters and comparators instead of later circuits; other recipes use the best components of
+  their own era.
+- Existing stacks are brought up to date (name, description and texture) when a player joins,
+  opens a container or picks them up, so items made before textures or era lines existed get
+  them.
+- Sapientia items no longer work as their vanilla base material in vanilla crafting, the crafter,
+  furnaces, smokers, blast furnaces, campfires or the smithing table.
+- Player unlocks moved to the new research table (database migration `V011`, automatic).
+
+### Removed
+
+- The raw metal items, replaced by mineral fragments (see above).
+
+## [2.0.0] - 2026-09-25
+
+The first release of Sapientia 2, the era-based rewrite: Foundation 1, an engine that keeps the
+server smooth with millions of Sapientia blocks. Foundation 2 follows as 2.0.1 and era 0 as 2.0.2;
+each era after that ships as its own minor version (era 1 as 2.1.0, era 2 as 2.2.0, and so on),
+with fixes as patch versions.
 
 ### Added
 
@@ -73,7 +173,6 @@ version (era 1 as 2.1.0, era 2 as 2.2.0, and so on), with fixes as patch version
 - The roadmap and changelog moved to `docs/`, with an index in `docs/README.md`.
 - The roadmap is now organized by eras: two foundation milestones (performance, then progression
   and world systems) followed by one milestone per era. Task codes are `F<n>.<n>` and `E<era>.<n>`.
-- The project version is now `2.0.0-SNAPSHOT`.
 - Performance requirement: 10 million active Sapientia blocks (machines, cables and pipes; 100,000
   per player with 100 players) within a fixed per-tick budget, with per-chunk limits and machines
   pausing outside a 4-chunk activity radius around players.

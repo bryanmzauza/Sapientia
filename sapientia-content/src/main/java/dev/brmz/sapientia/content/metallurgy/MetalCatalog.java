@@ -7,12 +7,8 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Registers the full metallurgy item catalog (T-402 / T-403 / 1.4.0):
- * <ul>
- *   <li>6 raw metals × 9 forms = 54 items</li>
- *   <li>3 alloys × 8 forms = 24 items</li>
- * </ul>
- *
- * <p>Total: 78 metal items registered against the {@link SapientiaAPI} catalog.
+ * 16 metals and alloys × 8 forms = 128 items registered against the
+ * {@link SapientiaAPI} catalog.
  */
 public final class MetalCatalog {
 

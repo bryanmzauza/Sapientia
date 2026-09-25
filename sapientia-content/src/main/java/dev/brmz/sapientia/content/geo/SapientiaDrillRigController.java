@@ -1,7 +1,7 @@
 package dev.brmz.sapientia.content.geo;
 
+import dev.brmz.sapientia.content.CatalogBlock;
 import dev.brmz.sapientia.api.Sapientia;
-import dev.brmz.sapientia.api.block.SapientiaBlock;
 import dev.brmz.sapientia.api.energy.EnergyNodeType;
 import dev.brmz.sapientia.api.energy.EnergySpecs;
 import dev.brmz.sapientia.api.energy.EnergyTier;
@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
  * vanilla proxy). Shape validation only in 1.7.0; the sub-bedrock virtual-mining
  * tick with probability tables lands in 1.7.1.
  */
-public final class SapientiaDrillRigController implements SapientiaBlock {
+public final class SapientiaDrillRigController implements CatalogBlock {
 
     private final NamespacedKey id;
 

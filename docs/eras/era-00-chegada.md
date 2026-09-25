@@ -1,6 +1,6 @@
 # Era 0 — Chegada
 
-**Versão:** 2.0.x · **Status:** planejada · **Sempre liberada**
+**Versão:** 2.0.2 · **Status:** concluída · **Sempre liberada**
 
 ## Resumo
 
@@ -29,7 +29,7 @@ Sapientia, onde todas as receitas do plugin são feitas. Não há minerais nem m
 
 ## Tarefas
 
-- [ ] E0.1 Registrar as receitas vanilla do guia e da Bancada.
-- [ ] E0.2 Entregar o guia no primeiro login (configurável).
-- [ ] E0.3 Primeira página do guia com era do servidor e próximo objetivo.
-- [ ] E0.4 A Bancada mostra só receitas desbloqueadas e aceita ferramentas de bancada.
+- [x] E0.1 Registrar as receitas vanilla do guia e da Bancada.
+- [x] E0.2 Entregar o guia no primeiro login (configurável).
+- [x] E0.3 Primeira página do guia com era do servidor e próximo objetivo.
+- [x] E0.4 A Bancada mostra só receitas desbloqueadas e aceita ferramentas de bancada.

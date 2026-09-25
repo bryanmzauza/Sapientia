@@ -37,3 +37,12 @@ permissions:
   sapientia.command.perf:
     description: Allows viewing the engine cost report via /sapientia perf.
     default: op
+  sapientia.command.era:
+    description: Allows changing the server era via /sapientia era set and /sapientia era next.
+    default: op
+  sapientia.command.mining:
+    description: Allows marking regions as placed (no minerals) via /sapientia mining mark.
+    default: op
+  sapientia.era.bypass:
+    description: Ignores era locks (place, craft and see content of locked eras).
+    default: op

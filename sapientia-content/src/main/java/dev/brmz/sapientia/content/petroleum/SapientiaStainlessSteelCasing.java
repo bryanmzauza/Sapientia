@@ -1,6 +1,6 @@
 package dev.brmz.sapientia.content.petroleum;
 
-import dev.brmz.sapientia.api.block.SapientiaBlock;
+import dev.brmz.sapientia.content.CatalogBlock;
 import dev.brmz.sapientia.api.guide.GuideCategory;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
  * Refinery-grade stainless-steel casing (T-413 / 1.5.0). Used as the shell
  * material of the 5×5×7 oil-refinery multiblock.
  */
-public final class SapientiaStainlessSteelCasing implements SapientiaBlock {
+public final class SapientiaStainlessSteelCasing implements CatalogBlock {
 
     private final NamespacedKey id;
 

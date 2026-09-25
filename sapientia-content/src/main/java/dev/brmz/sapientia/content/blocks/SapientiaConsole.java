@@ -1,6 +1,6 @@
 package dev.brmz.sapientia.content.blocks;
 
-import dev.brmz.sapientia.api.block.SapientiaBlock;
+import dev.brmz.sapientia.content.CatalogBlock;
 import dev.brmz.sapientia.api.events.SapientiaBlockInteractEvent;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
  * hooked in once the 0.3.0 UI services (T-140) expose the open-by-id entry point
  * through the public API.
  */
-public final class SapientiaConsole implements SapientiaBlock {
+public final class SapientiaConsole implements CatalogBlock {
 
     private final NamespacedKey id;
 

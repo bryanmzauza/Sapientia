@@ -5,9 +5,12 @@ import java.util.List;
 import dev.brmz.sapientia.api.SapientiaAPI;
 import dev.brmz.sapientia.api.crafting.RecipeIngredient;
 import dev.brmz.sapientia.api.guide.GuideCategory;
+import dev.brmz.sapientia.api.mining.Mineral;
+import dev.brmz.sapientia.content.ContentEras;
 import dev.brmz.sapientia.content.metallurgy.Metal;
 import dev.brmz.sapientia.content.metallurgy.MetalCatalog;
 import dev.brmz.sapientia.content.metallurgy.MetalForm;
+import dev.brmz.sapientia.content.mining.MineralCatalog;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -19,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>Covers the exit-gate vertical slice:
  * <pre>
- *   raw → dust (workbench: 1× raw → 1× dust)        — placeholder until macerator processes
+ *   fragment → dust (workbench: 1× fragment → 1× dust of its main metal) — placeholder until the hammer
  *   dust → ingot (workbench: 1× dust → 1× ingot)    — placeholder until electric furnace processes
  *   9× ingot → block (workbench)                    — every metal
  *   block → 9× ingot (workbench, stub via 1× block) — skipped (use unboxing later)
@@ -50,19 +53,21 @@ public final class MetallurgyRecipes {
     // --- raw → dust → ingot (placeholder workbench recipes) -------------------------------------
 
     private static void registerOreToDustAndIngot(Plugin plugin, SapientiaAPI api) {
+        for (Mineral mineral : MineralCatalog.minerals()) {
+            Metal metal = MineralCatalog.primaryMetal(mineral);
+            if (metal == null || mineral.era().isAfter(ContentEras.metalEra(metal))) continue;
+            register(api, new NamespacedKey(plugin, "recipe_" + mineral.id().getKey() + "_fragment_to_dust"),
+                    List.of(
+                            empty(), RecipeIngredient.of(mineral.fragmentItem()), empty(),
+                            empty(), empty(),                                     empty(),
+                            empty(), empty(),                                     empty()),
+                    sapientiaStack(api, idOf(plugin, metal, MetalForm.DUST), 1),
+                    GuideCategory.MATERIAL);
+        }
         for (Metal metal : Metal.values()) {
             if (metal.isAlloy()) continue;
-            NamespacedKey raw   = idOf(plugin, metal, MetalForm.RAW);
             NamespacedKey dust  = idOf(plugin, metal, MetalForm.DUST);
             NamespacedKey ingot = idOf(plugin, metal, MetalForm.INGOT);
-
-            register(api, new NamespacedKey(plugin, "recipe_" + metal.idBase() + "_raw_to_dust"),
-                    List.of(
-                            empty(), RecipeIngredient.of(raw), empty(),
-                            empty(), empty(),                  empty(),
-                            empty(), empty(),                  empty()),
-                    sapientiaStack(api, dust, 1),
-                    GuideCategory.MATERIAL);
 
             register(api, new NamespacedKey(plugin, "recipe_" + metal.idBase() + "_dust_to_ingot"),
                     List.of(
@@ -99,8 +104,16 @@ public final class MetallurgyRecipes {
         registerAlloy(plugin, api, "bronze", Metal.COPPER, 3, Metal.TIN, 1, Metal.BRONZE, 4);
         // brass:  3× copper dust + 1× zinc dust → 4× brass dust
         registerAlloy(plugin, api, "brass",  Metal.COPPER, 3, Metal.ZINC, 1, Metal.BRASS, 4);
-        // electrum: 1× silver dust + 1× gold (proxy: nickel for now) — use 2× silver + 2× nickel → 4× electrum dust
-        registerAlloy(plugin, api, "electrum", Metal.SILVER, 2, Metal.NICKEL, 2, Metal.ELECTRUM, 4);
+        // electrum: 2× silver dust + 2× gold ingot (vanilla) → 4× electrum dust
+        RecipeIngredient silverDust = RecipeIngredient.of(idOf(plugin, Metal.SILVER, MetalForm.DUST));
+        RecipeIngredient goldIngot = RecipeIngredient.of(org.bukkit.Material.GOLD_INGOT);
+        register(api, new NamespacedKey(plugin, "recipe_alloy_electrum"),
+                List.of(
+                        silverDust, silverDust, goldIngot,
+                        goldIngot,  empty(),    empty(),
+                        empty(),    empty(),    empty()),
+                sapientiaStack(api, idOf(plugin, Metal.ELECTRUM, MetalForm.DUST), 4),
+                GuideCategory.MATERIAL);
     }
 
     private static void registerAlloy(

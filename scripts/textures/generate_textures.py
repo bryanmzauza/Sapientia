@@ -43,7 +43,7 @@ def catalogue_ids() -> list[str]:
     """Returns every item/block id that has a display name in en.yml."""
     data = yaml.safe_load(LANG.read_text(encoding="utf-8"))
     ids: list[str] = []
-    for section in ("item", "block", "metal", "component"):
+    for section in ("item", "block", "metal", "component", "mineral"):
         ids.extend(data.get(section, {}).keys())
     android = data.get("android", {})
     ids.extend(android.get("block", {}).keys())

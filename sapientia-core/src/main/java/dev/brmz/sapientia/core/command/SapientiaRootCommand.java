@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 import dev.brmz.sapientia.api.logic.LogicProgram;
 import dev.brmz.sapientia.api.logic.LogicService;
 import dev.brmz.sapientia.api.overrides.ContentOverrides;
+import dev.brmz.sapientia.api.progression.Era;
+import dev.brmz.sapientia.api.progression.ProgressionService;
 import dev.brmz.sapientia.core.SapientiaPlugin;
 import dev.brmz.sapientia.core.i18n.Messages;
 import dev.brmz.sapientia.core.item.ItemRegistry;
@@ -32,7 +34,10 @@ import org.jetbrains.annotations.NotNull;
 public final class SapientiaRootCommand implements TabExecutor {
 
     private static final List<String> SUBCOMMANDS = List.of(
-            "help", "reload", "give", "pack", "logistics", "fluids", "logic", "perf");
+            "help", "reload", "give", "pack", "logistics", "fluids", "logic", "perf", "era", "mining");
+
+    /** Largest box {@code /sapientia mining mark} accepts, in blocks. */
+    private static final long MAX_MARK_VOLUME = 8_000_000L;
 
     private final SapientiaPlugin plugin;
     private final ItemRegistry registry;
@@ -71,6 +76,8 @@ public final class SapientiaRootCommand implements TabExecutor {
             case "fluids" -> handleFluids(sender, msg, args);
             case "logic" -> handleLogic(sender, msg, args);
             case "perf" -> handlePerf(sender, msg);
+            case "era" -> handleEra(sender, msg, args);
+            case "mining" -> handleMining(sender, msg, args);
             default -> sender.sendMessage(msg.component("command.unknown"));
         }
         return true;
@@ -89,6 +96,108 @@ public final class SapientiaRootCommand implements TabExecutor {
         sendHelpLine(sender, msg, "/sapientia fluids", "command.help.desc.fluids");
         sendHelpLine(sender, msg, "/sapientia logic", "command.help.desc.logic");
         sendHelpLine(sender, msg, "/sapientia perf", "command.help.desc.perf");
+        sendHelpLine(sender, msg, "/sapientia era [set <0-24>|next]", "command.help.desc.era");
+        sendHelpLine(sender, msg, "/sapientia mining mark <x1 y1 z1 x2 y2 z2>", "command.help.desc.mining");
+    }
+
+    private void handleEra(CommandSender sender, Messages msg, String[] args) {
+        ProgressionService progression = plugin.progression();
+        if (args.length < 2 || args[1].equalsIgnoreCase("info")) {
+            Era era = progression.serverEra();
+            sender.sendMessage(msg.component("command.era.current",
+                    Placeholder.unparsed("number", Integer.toString(era.number())),
+                    Placeholder.component("era", msg.component(era.nameKey()))));
+            sender.sendMessage(msg.component("command.era.summary",
+                    Placeholder.component("summary", msg.component(era.summaryKey()))));
+            Era next = era.next();
+            if (next != null) {
+                sender.sendMessage(msg.component("command.era.next-up",
+                        Placeholder.unparsed("number", Integer.toString(next.number())),
+                        Placeholder.component("era", msg.component(next.nameKey()))));
+            }
+            return;
+        }
+        if (!sender.hasPermission("sapientia.command.era")) {
+            sender.sendMessage(msg.component("command.no-permission"));
+            return;
+        }
+        Era current = progression.serverEra();
+        Era target;
+        switch (args[1].toLowerCase(Locale.ROOT)) {
+            case "next" -> {
+                target = current.next();
+                if (target == null) {
+                    sender.sendMessage(msg.component("command.era.last"));
+                    return;
+                }
+            }
+            case "set" -> {
+                if (args.length < 3) {
+                    sender.sendMessage(msg.component("command.era.usage"));
+                    return;
+                }
+                target = parseEra(args[2]);
+                if (target == null) {
+                    sender.sendMessage(msg.component("command.era.invalid", Placeholder.unparsed("value", args[2])));
+                    return;
+                }
+            }
+            default -> {
+                sender.sendMessage(msg.component("command.era.usage"));
+                return;
+            }
+        }
+        progression.setServerEra(target);
+        sender.sendMessage(msg.component("command.era.set",
+                Placeholder.unparsed("number", Integer.toString(target.number())),
+                Placeholder.component("era", msg.component(target.nameKey()))));
+        if (current.isAfter(target)) {
+            sender.sendMessage(msg.component("command.era.lowered"));
+        }
+    }
+
+    private static Era parseEra(String value) {
+        try {
+            int n = Integer.parseInt(value);
+            return n >= 0 && n <= Era.last().number() ? Era.of(n) : null;
+        } catch (NumberFormatException e) {
+            try {
+                return Era.valueOf(value.toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException notAnEra) {
+                return null;
+            }
+        }
+    }
+
+    private void handleMining(CommandSender sender, Messages msg, String[] args) {
+        if (!sender.hasPermission("sapientia.command.mining")) {
+            sender.sendMessage(msg.component("command.no-permission"));
+            return;
+        }
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(msg.component("command.players-only"));
+            return;
+        }
+        if (args.length != 8 || !args[1].equalsIgnoreCase("mark")) {
+            sender.sendMessage(msg.component("command.mining.usage"));
+            return;
+        }
+        int[] c = new int[6];
+        try {
+            for (int i = 0; i < 6; i++) c[i] = Integer.parseInt(args[i + 2]);
+        } catch (NumberFormatException e) {
+            sender.sendMessage(msg.component("command.mining.usage"));
+            return;
+        }
+        long volume = (Math.abs((long) c[3] - c[0]) + 1) * (Math.abs((long) c[4] - c[1]) + 1)
+                * (Math.abs((long) c[5] - c[2]) + 1);
+        if (volume > MAX_MARK_VOLUME) {
+            sender.sendMessage(msg.component("command.mining.too-large",
+                    Placeholder.unparsed("max", Long.toString(MAX_MARK_VOLUME))));
+            return;
+        }
+        long marked = plugin.placedBlocks().markRegion(player.getWorld(), c[0], c[1], c[2], c[3], c[4], c[5]);
+        sender.sendMessage(msg.component("command.mining.marked", Placeholder.unparsed("count", Long.toString(marked))));
     }
 
     private void sendHelpLine(CommandSender sender, Messages msg, String usage, String descKey) {
@@ -627,6 +736,17 @@ public final class SapientiaRootCommand implements TabExecutor {
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("reload")) {
             return filter(List.of("content"), args[1]);
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("era")) {
+            return filter(List.of("info", "set", "next"), args[1]);
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("era") && args[1].equalsIgnoreCase("set")) {
+            List<String> numbers = new ArrayList<>();
+            for (Era era : Era.values()) numbers.add(Integer.toString(era.number()));
+            return filter(numbers, args[2]);
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("mining")) {
+            return filter(List.of("mark"), args[1]);
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("pack")) {
             return filter(List.of("build"), args[1]);

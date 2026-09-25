@@ -1,8 +1,8 @@
 package dev.brmz.sapientia.content.android;
 
+import dev.brmz.sapientia.content.CatalogBlock;
 import dev.brmz.sapientia.api.Sapientia;
 import dev.brmz.sapientia.api.android.AndroidType;
-import dev.brmz.sapientia.api.block.SapientiaBlock;
 import dev.brmz.sapientia.api.events.SapientiaBlockBreakEvent;
 import dev.brmz.sapientia.api.events.SapientiaBlockInteractEvent;
 import dev.brmz.sapientia.api.events.SapientiaBlockPlaceEvent;
@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
  * {@code addNode} which is a no-op when the cap is hit (e.g. simultaneous
  * placement by two players).
  */
-public abstract class AndroidContentBlock implements SapientiaBlock {
+public abstract class AndroidContentBlock implements CatalogBlock {
 
     private final NamespacedKey id;
     private final Material material;

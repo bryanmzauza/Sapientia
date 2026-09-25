@@ -52,6 +52,25 @@ import dev.brmz.sapientia.core.pack.BundledPack;
 import dev.brmz.sapientia.core.pack.ResourcePackBuilder;
 import dev.brmz.sapientia.core.persistence.DatabaseManager;
 import dev.brmz.sapientia.core.persistence.DatabaseWorker;
+import dev.brmz.sapientia.core.progression.EraCoherence;
+import dev.brmz.sapientia.core.progression.EraLockListener;
+import dev.brmz.sapientia.core.progression.ProgressionServiceImpl;
+import dev.brmz.sapientia.core.progression.ProgressionStore;
+import dev.brmz.sapientia.core.progression.ResearchBook;
+import dev.brmz.sapientia.core.progression.ResearchListener;
+import dev.brmz.sapientia.core.mining.MiningConfig;
+import dev.brmz.sapientia.core.mining.MiningListener;
+import dev.brmz.sapientia.core.mining.MiningServiceImpl;
+import dev.brmz.sapientia.core.mining.PlacedBlockTracker;
+import dev.brmz.sapientia.core.mining.TerrainListener;
+import dev.brmz.sapientia.core.agriculture.PlantListener;
+import dev.brmz.sapientia.core.agriculture.PlantServiceImpl;
+import dev.brmz.sapientia.core.agriculture.PlantTracker;
+import dev.brmz.sapientia.core.item.ItemRefresher;
+import dev.brmz.sapientia.api.agriculture.PlantService;
+import dev.brmz.sapientia.api.mining.MiningService;
+import dev.brmz.sapientia.api.progression.Era;
+import dev.brmz.sapientia.api.progression.ProgressionService;
 import dev.brmz.sapientia.core.persistence.WriteBehindQueue;
 import dev.brmz.sapientia.core.platform.PlatformService;
 import dev.brmz.sapientia.core.scheduler.SapientiaScheduler;
@@ -97,6 +116,11 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
     private DatabaseWorker databaseWorker;
     private java.util.concurrent.ExecutorService energyExecutor;
     private ChunkHydrator chunkHydrator;
+    private ProgressionServiceImpl progression;
+    private MiningServiceImpl mining;
+    private PlantServiceImpl plants;
+    /** SHA-1 of the freshly built pack when server.properties still points at an older one. */
+    private volatile String outdatedPackSha;
     private ChunkBlockIndex chunkBlockIndex;
     private EnergyServiceImpl energyService;
     private EnergySolver energySolver;
@@ -253,7 +277,37 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
 
         // Crafting + guide + unlocks (T-130 / T-131 / T-150 / T-151 / 0.4.0).
         this.recipeRegistry = new SapientiaRecipeRegistry(itemRegistry);
-        this.unlockService = new UnlockServiceImpl(getLogger(), database.dataSource());
+
+        // Server era and player research (Foundation 2). The era is read once at start-up.
+        ProgressionStore progressionStore = new ProgressionStore(getLogger(), database.dataSource());
+        this.databaseWorker.register(progressionStore);
+        Era savedEra = progressionStore.loadEra();
+        Era startingEra = savedEra != null ? savedEra : Era.of(getConfig().getInt("progression.starting-era", 1));
+        if (savedEra == null) {
+            progressionStore.saveEra(startingEra);
+        }
+        this.progression = new ProgressionServiceImpl(progressionStore, databaseWorker::execute,
+                task -> getServer().getScheduler().runTask(this, task), startingEra,
+                getConfig().getBoolean("progression.research", true), this::resolveEra,
+                id -> itemRegistry.get(id.toString()).isPresent(),
+                event -> getServer().getPluginManager().callEvent(event),
+                uuid -> getServer().getPlayer(uuid) != null);
+        this.progression.setRecipes(this::researchEntries, recipeRegistry::revision);
+        // Every item's description ends with the era it belongs to.
+        this.itemRegistry.setEraLine(id -> {
+            Era era = progression.eraOf(id);
+            return messages.component("era.lore",
+                    Placeholder.unparsed("number", Integer.toString(era.number())),
+                    Placeholder.component("era", messages.component(era.nameKey())));
+        });
+        this.unlockService = new UnlockServiceImpl(progression);
+
+        // Minerals from natural terrain and Sapientia plants (Foundation 2).
+        MiningConfig miningConfig = MiningConfig.from(getConfig(), getLogger());
+        PlacedBlockTracker placed = new PlacedBlockTracker(getName().toLowerCase(java.util.Locale.ROOT),
+                miningConfig.legacyNatural());
+        this.mining = new MiningServiceImpl(miningConfig, placed, progression, itemRegistry);
+        this.plants = new PlantServiceImpl(new PlantTracker(getName().toLowerCase(java.util.Locale.ROOT)));
 
         // Content overrides + resource pack pipeline (T-160..T-164 / 0.5.0).
         this.overrideService = new ContentOverrideService(
@@ -265,6 +319,10 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         if (getConfig().getBoolean("resource-pack.item-models", true)) {
             this.itemRegistry.setItemModels(bundledPack.itemModelIds());
         }
+        // Stacks made by another version, language or texture set are refreshed when seen.
+        this.itemRegistry.setRevision(java.util.Objects.hash(getPluginMeta().getVersion(),
+                getConfig().getString("locale", "en"), getConfig().getBoolean("resource-pack.item-models", true),
+                bundledPack.itemModelIds(), 3));
         this.resourcePackBuilder = new ResourcePackBuilder(
                 getLogger(),
                 getDataFolder().toPath(),
@@ -328,10 +386,10 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
                 new dev.brmz.sapientia.core.android.AndroidCapsListener(this.androidService), this);
 
         // Guide service depends on UIService + UnlockService + Messages being up.
-        this.guideService = new GuideServiceImpl(this, uiService, unlockService, messages);
+        this.guideService = new GuideServiceImpl(this, uiService, unlockService, progression, messages);
 
         // Workbench listener must exist before content registers recipes/blocks.
-        WorkbenchListener workbench = new WorkbenchListener(this, recipeRegistry, unlockService);
+        WorkbenchListener workbench = new WorkbenchListener(this, recipeRegistry, progression, itemRegistry, messages);
         this.recipeRegistry.attachWorkbench(workbench);
         getServer().getPluginManager().registerEvents(workbench, this);
 
@@ -363,6 +421,19 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         geoTicker.registerBehaviors(engine);
         logisticsTicker.registerBehaviors(engine);
         machineProcessor.registerBehaviors(engine, blockRegistry.all().values());
+
+        // Era 0: vanilla crafting table recipes (guide, workbench), in every recipe book.
+        java.util.List<NamespacedKey> vanillaRecipes = recipeRegistry.installVanilla(getLogger());
+        getServer().getPluginManager().registerEvents(new dev.brmz.sapientia.core.guide.ArrivalListener(
+                itemRegistry, messages, progression, vanillaRecipes,
+                getConfig().getBoolean("progression.give-guide-on-join", true),
+                getName().toLowerCase(java.util.Locale.ROOT)), this);
+
+        // Era locks: machines, machine recipes, placement and vanilla crafting (Foundation 2).
+        engine.refreshLocks(id -> !progression.isAvailable(id));
+        machineProcessor.setAvailability(recipe -> itemAvailable(recipe.input()) && itemAvailable(recipe.output()));
+        registerProgressionListeners();
+        checkEraCoherence();
 
         ActivityTracker activityTracker = new ActivityTracker(engine.activity(), engine::currentTick);
         getServer().getPluginManager().registerEvents(activityTracker, this);
@@ -403,6 +474,8 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         }, this);
         this.engineTask = getServer().getScheduler().runTaskTimer(this, engine::tick, 1L, 1L);
 
+        checkResourcePack();
+
         getLogger().info(messages.plain("plugin.enabled",
                 Placeholder.parsed("version", getPluginMeta().getVersion())));
     }
@@ -418,6 +491,9 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         }
         if (scheduler != null) {
             scheduler.shutdown();
+        }
+        if (recipeRegistry != null) {
+            recipeRegistry.uninstallVanilla();
         }
         if (energyExecutor != null) {
             energyExecutor.shutdown();
@@ -550,6 +626,176 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
     @Override
     public @NotNull Optional<ItemStack> createStack(@NotNull NamespacedKey id, int amount) {
         return Optional.ofNullable(itemRegistry.createStack(id.toString(), amount));
+    }
+
+    @Override
+    public @NotNull ProgressionService progression() {
+        return progression;
+    }
+
+    @Override
+    public @NotNull MiningService mining() {
+        return mining;
+    }
+
+    @Override
+    public @NotNull PlantService plants() {
+        return plants;
+    }
+
+    /** Placed-block map used by {@code /sapientia mining mark}. */
+    public @NotNull PlacedBlockTracker placedBlocks() {
+        return mining.tracker();
+    }
+
+    private void registerProgressionListeners() {
+        org.bukkit.plugin.PluginManager pm = getServer().getPluginManager();
+        pm.registerEvents(new EraLockListener(progression, itemRegistry, messages), this);
+        pm.registerEvents(new ResearchListener(progression, itemRegistry, messages, this::recipeNameKey), this);
+        for (org.bukkit.entity.Player online : getServer().getOnlinePlayers()) {
+            progression.load(online.getUniqueId(), () -> { }); // reload case: players already online
+        }
+        pm.registerEvents(new TerrainListener(mining.tracker(), getName().toLowerCase(java.util.Locale.ROOT)), this);
+        pm.registerEvents(new MiningListener(mining), this);
+        pm.registerEvents(new PlantListener(plants, progression, itemRegistry), this);
+        java.util.Map<String, String> legacy = new java.util.HashMap<>();
+        dev.brmz.sapientia.content.mining.LegacyItemIds.replacements()
+                .forEach((from, to) -> legacy.put("sapientia:" + from, "sapientia:" + to));
+        pm.registerEvents(new ItemRefresher(itemRegistry, legacy), this);
+        pm.registerEvents(new org.bukkit.event.Listener() {
+            @org.bukkit.event.EventHandler
+            public void onJoin(org.bukkit.event.player.PlayerJoinEvent event) {
+                String sha = outdatedPackSha;
+                if (sha != null && event.getPlayer().hasPermission("sapientia.command.pack")) {
+                    event.getPlayer().sendMessage(messages.component("plugin.pack.outdated-join",
+                            Placeholder.unparsed("path", "plugins/Sapientia/sapientia-resources.zip"),
+                            Placeholder.unparsed("sha1", sha)));
+                }
+            }
+        }, this);
+        pm.registerEvents(new org.bukkit.event.Listener() {
+            @org.bukkit.event.EventHandler
+            public void onEraChange(dev.brmz.sapientia.api.events.SapientiaEraChangeEvent event) {
+                engine.refreshLocks(id -> !progression.isAvailable(id));
+                Era era = event.current();
+                if (era.isAfter(event.previous()) && getConfig().getBoolean("progression.announce", true)) {
+                    getServer().broadcast(messages.component("era.announce",
+                            Placeholder.unparsed("number", Integer.toString(era.number())),
+                            Placeholder.component("era", messages.component(era.nameKey())),
+                            Placeholder.component("summary", messages.component(era.summaryKey()))));
+                }
+            }
+        }, this);
+    }
+
+    /**
+     * Rebuilds the resource packs in the background so they always match the
+     * bundled textures, and warns when server.properties still points at an
+     * older Java pack (players would see new items without textures).
+     */
+    @SuppressWarnings("deprecation")
+    private void checkResourcePack() {
+        if (!getConfig().getBoolean("resource-pack.auto-build", true)) return;
+        String configured = getServer().getResourcePackHash();
+        getServer().getScheduler().runTaskAsynchronously(this, () -> {
+            try {
+                java.nio.file.Path zip = getDataFolder().toPath().resolve("sapientia-resources.zip");
+                String previous = java.nio.file.Files.exists(zip) ? sha1Of(zip) : null;
+                ResourcePackBuilder.JavaPackResult java = resourcePackBuilder.buildJavaPack();
+                if (!java.sha1().equals(previous)) {
+                    resourcePackBuilder.buildBedrockPack(); // new mcpack and Geyser mappings
+                }
+                String path = "plugins/Sapientia/sapientia-resources.zip";
+                if (configured == null || configured.isBlank()) {
+                    getLogger().info(messages.plain("plugin.pack.unset",
+                            Placeholder.unparsed("path", path), Placeholder.unparsed("sha1", java.sha1())));
+                } else if (!configured.equalsIgnoreCase(java.sha1())) {
+                    outdatedPackSha = java.sha1();
+                    getLogger().warning(messages.plain("plugin.pack.outdated",
+                            Placeholder.unparsed("path", path), Placeholder.unparsed("sha1", java.sha1())));
+                }
+            } catch (java.io.IOException | RuntimeException e) {
+                getLogger().log(java.util.logging.Level.WARNING, "Could not rebuild the resource packs", e);
+            }
+        });
+    }
+
+    private static String sha1Of(java.nio.file.Path file) throws java.io.IOException {
+        try {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-1");
+            return java.util.HexFormat.of().formatHex(digest.digest(java.nio.file.Files.readAllBytes(file)));
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /** Era of an item, block (or its item form) or workbench recipe; {@code null} when unknown. */
+    private Era resolveEra(NamespacedKey id) {
+        SapientiaItem item = itemRegistry.find(id).orElse(null);
+        if (item != null) return item.era();
+        SapientiaBlock block = blockRegistry.find(id).or(() -> blockRegistry.findByItemId(id)).orElse(null);
+        if (block != null) return block.era();
+        dev.brmz.sapientia.api.crafting.SapientiaRecipe recipe = recipeRegistry.find(id).orElse(null);
+        if (recipe != null) {
+            NamespacedKey result = keyOf(itemRegistry.idOf(recipe.result()));
+            return result == null ? null : progression.eraOf(result);
+        }
+        return null;
+    }
+
+    private boolean itemAvailable(ItemStack stack) {
+        NamespacedKey id = keyOf(itemRegistry.idOf(stack));
+        return id == null || progression.isAvailable(id);
+    }
+
+    private static NamespacedKey keyOf(String id) {
+        return id == null ? null : NamespacedKey.fromString(id);
+    }
+
+    /** Workbench recipes as research sees them: result and Sapientia ingredients. */
+    private java.util.Collection<ResearchBook.Entry> researchEntries() {
+        java.util.List<ResearchBook.Entry> out = new java.util.ArrayList<>();
+        for (dev.brmz.sapientia.api.crafting.SapientiaRecipe recipe : recipeRegistry.all()) {
+            java.util.Set<NamespacedKey> prerequisites = new java.util.HashSet<>();
+            for (dev.brmz.sapientia.api.crafting.RecipeIngredient ingredient : recipe.pattern()) {
+                if (ingredient instanceof dev.brmz.sapientia.api.crafting.RecipeIngredient.Sapientia s) {
+                    prerequisites.add(s.id());
+                }
+            }
+            out.add(new ResearchBook.Entry(recipe.id(), keyOf(itemRegistry.idOf(recipe.result())), prerequisites));
+        }
+        return out;
+    }
+
+    private String recipeNameKey(NamespacedKey recipeId) {
+        return recipeRegistry.find(recipeId)
+                .map(recipe -> itemRegistry.resolve(recipe.result()))
+                .map(SapientiaItem::displayNameKey)
+                .orElse(null);
+    }
+
+    /** Logs every recipe that uses an ingredient from a later era than its result (section 3.6). */
+    private void checkEraCoherence() {
+        java.util.List<EraCoherence.Recipe> recipes = new java.util.ArrayList<>();
+        for (ResearchBook.Entry entry : researchEntries()) {
+            if (entry.result() != null) {
+                recipes.add(new EraCoherence.Recipe(entry.recipe().toString(), entry.result(), entry.prerequisites()));
+            }
+        }
+        for (dev.brmz.sapientia.api.machine.MachineRecipe recipe : machineRecipes.all()) {
+            NamespacedKey output = keyOf(itemRegistry.idOf(recipe.output()));
+            NamespacedKey input = keyOf(itemRegistry.idOf(recipe.input()));
+            if (output != null && input != null) {
+                recipes.add(new EraCoherence.Recipe(recipe.machineId().getKey() + ":" + input.getKey(), output,
+                        java.util.List.of(input)));
+            }
+        }
+        java.util.List<EraCoherence.Violation> violations = EraCoherence.check(recipes, progression::eraOf);
+        for (EraCoherence.Violation violation : violations) {
+            getLogger().warning("Era coherence: " + violation);
+        }
+        getLogger().info("Era coherence: " + recipes.size() + " recipes checked, "
+                + violations.size() + " violation(s).");
     }
 
     /** Networks and network blocks loaded, for /sapientia perf: energy, item, fluid. */

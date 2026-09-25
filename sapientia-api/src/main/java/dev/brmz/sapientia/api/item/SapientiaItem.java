@@ -4,6 +4,7 @@ import java.util.List;
 
 import dev.brmz.sapientia.api.events.SapientiaItemInteractEvent;
 import dev.brmz.sapientia.api.guide.GuideCategory;
+import dev.brmz.sapientia.api.progression.Era;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.jetbrains.annotations.NotNull;
@@ -34,6 +35,25 @@ public interface SapientiaItem {
     /** Guide category this item is listed under. Defaults to {@link GuideCategory#MISC}. */
     default @NotNull GuideCategory guideCategory() {
         return GuideCategory.MISC;
+    }
+
+    /**
+     * Era this content belongs to. Content of a locked era cannot be crafted,
+     * placed or processed, and is hidden in the guide. Defaults to era 0
+     * (always available).
+     */
+    default @NotNull Era era() {
+        return Era.ARRIVAL;
+    }
+
+    /**
+     * Uses of a workbench tool (for example a hammer). A positive value makes
+     * the item a tool: used as a Sapientia Workbench ingredient it loses one use
+     * instead of being consumed, and breaks when none are left. Stacks of tools
+     * do not stack and show a durability bar. Defaults to {@code 0} (not a tool).
+     */
+    default int benchToolUses() {
+        return 0;
     }
 
     /** Whether this item appears in the guide before being unlocked. Defaults to {@code true}. */

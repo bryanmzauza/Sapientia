@@ -227,9 +227,6 @@
     "sapientia.fluid_level_sensor": {
       "textures": "textures/items/fluid_level_sensor"
     },
-    "sapientia.copper_raw": {
-      "textures": "textures/items/copper_raw"
-    },
     "sapientia.copper_dust": {
       "textures": "textures/items/copper_dust"
     },
@@ -253,9 +250,6 @@
     },
     "sapientia.copper_screw": {
       "textures": "textures/items/copper_screw"
-    },
-    "sapientia.tin_raw": {
-      "textures": "textures/items/tin_raw"
     },
     "sapientia.tin_dust": {
       "textures": "textures/items/tin_dust"
@@ -281,9 +275,6 @@
     "sapientia.tin_screw": {
       "textures": "textures/items/tin_screw"
     },
-    "sapientia.zinc_raw": {
-      "textures": "textures/items/zinc_raw"
-    },
     "sapientia.zinc_dust": {
       "textures": "textures/items/zinc_dust"
     },
@@ -307,9 +298,6 @@
     },
     "sapientia.zinc_screw": {
       "textures": "textures/items/zinc_screw"
-    },
-    "sapientia.lead_raw": {
-      "textures": "textures/items/lead_raw"
     },
     "sapientia.lead_dust": {
       "textures": "textures/items/lead_dust"
@@ -335,9 +323,6 @@
     "sapientia.lead_screw": {
       "textures": "textures/items/lead_screw"
     },
-    "sapientia.silver_raw": {
-      "textures": "textures/items/silver_raw"
-    },
     "sapientia.silver_dust": {
       "textures": "textures/items/silver_dust"
     },
@@ -361,9 +346,6 @@
     },
     "sapientia.silver_screw": {
       "textures": "textures/items/silver_screw"
-    },
-    "sapientia.nickel_raw": {
-      "textures": "textures/items/nickel_raw"
     },
     "sapientia.nickel_dust": {
       "textures": "textures/items/nickel_dust"
@@ -461,9 +443,6 @@
     "sapientia.electrum_screw": {
       "textures": "textures/items/electrum_screw"
     },
-    "sapientia.aluminum_raw": {
-      "textures": "textures/items/aluminum_raw"
-    },
     "sapientia.aluminum_dust": {
       "textures": "textures/items/aluminum_dust"
     },
@@ -487,9 +466,6 @@
     },
     "sapientia.aluminum_screw": {
       "textures": "textures/items/aluminum_screw"
-    },
-    "sapientia.silicon_raw": {
-      "textures": "textures/items/silicon_raw"
     },
     "sapientia.silicon_dust": {
       "textures": "textures/items/silicon_dust"
@@ -515,9 +491,6 @@
     "sapientia.silicon_screw": {
       "textures": "textures/items/silicon_screw"
     },
-    "sapientia.titanium_raw": {
-      "textures": "textures/items/titanium_raw"
-    },
     "sapientia.titanium_dust": {
       "textures": "textures/items/titanium_dust"
     },
@@ -541,9 +514,6 @@
     },
     "sapientia.titanium_screw": {
       "textures": "textures/items/titanium_screw"
-    },
-    "sapientia.lithium_raw": {
-      "textures": "textures/items/lithium_raw"
     },
     "sapientia.lithium_dust": {
       "textures": "textures/items/lithium_dust"
@@ -691,6 +661,282 @@
     },
     "sapientia.storage_ssd": {
       "textures": "textures/items/storage_ssd"
+    },
+    "sapientia.native_copper_fragment": {
+      "textures": "textures/items/native_copper_fragment"
+    },
+    "sapientia.native_copper_tailings": {
+      "textures": "textures/items/native_copper_tailings"
+    },
+    "sapientia.malachite_fragment": {
+      "textures": "textures/items/malachite_fragment"
+    },
+    "sapientia.malachite_tailings": {
+      "textures": "textures/items/malachite_tailings"
+    },
+    "sapientia.native_gold_fragment": {
+      "textures": "textures/items/native_gold_fragment"
+    },
+    "sapientia.native_gold_tailings": {
+      "textures": "textures/items/native_gold_tailings"
+    },
+    "sapientia.native_silver_fragment": {
+      "textures": "textures/items/native_silver_fragment"
+    },
+    "sapientia.native_silver_tailings": {
+      "textures": "textures/items/native_silver_tailings"
+    },
+    "sapientia.chalcopyrite_fragment": {
+      "textures": "textures/items/chalcopyrite_fragment"
+    },
+    "sapientia.chalcopyrite_tailings": {
+      "textures": "textures/items/chalcopyrite_tailings"
+    },
+    "sapientia.cassiterite_fragment": {
+      "textures": "textures/items/cassiterite_fragment"
+    },
+    "sapientia.cassiterite_tailings": {
+      "textures": "textures/items/cassiterite_tailings"
+    },
+    "sapientia.arsenopyrite_fragment": {
+      "textures": "textures/items/arsenopyrite_fragment"
+    },
+    "sapientia.arsenopyrite_tailings": {
+      "textures": "textures/items/arsenopyrite_tailings"
+    },
+    "sapientia.hematite_fragment": {
+      "textures": "textures/items/hematite_fragment"
+    },
+    "sapientia.hematite_tailings": {
+      "textures": "textures/items/hematite_tailings"
+    },
+    "sapientia.magnetite_fragment": {
+      "textures": "textures/items/magnetite_fragment"
+    },
+    "sapientia.magnetite_tailings": {
+      "textures": "textures/items/magnetite_tailings"
+    },
+    "sapientia.galena_fragment": {
+      "textures": "textures/items/galena_fragment"
+    },
+    "sapientia.galena_tailings": {
+      "textures": "textures/items/galena_tailings"
+    },
+    "sapientia.cinnabar_fragment": {
+      "textures": "textures/items/cinnabar_fragment"
+    },
+    "sapientia.cinnabar_tailings": {
+      "textures": "textures/items/cinnabar_tailings"
+    },
+    "sapientia.sphalerite_fragment": {
+      "textures": "textures/items/sphalerite_fragment"
+    },
+    "sapientia.sphalerite_tailings": {
+      "textures": "textures/items/sphalerite_tailings"
+    },
+    "sapientia.stibnite_fragment": {
+      "textures": "textures/items/stibnite_fragment"
+    },
+    "sapientia.stibnite_tailings": {
+      "textures": "textures/items/stibnite_tailings"
+    },
+    "sapientia.bismuthinite_fragment": {
+      "textures": "textures/items/bismuthinite_fragment"
+    },
+    "sapientia.bismuthinite_tailings": {
+      "textures": "textures/items/bismuthinite_tailings"
+    },
+    "sapientia.pyrolusite_fragment": {
+      "textures": "textures/items/pyrolusite_fragment"
+    },
+    "sapientia.pyrolusite_tailings": {
+      "textures": "textures/items/pyrolusite_tailings"
+    },
+    "sapientia.cobaltite_fragment": {
+      "textures": "textures/items/cobaltite_fragment"
+    },
+    "sapientia.cobaltite_tailings": {
+      "textures": "textures/items/cobaltite_tailings"
+    },
+    "sapientia.native_platinum_fragment": {
+      "textures": "textures/items/native_platinum_fragment"
+    },
+    "sapientia.native_platinum_tailings": {
+      "textures": "textures/items/native_platinum_tailings"
+    },
+    "sapientia.pentlandite_fragment": {
+      "textures": "textures/items/pentlandite_fragment"
+    },
+    "sapientia.pentlandite_tailings": {
+      "textures": "textures/items/pentlandite_tailings"
+    },
+    "sapientia.chromite_fragment": {
+      "textures": "textures/items/chromite_fragment"
+    },
+    "sapientia.chromite_tailings": {
+      "textures": "textures/items/chromite_tailings"
+    },
+    "sapientia.wolframite_fragment": {
+      "textures": "textures/items/wolframite_fragment"
+    },
+    "sapientia.wolframite_tailings": {
+      "textures": "textures/items/wolframite_tailings"
+    },
+    "sapientia.molybdenite_fragment": {
+      "textures": "textures/items/molybdenite_fragment"
+    },
+    "sapientia.molybdenite_tailings": {
+      "textures": "textures/items/molybdenite_tailings"
+    },
+    "sapientia.ilmenite_fragment": {
+      "textures": "textures/items/ilmenite_fragment"
+    },
+    "sapientia.ilmenite_tailings": {
+      "textures": "textures/items/ilmenite_tailings"
+    },
+    "sapientia.bauxite_fragment": {
+      "textures": "textures/items/bauxite_fragment"
+    },
+    "sapientia.bauxite_tailings": {
+      "textures": "textures/items/bauxite_tailings"
+    },
+    "sapientia.magnesite_fragment": {
+      "textures": "textures/items/magnesite_fragment"
+    },
+    "sapientia.magnesite_tailings": {
+      "textures": "textures/items/magnesite_tailings"
+    },
+    "sapientia.vanadinite_fragment": {
+      "textures": "textures/items/vanadinite_fragment"
+    },
+    "sapientia.vanadinite_tailings": {
+      "textures": "textures/items/vanadinite_tailings"
+    },
+    "sapientia.beryl_fragment": {
+      "textures": "textures/items/beryl_fragment"
+    },
+    "sapientia.beryl_tailings": {
+      "textures": "textures/items/beryl_tailings"
+    },
+    "sapientia.spodumene_fragment": {
+      "textures": "textures/items/spodumene_fragment"
+    },
+    "sapientia.spodumene_tailings": {
+      "textures": "textures/items/spodumene_tailings"
+    },
+    "sapientia.uraninite_fragment": {
+      "textures": "textures/items/uraninite_fragment"
+    },
+    "sapientia.uraninite_tailings": {
+      "textures": "textures/items/uraninite_tailings"
+    },
+    "sapientia.thorianite_fragment": {
+      "textures": "textures/items/thorianite_fragment"
+    },
+    "sapientia.thorianite_tailings": {
+      "textures": "textures/items/thorianite_tailings"
+    },
+    "sapientia.zircon_fragment": {
+      "textures": "textures/items/zircon_fragment"
+    },
+    "sapientia.zircon_tailings": {
+      "textures": "textures/items/zircon_tailings"
+    },
+    "sapientia.rutile_fragment": {
+      "textures": "textures/items/rutile_fragment"
+    },
+    "sapientia.rutile_tailings": {
+      "textures": "textures/items/rutile_tailings"
+    },
+    "sapientia.coltan_fragment": {
+      "textures": "textures/items/coltan_fragment"
+    },
+    "sapientia.coltan_tailings": {
+      "textures": "textures/items/coltan_tailings"
+    },
+    "sapientia.lepidolite_fragment": {
+      "textures": "textures/items/lepidolite_fragment"
+    },
+    "sapientia.lepidolite_tailings": {
+      "textures": "textures/items/lepidolite_tailings"
+    },
+    "sapientia.monazite_fragment": {
+      "textures": "textures/items/monazite_fragment"
+    },
+    "sapientia.monazite_tailings": {
+      "textures": "textures/items/monazite_tailings"
+    },
+    "sapientia.bastnasite_fragment": {
+      "textures": "textures/items/bastnasite_fragment"
+    },
+    "sapientia.bastnasite_tailings": {
+      "textures": "textures/items/bastnasite_tailings"
+    },
+    "sapientia.xenotime_fragment": {
+      "textures": "textures/items/xenotime_fragment"
+    },
+    "sapientia.xenotime_tailings": {
+      "textures": "textures/items/xenotime_tailings"
+    },
+    "sapientia.calaverite_fragment": {
+      "textures": "textures/items/calaverite_fragment"
+    },
+    "sapientia.calaverite_tailings": {
+      "textures": "textures/items/calaverite_tailings"
+    },
+    "sapientia.meteorite_fragment": {
+      "textures": "textures/items/meteorite_fragment"
+    },
+    "sapientia.meteorite_tailings": {
+      "textures": "textures/items/meteorite_tailings"
+    },
+    "sapientia.halite_fragment": {
+      "textures": "textures/items/halite_fragment"
+    },
+    "sapientia.halite_tailings": {
+      "textures": "textures/items/halite_tailings"
+    },
+    "sapientia.native_sulfur_fragment": {
+      "textures": "textures/items/native_sulfur_fragment"
+    },
+    "sapientia.native_sulfur_tailings": {
+      "textures": "textures/items/native_sulfur_tailings"
+    },
+    "sapientia.saltpeter_fragment": {
+      "textures": "textures/items/saltpeter_fragment"
+    },
+    "sapientia.saltpeter_tailings": {
+      "textures": "textures/items/saltpeter_tailings"
+    },
+    "sapientia.phosphorite_fragment": {
+      "textures": "textures/items/phosphorite_fragment"
+    },
+    "sapientia.phosphorite_tailings": {
+      "textures": "textures/items/phosphorite_tailings"
+    },
+    "sapientia.graphite_fragment": {
+      "textures": "textures/items/graphite_fragment"
+    },
+    "sapientia.graphite_tailings": {
+      "textures": "textures/items/graphite_tailings"
+    },
+    "sapientia.sylvite_fragment": {
+      "textures": "textures/items/sylvite_fragment"
+    },
+    "sapientia.sylvite_tailings": {
+      "textures": "textures/items/sylvite_tailings"
+    },
+    "sapientia.fluorite_fragment": {
+      "textures": "textures/items/fluorite_fragment"
+    },
+    "sapientia.fluorite_tailings": {
+      "textures": "textures/items/fluorite_tailings"
+    },
+    "sapientia.borax_fragment": {
+      "textures": "textures/items/borax_fragment"
+    },
+    "sapientia.borax_tailings": {
+      "textures": "textures/items/borax_tailings"
     },
     "sapientia.android_farmer": {
       "textures": "textures/items/android_farmer"

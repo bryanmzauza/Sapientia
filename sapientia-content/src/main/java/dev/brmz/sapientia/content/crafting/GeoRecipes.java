@@ -42,33 +42,33 @@ public final class GeoRecipes {
         // Sapientia ingredients.
         RecipeIngredient mvCasing       = RecipeIngredient.of(new NamespacedKey(plugin, "machine_casing_mv"));
         RecipeIngredient stainlessCasing = RecipeIngredient.of(new NamespacedKey(plugin, "stainless_steel_casing"));
-        RecipeIngredient cableT3        = RecipeIngredient.of(new NamespacedKey(plugin, "cable_t3"));
         RecipeIngredient stainlessPlate = ingot(plugin, Metal.STAINLESS_STEEL, MetalForm.PLATE);
         RecipeIngredient damascusPlate  = ingot(plugin, Metal.DAMASCUS_STEEL,  MetalForm.PLATE);
-        RecipeIngredient titaniumPlate  = ingot(plugin, Metal.TITANIUM,        MetalForm.PLATE);
         RecipeIngredient nichromeWire   = ingot(plugin, Metal.NICHROME,        MetalForm.WIRE);
         RecipeIngredient siliconWafer   = component(plugin, Component.SILICON_WAFER);
         RecipeIngredient circuitT2      = component(plugin, Component.CIRCUIT_T2);
-        RecipeIngredient circuitT3      = component(plugin, Component.CIRCUIT_T3);
         RecipeIngredient motorT2        = component(plugin, Component.MOTOR_T2);
-        RecipeIngredient motorT3        = component(plugin, Component.MOTOR_T3);
-        RecipeIngredient ramT3          = component(plugin, Component.RAM_T3);
+        RecipeIngredient motorT1        = component(plugin, Component.MOTOR_T1);
+        RecipeIngredient circuitT1      = component(plugin, Component.CIRCUIT_T1);
+        RecipeIngredient cableT2        = RecipeIngredient.of(new NamespacedKey(plugin, "cable_t2"));
+        // Era 10 has no circuit boards yet: redstone comparators do the control logic.
+        RecipeIngredient comparator     = RecipeIngredient.of(Material.COMPARATOR);
 
         // ---------- Multiblock controllers (T-431 / T-432 / T-434) ---------------------------
 
         // quarry_controller — heavy MV-tier industrial assembly.
         register(api, key(plugin, "recipe_quarry_controller"),
-                List.of(damascusPlate, motorT3,        damascusPlate,
-                        stainlessCasing, circuitT3,    stainlessCasing,
+                List.of(damascusPlate, motorT1,        damascusPlate,
+                        stainlessCasing, comparator,   stainlessCasing,
                         damascusPlate, piston,         damascusPlate),
                 stack(api, key(plugin, "quarry_controller"), 1),
                 GuideCategory.MACHINE);
 
         // drill_rig_controller — even heavier; sub-bedrock prospecting.
         register(api, key(plugin, "recipe_drill_rig_controller"),
-                List.of(damascusPlate, ramT3,          damascusPlate,
-                        stainlessCasing, circuitT3,    stainlessCasing,
-                        damascusPlate, motorT3,        damascusPlate),
+                List.of(damascusPlate, circuitT1,      damascusPlate,
+                        stainlessCasing, circuitT1,    stainlessCasing,
+                        damascusPlate, motorT1,        damascusPlate),
                 stack(api, key(plugin, "drill_rig_controller"), 1),
                 GuideCategory.MACHINE);
 
@@ -83,9 +83,9 @@ public final class GeoRecipes {
         // ---------- Machines (T-433) ---------------------------------------------------------
 
         register(api, key(plugin, "recipe_gas_extractor"),
-                List.of(titaniumPlate, motorT2,        titaniumPlate,
-                        cableT3,       mvCasing,       cableT3,
-                        titaniumPlate, piston,         titaniumPlate),
+                List.of(stainlessPlate, motorT1,       stainlessPlate,
+                        cableT2,        mvCasing,      cableT2,
+                        stainlessPlate, piston,        stainlessPlate),
                 stack(api, key(plugin, "gas_extractor"), 1),
                 GuideCategory.MACHINE);
 
@@ -100,7 +100,7 @@ public final class GeoRecipes {
 
         register(api, key(plugin, "recipe_gps_transmitter"),
                 List.of(gold,         ender,          gold,
-                        redstone,     circuitT3,      redstone,
+                        redstone,     circuitT2,      redstone,
                         gold,         diamond,        gold),
                 stack(api, key(plugin, "gps_transmitter"), 1),
                 GuideCategory.LOGISTICS);
@@ -120,9 +120,9 @@ public final class GeoRecipes {
                 GuideCategory.TOOL);
 
         register(api, key(plugin, "recipe_prospector"),
-                List.of(amethyst,     spyglass,       amethyst,
-                        circuitT2,    ender,          circuitT2,
-                        titaniumPlate, redstone,      titaniumPlate),
+                List.of(amethyst,       spyglass,     amethyst,
+                        comparator,     ender,        comparator,
+                        stainlessPlate, redstone,     stainlessPlate),
                 stack(api, key(plugin, "prospector"), 1),
                 GuideCategory.TOOL);
     }

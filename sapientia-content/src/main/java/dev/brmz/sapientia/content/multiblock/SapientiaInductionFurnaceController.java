@@ -1,6 +1,6 @@
 package dev.brmz.sapientia.content.multiblock;
 
-import dev.brmz.sapientia.api.block.SapientiaBlock;
+import dev.brmz.sapientia.content.CatalogBlock;
 import dev.brmz.sapientia.api.events.SapientiaBlockInteractEvent;
 import dev.brmz.sapientia.api.guide.GuideCategory;
 import dev.brmz.sapientia.api.multiblock.MultiblockShapeValidator;
@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
  * does not yet register as an energy node — that is added when the recipe
  * processing logic is wired in.
  */
-public final class SapientiaInductionFurnaceController implements SapientiaBlock {
+public final class SapientiaInductionFurnaceController implements CatalogBlock {
 
     private final NamespacedKey id;
 

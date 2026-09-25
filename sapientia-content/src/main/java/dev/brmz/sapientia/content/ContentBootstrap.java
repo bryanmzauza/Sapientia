@@ -1,10 +1,25 @@
 package dev.brmz.sapientia.content;
 
 import dev.brmz.sapientia.api.SapientiaAPI;
+import dev.brmz.sapientia.content.android.AndroidUpgradeCatalog;
+import dev.brmz.sapientia.content.android.SapientiaAndroidBuilder;
+import dev.brmz.sapientia.content.android.SapientiaAndroidButcher;
+import dev.brmz.sapientia.content.android.SapientiaAndroidFarmer;
+import dev.brmz.sapientia.content.android.SapientiaAndroidFisherman;
+import dev.brmz.sapientia.content.android.SapientiaAndroidLumberjack;
+import dev.brmz.sapientia.content.android.SapientiaAndroidMiner;
+import dev.brmz.sapientia.content.android.SapientiaAndroidSlayer;
+import dev.brmz.sapientia.content.android.SapientiaAndroidTrader;
 import dev.brmz.sapientia.content.blocks.SapientiaConsole;
 import dev.brmz.sapientia.content.blocks.SapientiaPedestal;
+import dev.brmz.sapientia.content.chemistry.SapientiaBioreactor;
+import dev.brmz.sapientia.content.chemistry.SapientiaCracker;
+import dev.brmz.sapientia.content.chemistry.SapientiaFermenter;
+import dev.brmz.sapientia.content.chemistry.SapientiaStill;
+import dev.brmz.sapientia.content.crafting.ArrivalRecipes;
 import dev.brmz.sapientia.content.crafting.BundledRecipes;
 import dev.brmz.sapientia.content.crafting.SapientiaWorkbench;
+import dev.brmz.sapientia.content.electronics.ComponentCatalog;
 import dev.brmz.sapientia.content.energy.EnergyInspector;
 import dev.brmz.sapientia.content.energy.SapientiaCable;
 import dev.brmz.sapientia.content.energy.SapientiaCableT2;
@@ -20,9 +35,17 @@ import dev.brmz.sapientia.content.energy.SapientiaRtg;
 import dev.brmz.sapientia.content.energy.SapientiaTransformerLvMv;
 import dev.brmz.sapientia.content.energy.SapientiaTransformerMvHv;
 import dev.brmz.sapientia.content.fluids.SapientiaFluidDrain;
+import dev.brmz.sapientia.content.fluids.SapientiaFluidLevelSensor;
 import dev.brmz.sapientia.content.fluids.SapientiaFluidPipe;
 import dev.brmz.sapientia.content.fluids.SapientiaFluidPump;
 import dev.brmz.sapientia.content.fluids.SapientiaFluidTank;
+import dev.brmz.sapientia.content.fluids.SapientiaFluidValve;
+import dev.brmz.sapientia.content.gas.SapientiaBoiler;
+import dev.brmz.sapientia.content.gas.SapientiaCondenser;
+import dev.brmz.sapientia.content.gas.SapientiaGasCompressor;
+import dev.brmz.sapientia.content.gas.SapientiaLiquefier;
+import dev.brmz.sapientia.content.gas.SapientiaPhaseSeparator;
+import dev.brmz.sapientia.content.gas.SapientiaPressurizedPipe;
 import dev.brmz.sapientia.content.geo.SapientiaAtmosphericCollector;
 import dev.brmz.sapientia.content.geo.SapientiaDesalinatorController;
 import dev.brmz.sapientia.content.geo.SapientiaDrillRigController;
@@ -34,20 +57,18 @@ import dev.brmz.sapientia.content.geo.SapientiaProspector;
 import dev.brmz.sapientia.content.geo.SapientiaQuarryController;
 import dev.brmz.sapientia.content.items.SapientiaGuide;
 import dev.brmz.sapientia.content.items.SapientiaWrench;
+import dev.brmz.sapientia.content.logistics.SapientiaComparatorSensor;
+import dev.brmz.sapientia.content.logistics.SapientiaConveyorBelt;
+import dev.brmz.sapientia.content.logistics.SapientiaFilterChamber;
+import dev.brmz.sapientia.content.logistics.SapientiaItemBuffer;
 import dev.brmz.sapientia.content.logistics.SapientiaItemCable;
 import dev.brmz.sapientia.content.logistics.SapientiaItemConsumer;
 import dev.brmz.sapientia.content.logistics.SapientiaItemFilter;
 import dev.brmz.sapientia.content.logistics.SapientiaItemProducer;
-import dev.brmz.sapientia.content.logistics.SapientiaItemBuffer;
 import dev.brmz.sapientia.content.logistics.SapientiaItemSplitter;
-import dev.brmz.sapientia.content.logistics.SapientiaFilterChamber;
 import dev.brmz.sapientia.content.logistics.SapientiaOverflowModule;
-import dev.brmz.sapientia.content.logistics.SapientiaComparatorSensor;
 import dev.brmz.sapientia.content.logistics.SapientiaPackager;
 import dev.brmz.sapientia.content.logistics.SapientiaUnpackager;
-import dev.brmz.sapientia.content.logistics.SapientiaConveyorBelt;
-import dev.brmz.sapientia.content.fluids.SapientiaFluidValve;
-import dev.brmz.sapientia.content.fluids.SapientiaFluidLevelSensor;
 import dev.brmz.sapientia.content.machines.SapientiaBenchSaw;
 import dev.brmz.sapientia.content.machines.SapientiaChemicalReactor;
 import dev.brmz.sapientia.content.machines.SapientiaCompressor;
@@ -60,30 +81,11 @@ import dev.brmz.sapientia.content.machines.SapientiaMixer;
 import dev.brmz.sapientia.content.machines.SapientiaOreWasher;
 import dev.brmz.sapientia.content.machines.SapientiaPlatePress;
 import dev.brmz.sapientia.content.machines.SapientiaRollingMill;
-import dev.brmz.sapientia.content.electronics.ComponentCatalog;
-import dev.brmz.sapientia.content.android.AndroidUpgradeCatalog;
-import dev.brmz.sapientia.content.android.SapientiaAndroidBuilder;
-import dev.brmz.sapientia.content.android.SapientiaAndroidButcher;
-import dev.brmz.sapientia.content.android.SapientiaAndroidFarmer;
-import dev.brmz.sapientia.content.android.SapientiaAndroidFisherman;
-import dev.brmz.sapientia.content.android.SapientiaAndroidLumberjack;
-import dev.brmz.sapientia.content.android.SapientiaAndroidMiner;
-import dev.brmz.sapientia.content.android.SapientiaAndroidSlayer;
-import dev.brmz.sapientia.content.android.SapientiaAndroidTrader;
-import dev.brmz.sapientia.content.gas.SapientiaBoiler;
-import dev.brmz.sapientia.content.gas.SapientiaCondenser;
-import dev.brmz.sapientia.content.gas.SapientiaGasCompressor;
-import dev.brmz.sapientia.content.gas.SapientiaLiquefier;
-import dev.brmz.sapientia.content.gas.SapientiaPhaseSeparator;
-import dev.brmz.sapientia.content.gas.SapientiaPressurizedPipe;
 import dev.brmz.sapientia.content.metallurgy.MetalCatalog;
+import dev.brmz.sapientia.content.mining.MineralCatalog;
 import dev.brmz.sapientia.content.multiblock.SapientiaInductionFurnaceController;
 import dev.brmz.sapientia.content.multiblock.SapientiaMachineCasing;
 import dev.brmz.sapientia.content.multiblock.SapientiaMachineCasingMv;
-import dev.brmz.sapientia.content.chemistry.SapientiaBioreactor;
-import dev.brmz.sapientia.content.chemistry.SapientiaCracker;
-import dev.brmz.sapientia.content.chemistry.SapientiaFermenter;
-import dev.brmz.sapientia.content.chemistry.SapientiaStill;
 import dev.brmz.sapientia.content.petroleum.SapientiaBiogasGen;
 import dev.brmz.sapientia.content.petroleum.SapientiaCombustionGen;
 import dev.brmz.sapientia.content.petroleum.SapientiaOilRefineryController;
@@ -130,10 +132,16 @@ public final class ContentBootstrap {
 
         // Crafting (T-130 / 0.4.0)
         api.registerBlock(new SapientiaWorkbench(plugin));
+        // Era 0: the guide and the workbench are made on the vanilla crafting table.
+        ArrivalRecipes.registerAll(plugin, api);
         BundledRecipes.registerAll(plugin, api);
 
         // Metallurgy items (T-402 / T-403 / 1.4.0) — 78 metal items.
         MetalCatalog.registerAll(plugin, api);
+
+        // Minerals, their fragments and tailings, elements and separation methods (Foundation 2).
+        // Before the recipes, which turn fragments into dusts.
+        MineralCatalog.registerAll(api);
 
         // Shared casings (T-400 / T-405 / 1.4.0).
         api.registerBlock(new SapientiaMachineCasing(plugin));

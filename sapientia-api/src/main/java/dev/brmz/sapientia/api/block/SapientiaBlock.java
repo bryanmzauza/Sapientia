@@ -4,6 +4,7 @@ import dev.brmz.sapientia.api.events.SapientiaBlockBreakEvent;
 import dev.brmz.sapientia.api.events.SapientiaBlockInteractEvent;
 import dev.brmz.sapientia.api.events.SapientiaBlockPlaceEvent;
 import dev.brmz.sapientia.api.guide.GuideCategory;
+import dev.brmz.sapientia.api.progression.Era;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.jetbrains.annotations.NotNull;
@@ -44,6 +45,15 @@ public interface SapientiaBlock {
     /** Guide category this block is listed under. Defaults to {@link GuideCategory#MISC}. */
     default @NotNull GuideCategory guideCategory() {
         return GuideCategory.MISC;
+    }
+
+    /**
+     * Era this content belongs to. Content of a locked era cannot be crafted,
+     * placed or processed, and is hidden in the guide. Defaults to era 0
+     * (always available).
+     */
+    default @NotNull Era era() {
+        return Era.ARRIVAL;
     }
 
     /** Whether this block appears in the guide before being unlocked. Defaults to {@code true}. */

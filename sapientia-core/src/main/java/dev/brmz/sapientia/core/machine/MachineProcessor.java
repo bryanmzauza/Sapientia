@@ -2,6 +2,7 @@ package dev.brmz.sapientia.core.machine;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import dev.brmz.sapientia.api.block.SapientiaBlock;
 import dev.brmz.sapientia.api.energy.EnergyNode;
@@ -49,10 +50,16 @@ public final class MachineProcessor {
     private final EnergyServiceImpl energy;
     private final MachineRecipeRegistry recipes;
     private final Map<BlockKey, InFlight> inFlight = new HashMap<>();
+    private Predicate<MachineRecipe> available = recipe -> true;
 
     public MachineProcessor(@NotNull EnergyServiceImpl energy, @NotNull MachineRecipeRegistry recipes) {
         this.energy = energy;
         this.recipes = recipes;
+    }
+
+    /** Recipes whose items belong to a locked era are skipped (see the server era). */
+    public void setAvailability(@NotNull Predicate<MachineRecipe> available) {
+        this.available = available;
     }
 
     /** Registers the recipe behaviour for every block type that has machine recipes. */
@@ -92,7 +99,7 @@ public final class MachineProcessor {
             ItemStack candidate = input.getItem(slot);
             if (candidate == null || candidate.getAmount() <= 0) continue;
             MachineRecipe recipe = recipes.findMatching(definition.id(), candidate);
-            if (recipe == null) continue;
+            if (recipe == null || !available.test(recipe)) continue;
             if (node.bufferCurrent() < recipe.energyCost()) {
                 return RETRY_TICKS;
             }

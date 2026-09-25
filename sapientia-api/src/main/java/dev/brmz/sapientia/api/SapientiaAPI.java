@@ -2,6 +2,7 @@ package dev.brmz.sapientia.api;
 
 import java.util.Optional;
 
+import dev.brmz.sapientia.api.agriculture.PlantService;
 import dev.brmz.sapientia.api.android.AndroidService;
 import dev.brmz.sapientia.api.block.SapientiaBlock;
 import dev.brmz.sapientia.api.crafting.RecipeRegistry;
@@ -14,7 +15,9 @@ import dev.brmz.sapientia.api.item.SapientiaItem;
 import dev.brmz.sapientia.api.logic.LogicService;
 import dev.brmz.sapientia.api.logistics.ItemService;
 import dev.brmz.sapientia.api.machine.MachineRecipeRegistry;
+import dev.brmz.sapientia.api.mining.MiningService;
 import dev.brmz.sapientia.api.overrides.ContentOverrides;
+import dev.brmz.sapientia.api.progression.ProgressionService;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -84,6 +87,15 @@ public interface SapientiaAPI {
 
     /** Per-player unlock service entry point (T-151 / 0.4.0). */
     @NotNull UnlockService unlocks();
+
+    /** Server era and per-player research. */
+    @NotNull ProgressionService progression();
+
+    /** Minerals, natural terrain and separation. */
+    @NotNull MiningService mining();
+
+    /** Sapientia plants and wild seeds. */
+    @NotNull PlantService plants();
 
     /** YAML override service entry point (T-160 / 0.5.0). */
     @NotNull ContentOverrides overrides();

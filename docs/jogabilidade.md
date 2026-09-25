@@ -729,8 +729,9 @@ Os valores de cada máquina estão no documento da era.
 
 ### Ordem de entrega e versões
 
-1. **Fundação de desempenho** (seção 9) e **fundação de progressão** (sistema de eras, comandos,
-   bloqueios, guia, terreno virgem, fragmentos e plantas), junto com a **era 0**: versão **2.0.0**.
+1. **Fundação de desempenho** (seção 9): versão **2.0.0**. **Fundação de progressão** (sistema de
+   eras, comandos, bloqueios, guia, terreno virgem, fragmentos e plantas): versão **2.0.1**.
+   **Era 0**: versão **2.0.2**.
 2. **Eras em ordem**, uma por vez: a era N sai na versão **2.N.0**, e as correções dela seguem como
    2.N.1, 2.N.2 e assim por diante. Detalhes no `ROADMAP.md`.
 
@@ -750,6 +751,11 @@ Os valores de cada máquina estão no documento da era.
 ---
 
 ## 13. Decisões em aberto
+
+A versão 2.0.1 implementou as opções recomendadas das decisões 1 a 6 e 11, todas ajustáveis:
+chunks antigos contam como naturais (`mining.legacy-chunks`), os minérios brutos viraram fragmentos
+automaticamente, a era inicial é 1 (`progression.starting-era`), o admin pode baixar a era, itens de
+eras bloqueadas ficam inertes, os veios já existem e as plantas usam o visual das plantas vanilla.
 
 1. **Mundos antigos:** chunks gerados antes do plugin contam como naturais (recomendado)?
 2. **Minérios brutos atuais e metais duplicados:** remover e converter automaticamente

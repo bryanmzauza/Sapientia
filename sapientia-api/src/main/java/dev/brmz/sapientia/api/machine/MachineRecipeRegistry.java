@@ -44,6 +44,13 @@ public final class MachineRecipeRegistry {
         return null;
     }
 
+    /** Every registered recipe, across all machines. */
+    public synchronized @NotNull List<MachineRecipe> all() {
+        List<MachineRecipe> out = new ArrayList<>();
+        for (List<MachineRecipe> list : byMachine.values()) out.addAll(list);
+        return out;
+    }
+
     public synchronized int totalRecipes() {
         int total = 0;
         for (List<MachineRecipe> list : byMachine.values()) total += list.size();
