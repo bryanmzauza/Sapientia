@@ -5,8 +5,6 @@ import java.util.List;
 
 import dev.brmz.sapientia.api.events.SapientiaFluidFlowEvent;
 import dev.brmz.sapientia.api.events.SapientiaFluidTransferEvent;
-import dev.brmz.sapientia.api.fluids.FluidNetwork;
-import dev.brmz.sapientia.api.fluids.FluidNodeType;
 import dev.brmz.sapientia.api.fluids.FluidSpecs;
 import dev.brmz.sapientia.api.fluids.FluidStack;
 import dev.brmz.sapientia.api.fluids.FluidType;
@@ -15,24 +13,32 @@ import org.bukkit.block.Block;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Per-tick fluid solver (T-301 / 1.2.0). For every network:
+ * Fluid solver. Each cycle, for every network that is due:
  *
  * <ol>
- *   <li>Each {@code PUMP} extracts up to {@code throughputPerTick} mB from an
- *       adjacent vanilla source and offers it to the network's tanks (greedy,
- *       first-fit).</li>
- *   <li>Each {@code DRAIN} draws up to {@code throughputPerTick} mB from any
- *       compatible tank and deposits it into an adjacent vanilla sink (cauldron
- *       or replaceable air).</li>
+ *   <li>Each active {@code PUMP} extracts up to {@code throughputPerTick} mB
+ *       from an adjacent vanilla source and offers it to the network's tanks
+ *       (greedy, first fit).</li>
+ *   <li>Each active {@code DRAIN} draws up to {@code throughputPerTick} mB from
+ *       a tank and deposits it into an adjacent vanilla sink (cauldron or
+ *       replaceable air).</li>
  * </ol>
  *
- * <p>No mixing — a tank pre-bound to fluid A refuses fluid B. Empty tanks adopt
- * the first fluid offered. Continuous volume is preserved each tick.
+ * <p>No mixing: a tank holding fluid A refuses fluid B, and an empty tank
+ * adopts the first fluid offered. Runs on the main thread (it touches the
+ * world). A network where nothing moved backs off exponentially, up to
+ * {@link #MAX_IDLE_CYCLES} cycles, and wakes early when a machine fills or
+ * drains one of its tanks; one without active tanks sleeps until its topology
+ * changes or one of its chunks becomes active.
  */
 public final class FluidSolver {
 
+    /** Longest back-off of an idle network, in cycles (the fluid cycle is five ticks). */
+    public static final int MAX_IDLE_CYCLES = 8;
+
     private final FluidNetworkGraph graph;
     private final FluidServiceImpl service;
+    private long cycle;
 
     public FluidSolver(@NotNull FluidNetworkGraph graph, @NotNull FluidServiceImpl service) {
         this.graph = graph;
@@ -42,62 +48,76 @@ public final class FluidSolver {
     public void tick() {
         FluidType water = service.type(BuiltinFluidTypes.WATER.id()).orElse(BuiltinFluidTypes.WATER);
         FluidType lava = service.type(BuiltinFluidTypes.LAVA.id()).orElse(BuiltinFluidTypes.LAVA);
-
-        for (FluidNetwork network : graph.networks()) {
-            List<SimpleFluidNode> tanks = new ArrayList<>();
-            List<SimpleFluidNode> pumps = new ArrayList<>();
-            List<SimpleFluidNode> drains = new ArrayList<>();
-            for (SimpleFluidNode n : graph.membersOf(network)) {
-                switch (n.type()) {
-                    case TANK -> tanks.add(n);
-                    case PUMP -> pumps.add(n);
-                    case DRAIN -> drains.add(n);
-                    default -> { /* PIPE / JUNCTION are passive */ }
-                }
+        long c = ++cycle;
+        for (FluidNetworkGraph.Network network : graph.collectDue(c)) {
+            if (network.isRemoved()) continue; // an event listener changed the topology
+            List<SimpleFluidNode> tanks = active(network.role(FluidNetworkGraph.TANKS));
+            if (tanks.isEmpty()) {
+                graph.idle(network, c, 0);
+                continue;
             }
-            if (tanks.isEmpty()) continue;
-
-            long pumped = 0L;
-            long drained = 0L;
-
-            for (SimpleFluidNode pump : pumps) {
-                long throughput = FluidSpecs.throughputPerTick(pump.tier());
-                Block origin = pump.block();
-                if (origin == null) continue;
-                AdjacentFluids.Extract source = AdjacentFluids.peekSource(origin, null, water, lava);
-                if (source == null) continue;
-                long want = Math.min(throughput, source.amountMb());
-                long offered = offerToTanks(tanks, source.type(), want, pump);
-                if (offered <= 0L) continue;
-                AdjacentFluids.consumeFromSource(source.source(), offered);
-                pumped += offered;
-            }
-
-            for (SimpleFluidNode drain : drains) {
-                long throughput = FluidSpecs.throughputPerTick(drain.tier());
-                Block origin = drain.block();
-                if (origin == null) continue;
-                FluidStack pulled = drawFromTanks(tanks, throughput, drain);
-                if (pulled == null || pulled.isEmpty()) continue;
-                long placed = AdjacentFluids.deposit(origin, pulled, water, lava);
-                long unused = pulled.amountMb() - placed;
-                if (unused > 0L) {
-                    // Return unused volume to tanks (best effort).
-                    offerToTanks(tanks, pulled.type(), unused, drain);
-                }
-                drained += placed;
-            }
-
-            long buffered = 0L;
-            for (SimpleFluidNode tank : tanks) {
-                FluidStack c = tank.contents();
-                if (c != null) buffered += c.amountMb();
-            }
-            if (pumped > 0L || drained > 0L) {
-                Bukkit.getPluginManager().callEvent(
-                        new SapientiaFluidFlowEvent(network, pumped, drained, buffered));
+            if (tickNetwork(network, tanks, water, lava)) {
+                graph.worked(network, c);
+            } else {
+                graph.idle(network, c, MAX_IDLE_CYCLES);
             }
         }
+    }
+
+    private boolean tickNetwork(FluidNetworkGraph.Network network, List<SimpleFluidNode> tanks,
+                                FluidType water, FluidType lava) {
+        long pumped = 0L;
+        long drained = 0L;
+
+        for (SimpleFluidNode pump : network.role(FluidNetworkGraph.PUMPS)) {
+            if (!pump.isActive()) continue;
+            long throughput = FluidSpecs.throughputPerTick(pump.tier());
+            Block origin = pump.block();
+            if (origin == null) continue;
+            AdjacentFluids.Extract source = AdjacentFluids.peekSource(origin, null, water, lava);
+            if (source == null) continue;
+            long want = Math.min(throughput, source.amountMb());
+            long offered = offerToTanks(tanks, source.type(), want, pump);
+            if (offered <= 0L) continue;
+            AdjacentFluids.consumeFromSource(source.source(), offered);
+            pumped += offered;
+        }
+
+        for (SimpleFluidNode drain : network.role(FluidNetworkGraph.DRAINS)) {
+            if (!drain.isActive()) continue;
+            long throughput = FluidSpecs.throughputPerTick(drain.tier());
+            Block origin = drain.block();
+            if (origin == null) continue;
+            FluidStack pulled = drawFromTanks(tanks, throughput, drain);
+            if (pulled == null || pulled.isEmpty()) continue;
+            long placed = AdjacentFluids.deposit(origin, pulled, water, lava);
+            long unused = pulled.amountMb() - placed;
+            if (unused > 0L) {
+                // Return unused volume to tanks (best effort).
+                offerToTanks(tanks, pulled.type(), unused, drain);
+            }
+            drained += placed;
+        }
+
+        if (pumped <= 0L && drained <= 0L) {
+            return false;
+        }
+        long buffered = 0L;
+        for (SimpleFluidNode tank : tanks) {
+            FluidStack c = tank.contents();
+            if (c != null) buffered += c.amountMb();
+        }
+        Bukkit.getPluginManager().callEvent(
+                new SapientiaFluidFlowEvent(network, pumped, drained, buffered));
+        return true;
+    }
+
+    private static List<SimpleFluidNode> active(List<SimpleFluidNode> nodes) {
+        List<SimpleFluidNode> out = new ArrayList<>(nodes.size());
+        for (SimpleFluidNode n : nodes) {
+            if (n.isActive()) out.add(n);
+        }
+        return out;
     }
 
     /** Returns total mB accepted by tanks for the given fluid, summed greedy first-fit. */
@@ -106,7 +126,7 @@ public final class FluidSolver {
         long remaining = amount;
         for (SimpleFluidNode tank : tanks) {
             if (remaining <= 0L) break;
-            long taken = tank.offer(type, remaining);
+            long taken = tank.fill(type, remaining);
             if (taken > 0L) {
                 remaining -= taken;
                 Bukkit.getPluginManager().callEvent(new SapientiaFluidTransferEvent(
@@ -122,7 +142,7 @@ public final class FluidSolver {
         for (SimpleFluidNode tank : tanks) {
             FluidStack c = tank.contents();
             if (c == null) continue;
-            long pulled = tank.draw(Math.min(amount, c.amountMb()));
+            long pulled = tank.drain(Math.min(amount, c.amountMb()));
             if (pulled > 0L) {
                 FluidStack out = new FluidStack(c.type(), pulled);
                 Bukkit.getPluginManager().callEvent(new SapientiaFluidTransferEvent(

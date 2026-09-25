@@ -6,6 +6,7 @@ import dev.brmz.sapientia.api.energy.EnergyTier;
 import dev.brmz.sapientia.api.logistics.ItemNode;
 import dev.brmz.sapientia.api.logistics.ItemNodeType;
 import dev.brmz.sapientia.core.block.BlockKey;
+import dev.brmz.sapientia.core.network.GraphNode;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -13,18 +14,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Mutable concrete implementation of {@link ItemNode}. Item buffers live in
- * adjacent vanilla containers, not on this object — the node only carries
- * type, tier, priority and a stable id. See ROADMAP 1.1.0 (T-300).
+ * Concrete {@link ItemNode}. Item buffers live in adjacent vanilla containers,
+ * not on this object: the node only carries type, tier, priority and a stable id.
  */
-public final class SimpleItemNode implements ItemNode {
+public final class SimpleItemNode extends GraphNode implements ItemNode {
 
     private final UUID nodeId;
-    private final BlockKey location;
     private final ItemNodeType type;
     private final EnergyTier tier;
     private final int priority;
-    private volatile boolean dirty;
 
     public SimpleItemNode(
             @NotNull UUID nodeId,
@@ -32,8 +30,8 @@ public final class SimpleItemNode implements ItemNode {
             @NotNull ItemNodeType type,
             @NotNull EnergyTier tier,
             int priority) {
+        super(location);
         this.nodeId = nodeId;
-        this.location = location;
         this.type = type;
         this.tier = tier;
         this.priority = priority;
@@ -61,24 +59,10 @@ public final class SimpleItemNode implements ItemNode {
 
     @Override
     public @Nullable Block block() {
-        World world = Bukkit.getWorld(location.world());
+        World world = Bukkit.getWorld(location().world());
         if (world == null) {
             return null;
         }
-        return world.getBlockAt(location.x(), location.y(), location.z());
-    }
-
-    public @NotNull BlockKey location() {
-        return location;
-    }
-
-    public boolean takeDirty() {
-        boolean was = dirty;
-        dirty = false;
-        return was;
-    }
-
-    public void markDirty() {
-        this.dirty = true;
+        return world.getBlockAt(location().x(), location().y(), location().z());
     }
 }

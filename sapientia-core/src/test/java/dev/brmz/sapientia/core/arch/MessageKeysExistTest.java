@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 final class MessageKeysExistTest {
 
     private static final Pattern KEY_CALL = Pattern.compile(
-            "\\.(?:component|plain|hasKey)\\(\\s*\"([a-z0-9_.\\-]+)\"");
+            "(?<!Placeholder)\\.(?:component|plain|hasKey)\\(\\s*\"([a-z0-9_.\\-]+)\"");
 
     @Test
     void literalKeysExistInBothCatalogues() throws IOException {

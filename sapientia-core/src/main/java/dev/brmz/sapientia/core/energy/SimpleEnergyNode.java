@@ -7,22 +7,24 @@ import dev.brmz.sapientia.api.energy.EnergyNode;
 import dev.brmz.sapientia.api.energy.EnergyNodeType;
 import dev.brmz.sapientia.api.energy.EnergyTier;
 import dev.brmz.sapientia.core.block.BlockKey;
+import dev.brmz.sapientia.core.network.GraphNode;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Mutable, thread-safe-ish concrete implementation of {@link EnergyNode}. Buffers
- * are stored in an {@link AtomicLong} so {@code markDirty} can be called from any
- * thread, but solver mutations happen on the main thread.
+ * Concrete {@link EnergyNode}. The buffer is an {@link AtomicLong} because the
+ * energy solver runs on its own thread while machines draw on the main thread.
+ *
+ * <p>{@link #offer} and {@link #draw} are for everything outside the solver:
+ * they also wake the node's network. The solver uses {@link #fill} and
+ * {@link #drain}, which do not, so a network with nothing to do stays asleep.
  */
-public final class SimpleEnergyNode implements EnergyNode {
+public final class SimpleEnergyNode extends GraphNode implements EnergyNode {
 
     private final UUID nodeId;
-    private final BlockKey location;
     private final EnergyNodeType type;
     private final EnergyTier tier;
     private final AtomicLong bufferCurrent;
     private final long bufferMax;
-    private volatile boolean dirty;
 
     public SimpleEnergyNode(
             @NotNull UUID nodeId,
@@ -31,8 +33,8 @@ public final class SimpleEnergyNode implements EnergyNode {
             @NotNull EnergyTier tier,
             long bufferCurrent,
             long bufferMax) {
+        super(location);
         this.nodeId = nodeId;
-        this.location = location;
         this.type = type;
         this.tier = tier;
         this.bufferCurrent = new AtomicLong(bufferCurrent);
@@ -64,23 +66,22 @@ public final class SimpleEnergyNode implements EnergyNode {
         return bufferMax;
     }
 
-    @Override
-    public void markDirty() {
-        this.dirty = true;
-    }
-
-    public boolean takeDirty() {
-        boolean was = dirty;
-        dirty = false;
-        return was;
-    }
-
-    public @NotNull BlockKey location() {
-        return location;
-    }
-
     /** Adds energy up to {@link #bufferMax}; returns the amount actually inserted. */
     public long offer(long amount) {
+        long inserted = fill(amount);
+        if (inserted > 0) changedExternally();
+        return inserted;
+    }
+
+    /** Removes up to {@code amount} energy; returns the amount actually drawn. */
+    public long draw(long amount) {
+        long drawn = drain(amount);
+        if (drawn > 0) changedExternally();
+        return drawn;
+    }
+
+    /** Solver-side {@link #offer}: persists the change without waking the network. */
+    long fill(long amount) {
         if (amount <= 0) return 0;
         long curr;
         long inserted;
@@ -89,12 +90,12 @@ public final class SimpleEnergyNode implements EnergyNode {
             inserted = Math.min(amount, bufferMax - curr);
             if (inserted <= 0) return 0;
         } while (!bufferCurrent.compareAndSet(curr, curr + inserted));
-        dirty = true;
+        markDirty();
         return inserted;
     }
 
-    /** Removes up to {@code amount} energy; returns the amount actually drawn. */
-    public long draw(long amount) {
+    /** Solver-side {@link #draw}: persists the change without waking the network. */
+    long drain(long amount) {
         if (amount <= 0) return 0;
         long curr;
         long drawn;
@@ -103,7 +104,7 @@ public final class SimpleEnergyNode implements EnergyNode {
             drawn = Math.min(amount, curr);
             if (drawn <= 0) return 0;
         } while (!bufferCurrent.compareAndSet(curr, curr - drawn));
-        dirty = true;
+        markDirty();
         return drawn;
     }
 }

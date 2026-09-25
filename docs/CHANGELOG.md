@@ -16,6 +16,34 @@ version (era 1 as 2.1.0, era 2 as 2.2.0, and so on), with fixes as patch version
 
 ### Added
 
+- New engine with a single tick loop. Machines run on an event-driven scheduler: each machine
+  costs CPU only on the tick its next step is due, and all machines together stay within a
+  per-tick time budget (`performance.tick-budget-ms`, default 5 ms). When the budget is used up,
+  the remaining machines run on the next tick instead of slowing the server.
+- Activity radius: machines, generators, pipes and androids only work within
+  `performance.activity-radius` chunks of a player (default 4), and keep running for
+  `performance.deactivate-delay-seconds` (default 30) after the last player leaves.
+- Per-chunk limits for Sapientia blocks (2,048), machines (256) and blocks of the same type (64 by
+  default, lower for multiblock controllers), configurable under `performance.limits`. Players see
+  which limit was reached.
+- `/sapientia perf` (permission `sapientia.command.perf`) shows the cost of each subsystem, the
+  number of loaded, scheduled, sleeping and paused machines, and the active chunks.
+- API: `SapientiaBlock#chunkLimit()` lets content declare its own per-chunk limit.
+- Energy, item and fluid networks only do work when something changed. Solvers visit the blocks
+  that produce, store or consume (never cables and pipes), and skip networks with nothing to do:
+  an energy network sleeps until a machine uses energy, a generator is fuelled, its layout changes
+  or a player comes near; idle item and fluid networks check back less and less often (at most
+  every 1.6 seconds for items and 2 seconds for fluids) and wake early when a machine fills or
+  empties a tank.
+- Energy networks are solved on their own thread (`Sapientia-Energy`). Events are still fired on
+  the main thread.
+- A single database thread (`Sapientia-Database`) now does all SQLite work. Changes to blocks and
+  network nodes are written in batches every 500 ms, and a chunk's Sapientia data is read in the
+  background when the chunk loads, then applied at the start of the next tick (within 2 ms per
+  tick). The main thread no longer waits on the database.
+- Scale benchmarks with up to 10 million machines or network blocks and for loading a chunk with
+  1,000 blocks (`./gradlew :sapientia-benchmarks:jmh -PjmhInclude=<MachineScheduler|NetworkScale|ChunkLoad>`),
+  and a memory report (`./gradlew :sapientia-benchmarks:footprint`).
 - Gameplay design proposal in `docs/jogabilidade.md` (in Portuguese): 25 eras from the Stone Age
   to the far future, unlocked by the server admin with per-player research inside each era; metals
   obtained by breaking natural (never player-placed) rock, from 38 multi-metal minerals plus
@@ -27,6 +55,21 @@ version (era 1 as 2.1.0, era 2 as 2.2.0, and so on), with fixes as patch version
 
 ### Changed
 
+- Recipe machines schedule one step per recipe instead of advancing every 10 ticks, and back off
+  while they have no input (up to 10 seconds between checks).
+- Petroleum, electronics, geology and packaging machines run only when their own step is due,
+  instead of the whole network being scanned every 5 to 10 ticks.
+- Much lower memory use at scale: the block index takes about 5 bytes per Sapientia block, a machine
+  about 32 bytes in the scheduler, and a cable, pipe or junction about 50 bytes in its network
+  (about 210 before). Unloading a chunk costs only that chunk's blocks.
+- Network nodes are now stored with their chunk coordinates. The database migration (`V010`) runs
+  automatically on the first start; chunk loads no longer scan the whole node tables.
+- `SapientiaEnergyFlowEvent` fires only for networks where energy moved, up to one energy cycle
+  (0.5 s) after the fact, and only while a plugin listens to it. `SapientiaItemFlowEvent` fires only
+  when items were extracted.
+- For addons: the `EnergyNode`, `ItemNode` and `FluidNode` returned for cables, pipes and junctions
+  are detached snapshots whose id is derived from their position, and `nodes()` on a network builds
+  a new list each call. Producers, consumers, storage and tanks are unchanged live objects.
 - The roadmap and changelog moved to `docs/`, with an index in `docs/README.md`.
 - The roadmap is now organized by eras: two foundation milestones (performance, then progression
   and world systems) followed by one milestone per era. Task codes are `F<n>.<n>` and `E<era>.<n>`.
@@ -34,6 +77,20 @@ version (era 1 as 2.1.0, era 2 as 2.2.0, and so on), with fixes as patch version
 - Performance requirement: 10 million active Sapientia blocks (machines, cables and pipes; 100,000
   per player with 100 players) within a fixed per-tick budget, with per-chunk limits and machines
   pausing outside a 4-chunk activity radius around players.
+
+### Fixed
+
+- Energy networks took energy from capacitors and generators for consumers but never delivered it,
+  so machines powered through cables received nothing. Consumers now fill their buffer from the
+  network.
+- Tank contents were not saved on shutdown, and energy or fluid changed shortly before a chunk
+  unloaded could be lost. Both are now written before the plugin stops or the chunk leaves memory.
+
+### Removed
+
+- **Breaking (API):** `SapientiaBlock#ticks()`, which was never used, replaced by
+  `SapientiaBlock#chunkLimit()`.
+- The internal `TickBucketing` dispatcher, replaced by the new scheduler.
 
 ## [1.11.0] - 2026-09-25
 

@@ -34,3 +34,6 @@ permissions:
   sapientia.command.fluids:
     description: Allows inspecting fluid networks via /sapientia fluids.
     default: op
+  sapientia.command.perf:
+    description: Allows viewing the engine cost report via /sapientia perf.
+    default: op

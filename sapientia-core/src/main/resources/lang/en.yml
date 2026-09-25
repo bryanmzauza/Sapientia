@@ -8,6 +8,13 @@ plugin:
     failure: "<red>Reload failed: <white><error></white></red>"
 
 command:
+  perf:
+    header: "<gold>=== Sapientia performance <gray>(budget <white><budget> ms</white>/tick)</gray> ===</gold>"
+    total: "<yellow>Total:</yellow> <white><avg> ms</white> <gray>avg,</gray> <white><peak> ms</white> <gray>peak</gray>"
+    section: "<gray> - <name>:</gray> <white><avg> ms</white> <gray>avg,</gray> <white><peak> ms</white> <gray>peak</gray>"
+    machines: "<yellow>Machines:</yellow> <white><registered></white> <gray>loaded,</gray> <white><scheduled></white> <gray>scheduled,</gray> <white><sleeping></white> <gray>sleeping,</gray> <white><paused></white> <gray>paused,</gray> <white><backlog></white> <gray>late</gray>"
+    networks: "<yellow>Networks:</yellow> <white><energy></white> <gray>energy (<energy_blocks> blocks),</gray> <white><items></white> <gray>item (<item_blocks> blocks),</gray> <white><fluids></white> <gray>fluid (<fluid_blocks> blocks)</gray>"
+    chunks: "<yellow>Active chunks:</yellow> <white><active></white> <gray>(radius <radius> around each player)</gray>"
   unknown: "<red>Unknown command. Try <white>/sapientia help</white>.</red>"
   no-permission: "<red>You do not have permission to do that.</red>"
   players-only: "<red>This command can only be run by players.</red>"
@@ -25,6 +32,7 @@ command:
       logistics: "Inspect and manage item logistics networks."
       fluids: "Inspect Sapientia fluid logistics networks."
       logic: "Manage programmable-logic DAG programs."
+      perf: "Show the tick cost of each Sapientia subsystem."
   logistics:
     usage: "<red>Usage: /sapientia logistics <info|policy|filter></red>"
     info:
@@ -850,3 +858,9 @@ android:
       name: "<aqua>Fuel Module T3</aqua>"
     fuel_module_t4:
       name: "<light_purple>Fuel Module T4</light_purple>"
+
+limit:
+  chunk:
+    blocks: "<red>This chunk already has <white><limit></white> Sapientia blocks, the maximum per chunk.</red>"
+    processors: "<red>This chunk already has <white><limit></white> machines, the maximum per chunk.</red>"
+    same-type: "<red>This chunk already has <white><limit></white> of <block><red>, the maximum per chunk.</red>"

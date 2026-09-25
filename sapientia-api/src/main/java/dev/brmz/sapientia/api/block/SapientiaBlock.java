@@ -32,12 +32,13 @@ public interface SapientiaBlock {
     @NotNull String displayNameKey();
 
     /**
-     * Whether this block participates in the {@code TickBucketing} dispatcher.
-     * Defaults to {@code false}. Override and return {@code true} for machines or
-     * anything that requires periodic work.
+     * How many blocks of this type fit in one chunk. Return a positive number for
+     * heavy machines (for example multiblock controllers); {@code 0} or less uses
+     * the server's default same-type limit. Server operators can still override
+     * the value per block id in {@code config.yml}.
      */
-    default boolean ticks() {
-        return false;
+    default int chunkLimit() {
+        return 0;
     }
 
     /** Guide category this block is listed under. Defaults to {@link GuideCategory#MISC}. */

@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 
 import dev.brmz.sapientia.api.events.SapientiaAndroidTickEvent;
 import org.bukkit.Bukkit;
+import dev.brmz.sapientia.core.engine.ActivityFilter;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -62,12 +63,24 @@ public final class AndroidTicker {
         this.engine = engine;
     }
 
+    private ActivityFilter activity = ActivityFilter.ALWAYS;
+
+    /** Only androids in active chunks work (see the activity radius). */
+    public void setActivityFilter(@NotNull ActivityFilter activity) {
+        this.activity = activity;
+    }
+
     /** Runs one tick pass over every loaded android. */
     public void tick() {
         long t = tickCount.incrementAndGet();
         List<SimpleAndroidNode> snapshot = service.snapshot();
         if (snapshot.isEmpty()) return;
         for (SimpleAndroidNode node : snapshot) {
+            org.bukkit.block.Block block = node.block();
+            if (activity != ActivityFilter.ALWAYS && block != null
+                    && !activity.isActive(block.getWorld().getName(), block.getX() >> 4, block.getZ() >> 4)) {
+                continue;
+            }
             // Motor cooldown gate — skip until the persisted next-tick stamp.
             if (t < node.lastTickMs()) continue;
 

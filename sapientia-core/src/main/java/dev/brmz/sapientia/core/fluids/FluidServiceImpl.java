@@ -1,9 +1,9 @@
 package dev.brmz.sapientia.core.fluids;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,9 +22,9 @@ import org.bukkit.block.Block;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Default {@link FluidService} implementation (T-301 / 1.2.0). Holds the
- * in-memory {@link FluidNetworkGraph}, persists every mutation through
- * {@link FluidNodeStore}, and owns the {@link FluidType} registry.
+ * Default {@link FluidService} implementation. Holds the in-memory
+ * {@link FluidNetworkGraph} and owns the {@link FluidType} registry; changes
+ * are queued on {@link FluidNodeStore} and written by the database thread.
  */
 public final class FluidServiceImpl implements FluidService {
 
@@ -43,6 +43,10 @@ public final class FluidServiceImpl implements FluidService {
 
     public @NotNull FluidNetworkGraph graph() {
         return graph;
+    }
+
+    public @NotNull FluidNodeStore store() {
+        return store;
     }
 
     @Override
@@ -66,7 +70,9 @@ public final class FluidServiceImpl implements FluidService {
         BlockKey key = keyOf(block);
         SimpleFluidNode existing = graph.nodeAt(key);
         if (existing != null) return existing;
-        SimpleFluidNode node = new SimpleFluidNode(UUID.randomUUID(), key, type, tier, null, 0L);
+        boolean transit = type != FluidNodeType.TANK && type != FluidNodeType.PUMP && type != FluidNodeType.DRAIN;
+        UUID id = transit ? FluidNetworkGraph.transitId(key) : UUID.randomUUID();
+        SimpleFluidNode node = new SimpleFluidNode(id, key, type, tier, null, 0L);
         graph.addNode(node);
         store.put(node);
         return node;
@@ -75,7 +81,7 @@ public final class FluidServiceImpl implements FluidService {
     @Override
     public void removeNode(@NotNull Block block) {
         BlockKey key = keyOf(block);
-        if (graph.nodeAt(key) == null) return;
+        if (!graph.contains(key)) return;
         graph.removeNode(key);
         store.delete(key);
     }
@@ -95,32 +101,35 @@ public final class FluidServiceImpl implements FluidService {
         return graph.networks();
     }
 
+    /** Reads a chunk's nodes. Runs on the database thread. */
+    public @NotNull List<SimpleFluidNode> loadChunk(@NotNull String world, int chunkX, int chunkZ) {
+        return store.loadChunk(world, chunkX, chunkZ, types::get);
+    }
+
+    /** Loads and adds a chunk's nodes on the calling thread. */
     public void hydrateChunk(@NotNull String world, int chunkX, int chunkZ) {
-        for (SimpleFluidNode node : store.loadChunk(world, chunkX, chunkZ, types::get)) {
+        applyLoaded(loadChunk(world, chunkX, chunkZ));
+    }
+
+    /** Adds nodes read by the database thread. Nodes placed since the read win. */
+    public void applyLoaded(@NotNull List<SimpleFluidNode> nodes) {
+        for (SimpleFluidNode node : nodes) {
             graph.addNode(node);
         }
     }
 
+    /** Removes a chunk's nodes from the live graph, queueing unsaved tank contents first. */
     public void unloadChunk(@NotNull String world, int chunkX, int chunkZ) {
-        // Persist any dirty nodes first so contents survive reload.
-        persistDirty();
-        int xMin = chunkX * 16, xMax = xMin + 15;
-        int zMin = chunkZ * 16, zMax = zMin + 15;
-        java.util.List<BlockKey> victims = new ArrayList<>();
-        for (SimpleFluidNode n : graph.nodes()) {
-            BlockKey k = n.location();
-            if (k.world().equals(world) && k.x() >= xMin && k.x() <= xMax && k.z() >= zMin && k.z() <= zMax) {
-                victims.add(k);
+        for (SimpleFluidNode node : graph.removeChunk(world, chunkX, chunkZ)) {
+            if (node.takeDirty()) {
+                store.put(node);
             }
         }
-        for (BlockKey k : victims) graph.removeNode(k);
     }
 
-    /** Persists tank buffers that changed since the last call. */
+    /** Queues every tank changed since the last call. Costs the changed tanks, not all nodes. */
     public void persistDirty() {
-        for (SimpleFluidNode n : graph.nodes()) {
-            if (n.takeDirty()) store.put(n);
-        }
+        graph.drainDirty(store::put);
     }
 
     private static BlockKey keyOf(Block b) {

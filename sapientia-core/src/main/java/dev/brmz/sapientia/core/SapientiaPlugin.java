@@ -51,10 +51,15 @@ import dev.brmz.sapientia.core.overrides.ContentOverrideService;
 import dev.brmz.sapientia.core.pack.BundledPack;
 import dev.brmz.sapientia.core.pack.ResourcePackBuilder;
 import dev.brmz.sapientia.core.persistence.DatabaseManager;
+import dev.brmz.sapientia.core.persistence.DatabaseWorker;
 import dev.brmz.sapientia.core.persistence.WriteBehindQueue;
 import dev.brmz.sapientia.core.platform.PlatformService;
 import dev.brmz.sapientia.core.scheduler.SapientiaScheduler;
-import dev.brmz.sapientia.core.tick.TickBucketing;
+import dev.brmz.sapientia.core.engine.ActivityTracker;
+import dev.brmz.sapientia.core.engine.ChunkHydrator;
+import dev.brmz.sapientia.core.engine.ChunkLimitListener;
+import dev.brmz.sapientia.core.engine.EngineConfig;
+import dev.brmz.sapientia.core.engine.SapientiaEngine;
 import dev.brmz.sapientia.core.ui.JavaInventoryUIProvider;
 import dev.brmz.sapientia.core.ui.MachineJavaRenderer;
 import dev.brmz.sapientia.core.ui.MachineRunningRegistry;
@@ -75,6 +80,9 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
 
+    /** Main-thread time per tick for applying chunk reads from the database thread. */
+    private static final long CHUNK_APPLY_BUDGET_NANOS = 2_000_000L;
+
     private Messages messages;
     private DatabaseManager database;
     private PlatformService platformService;
@@ -82,9 +90,13 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
     private SapientiaBlockRegistry blockRegistry;
     private SapientiaScheduler scheduler;
     private UIService uiService;
-    private TickBucketing tickBucketing;
+    private SapientiaEngine engine;
+    private org.bukkit.scheduler.BukkitTask engineTask;
     private CustomBlockStore blockStore;
     private WriteBehindQueue writeBehindQueue;
+    private DatabaseWorker databaseWorker;
+    private java.util.concurrent.ExecutorService energyExecutor;
+    private ChunkHydrator chunkHydrator;
     private ChunkBlockIndex chunkBlockIndex;
     private EnergyServiceImpl energyService;
     private EnergySolver energySolver;
@@ -134,30 +146,49 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         this.blockRegistry = new SapientiaBlockRegistry();
         this.scheduler = SapientiaScheduler.create(this);
         this.blockStore = new CustomBlockStore(getLogger(), database.dataSource());
+        // One background thread owns every database write and chunk read (Foundation 1).
+        this.databaseWorker = new DatabaseWorker(getLogger());
         this.writeBehindQueue = new WriteBehindQueue(getLogger(), database.dataSource());
-        this.writeBehindQueue.start();
+        this.databaseWorker.register(writeBehindQueue);
         this.blockStore.attachWriteBehind(writeBehindQueue);
         this.chunkBlockIndex = new ChunkBlockIndex(getLogger(), blockStore, blockRegistry);
-        this.tickBucketing = new TickBucketing(getLogger(), scheduler);
-        this.tickBucketing.start();
+        // Single budgeted tick loop for machines and network solvers (Foundation 1).
+        this.engine = new SapientiaEngine(getLogger(), EngineConfig.from(getConfig()));
+        this.chunkBlockIndex.addObserver(engine);
 
         // Energy graph + solver (T-141, T-142 / 0.3.0).
         NetworkGraph energyGraph = new NetworkGraph();
-        this.energyService = new EnergyServiceImpl(
-                energyGraph, new EnergyNodeStore(getLogger(), database.dataSource()));
+        EnergyNodeStore energyStore = new EnergyNodeStore(getLogger(), database.dataSource());
+        this.databaseWorker.register(energyStore.writes());
+        this.energyService = new EnergyServiceImpl(energyGraph, energyStore);
+        energyGraph.setActivityFilter(engine);
+        engine.addActivityListener(energyGraph);
         this.energySolver = new EnergySolver(energyGraph);
+        this.energyExecutor = java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+            Thread t = new Thread(r, "Sapientia-Energy");
+            t.setDaemon(true);
+            return t;
+        });
+        this.energySolver.runOn(energyExecutor, getLogger());
 
         // Item logistics graph + solver (T-300 / 1.1.0).
         ItemNetworkGraph logisticsGraph = new ItemNetworkGraph();
-        this.logisticsService = new ItemServiceImpl(
-                logisticsGraph, new ItemNodeStore(getLogger(), database.dataSource()));
+        ItemNodeStore itemStore = new ItemNodeStore(getLogger(), database.dataSource());
+        this.databaseWorker.register(itemStore.writes());
+        this.logisticsService = new ItemServiceImpl(logisticsGraph, itemStore);
+        this.logisticsService.runDatabaseWorkOn(databaseWorker::execute);
+        logisticsGraph.setActivityFilter(engine);
+        engine.addActivityListener(logisticsGraph);
         this.logisticsSolver = new ItemSolver(
                 logisticsGraph, itemRegistry, logisticsService::getFilterRules);
 
         // Fluid logistics graph + solver (T-301 / 1.2.0).
         FluidNetworkGraph fluidsGraph = new FluidNetworkGraph();
-        this.fluidsService = new FluidServiceImpl(
-                getLogger(), fluidsGraph, new FluidNodeStore(getLogger(), database.dataSource()));
+        FluidNodeStore fluidStore = new FluidNodeStore(getLogger(), database.dataSource());
+        this.databaseWorker.register(fluidStore.writes());
+        this.fluidsService = new FluidServiceImpl(getLogger(), fluidsGraph, fluidStore);
+        fluidsGraph.setActivityFilter(engine);
+        engine.addActivityListener(fluidsGraph);
         this.fluidsService.registerType(BuiltinFluidTypes.WATER);
         this.fluidsService.registerType(BuiltinFluidTypes.LAVA);
         this.fluidsService.registerType(BuiltinFluidTypes.MILK);
@@ -178,28 +209,29 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         this.fluidsService.registerType(BuiltinFluidTypes.CARBON_DIOXIDE);
         this.fluidsService.registerType(BuiltinFluidTypes.LIQUID_OXYGEN);
         this.fluidsSolver = new FluidSolver(fluidsGraph, fluidsService);
+        this.databaseWorker.start();
 
         // Machine recipe processor (T-404 / 1.4.1) + petroleum kinetic loop (T-412..T-415 / 1.5.1).
         this.machineRecipes = new dev.brmz.sapientia.api.machine.MachineRecipeRegistry();
         this.machineProcessor = new dev.brmz.sapientia.core.machine.MachineProcessor(
-                getLogger(), energyService, machineRecipes, chunkBlockIndex);
+                energyService, machineRecipes);
         this.reservoirService = new dev.brmz.sapientia.core.petroleum.ReservoirService(
                 getLogger(), database.dataSource());
         this.petroleumTicker = new dev.brmz.sapientia.core.petroleum.PetroleumTicker(
-                getLogger(), this, energyService, fluidsService, chunkBlockIndex, reservoirService);
+                this, energyService, fluidsService, reservoirService);
 
         // HV / electronics / gas kinetic loop (T-425 / T-426 / T-429 / 1.6.1).
         this.electronicsTicker = new dev.brmz.sapientia.core.electronics.ElectronicsTicker(
-                getLogger(), this, energyService, fluidsService, chunkBlockIndex);
+                this, energyService, fluidsService);
 
         // Geo & atmosphere kinetic loop (T-431..T-435 / 1.7.1).
         this.geoTicker = new dev.brmz.sapientia.core.geo.GeoTicker(
-                getLogger(), this, energyService, fluidsService, chunkBlockIndex);
+                this, energyService, fluidsService);
 
         // Advanced-logistics kinetic loop + maxflow opt-in (T-444 / T-450 / 1.8.1).
         this.logisticsConfig = dev.brmz.sapientia.core.logistics.LogisticsConfig.from(getConfig());
         this.logisticsTicker = new dev.brmz.sapientia.core.logistics.LogisticsTicker(
-                getLogger(), this, logisticsGraph, chunkBlockIndex);
+                getLogger(), this, logisticsGraph);
 
         // Programmable-logic DAG runtime (T-302 / 1.3.0).
         this.logicService = new LogicServiceImpl(
@@ -217,6 +249,7 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
                 this.androidConfig);
         this.androidTicker = new dev.brmz.sapientia.core.android.AndroidTicker(
                 getLogger(), this.androidService);
+        this.androidTicker.setActivityFilter(engine);
 
         // Crafting + guide + unlocks (T-130 / T-131 / T-150 / T-151 / 0.4.0).
         this.recipeRegistry = new SapientiaRecipeRegistry(itemRegistry);
@@ -267,7 +300,6 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         this.uiService.register(new dev.brmz.sapientia.core.ui.AndroidProgramSelectorUI(messages));
 
         getServer().getPluginManager().registerEvents(uiService, this);
-        getServer().getPluginManager().registerEvents(chunkBlockIndex, this);
         getServer().getPluginManager().registerEvents(
                 new BlockLifecycleListener(itemRegistry, blockRegistry, chunkBlockIndex, blockStore),
                 this);
@@ -325,75 +357,51 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
                     registered.discoveredByDefault()));
         }
 
-        // Hydrate already-loaded chunks (reload / /plugman load case).
+        // Machine behaviours must be known before chunks are indexed (Foundation 1).
+        petroleumTicker.registerBehaviors(engine);
+        electronicsTicker.registerBehaviors(engine);
+        geoTicker.registerBehaviors(engine);
+        logisticsTicker.registerBehaviors(engine);
+        machineProcessor.registerBehaviors(engine, blockRegistry.all().values());
+
+        ActivityTracker activityTracker = new ActivityTracker(engine.activity(), engine::currentTick);
+        getServer().getPluginManager().registerEvents(activityTracker, this);
+        activityTracker.seed(getServer().getOnlinePlayers());
+        getServer().getPluginManager().registerEvents(
+                new ChunkLimitListener(chunkBlockIndex, engine, messages), this);
+
+        // Chunk state is read on the database thread and applied at the start of each tick.
+        this.chunkHydrator = new ChunkHydrator(chunkBlockIndex, blockStore, energyService,
+                logisticsService, fluidsService, databaseWorker);
+        getServer().getPluginManager().registerEvents(chunkHydrator, this);
+        // Chunks already loaded (reload case) are read here, on the main thread, once.
         for (org.bukkit.World world : getServer().getWorlds()) {
             for (org.bukkit.Chunk chunk : world.getLoadedChunks()) {
-                chunkBlockIndex.hydrate(world.getName(), chunk.getX(), chunk.getZ());
-                energyService.hydrateChunk(world.getName(), chunk.getX(), chunk.getZ());
-                logisticsService.hydrateChunk(world.getName(), chunk.getX(), chunk.getZ());
-                fluidsService.hydrateChunk(world.getName(), chunk.getX(), chunk.getZ());
+                chunkHydrator.loadNow(world.getName(), chunk.getX(), chunk.getZ());
             }
         }
 
-        // Energy + logistics chunk hooks.
-        getServer().getPluginManager().registerEvents(
-                new org.bukkit.event.Listener() {
-                    @org.bukkit.event.EventHandler
-                    public void onChunkLoad(org.bukkit.event.world.ChunkLoadEvent event) {
-                        energyService.hydrateChunk(
-                                event.getWorld().getName(), event.getChunk().getX(), event.getChunk().getZ());
-                        logisticsService.hydrateChunk(
-                                event.getWorld().getName(), event.getChunk().getX(), event.getChunk().getZ());
-                        fluidsService.hydrateChunk(
-                                event.getWorld().getName(), event.getChunk().getX(), event.getChunk().getZ());
-                    }
-                    @org.bukkit.event.EventHandler
-                    public void onChunkUnload(org.bukkit.event.world.ChunkUnloadEvent event) {
-                        energyService.unloadChunk(
-                                event.getWorld().getName(), event.getChunk().getX(), event.getChunk().getZ());
-                        logisticsService.unloadChunk(
-                                event.getWorld().getName(), event.getChunk().getX(), event.getChunk().getZ());
-                        fluidsService.unloadChunk(
-                                event.getWorld().getName(), event.getChunk().getX(), event.getChunk().getZ());
-                    }
-                }, this);
-
-        // Energy tick — every 10 ticks (twice per second). Persists dirty nodes after each pass.
-        getServer().getScheduler().runTaskTimer(this, () -> {
+        // Periodic network work runs inside the engine's single tick loop, where
+        // it is timed for /sapientia perf. Offsets keep the tasks on different ticks.
+        engine.addSystemTask("chunks", 1, 0, () -> chunkHydrator.drain(CHUNK_APPLY_BUDGET_NANOS));
+        engine.addSystemTask("energy", 10, 10, () -> {
             energySolver.tick();
             energyService.persistDirty();
-        }, 10L, 10L);
-
-        // Logistics tick — every tick (T-300, P-004 envelope).
-        getServer().getScheduler().runTaskTimer(this, () -> logisticsSolver.tick(), 5L, 1L);
-
-        // Fluid tick — every 5 ticks (T-301, P-004 envelope; per-tank persistence batched).
-        getServer().getScheduler().runTaskTimer(this, () -> {
+        });
+        engine.addSystemTask("logistics", 1, 5, logisticsSolver::tick);
+        engine.addSystemTask("fluids", 5, 7, () -> {
             fluidsSolver.tick();
             fluidsService.persistDirty();
-        }, 7L, 5L);
-
-        // Logic tick — every 5 ticks (T-302, P-004 envelope; DAG worst-case is O(|V|+|E|)).
-        getServer().getScheduler().runTaskTimer(this, () -> logicService.tickAll(), 9L, 5L);
-
-        // Machine recipe-tick — every 10 ticks (T-404 / 1.4.1, mirrors energy cadence).
-        getServer().getScheduler().runTaskTimer(this, () -> machineProcessor.tick(), 11L, 10L);
-
-        // Petroleum / biochemistry kinetic loop — every 5 ticks (T-412..T-415 / 1.5.1).
-        getServer().getScheduler().runTaskTimer(this, () -> petroleumTicker.tick(), 13L, 5L);
-
-        // HV / electronics / gas kinetic loop — every 5 ticks (T-425 / T-426 / T-429 / 1.6.1).
-        getServer().getScheduler().runTaskTimer(this, () -> electronicsTicker.tick(), 15L, 5L);
-
-        // Geo & atmosphere kinetic loop — every 5 ticks (T-431..T-435 / 1.7.1).
-        getServer().getScheduler().runTaskTimer(this, () -> geoTicker.tick(), 17L, 5L);
-
-        // Advanced-logistics kinetic loop — every 10 ticks (T-450 / 1.8.1).
-        getServer().getScheduler().runTaskTimer(this, () -> logisticsTicker.tick(), 19L, 10L);
-
-        // Android tick — every game tick, honouring the 1 instr/tick contract
-        // from T-451. Full kinetic AI behaviour ships in 1.9.1.
-        getServer().getScheduler().runTaskTimer(this, () -> androidTicker.tick(), 21L, 1L);
+        });
+        engine.addSystemTask("logic", 5, 9, logicService::tickAll);
+        engine.addSystemTask("androids", 1, 21, androidTicker::tick);
+        getServer().getPluginManager().registerEvents(new org.bukkit.event.Listener() {
+            @org.bukkit.event.EventHandler
+            public void onWorldUnload(org.bukkit.event.world.WorldUnloadEvent event) {
+                engine.clearWorldCache();
+            }
+        }, this);
+        this.engineTask = getServer().getScheduler().runTaskTimer(this, engine::tick, 1L, 1L);
 
         getLogger().info(messages.plain("plugin.enabled",
                 Placeholder.parsed("version", getPluginMeta().getVersion())));
@@ -402,8 +410,8 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
     @Override
     public void onDisable() {
         Sapientia.unregister();
-        if (tickBucketing != null) {
-            tickBucketing.stop();
+        if (engineTask != null) {
+            engineTask.cancel();
         }
         if (uiService != null) {
             uiService.shutdown();
@@ -411,11 +419,22 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         if (scheduler != null) {
             scheduler.shutdown();
         }
-        if (writeBehindQueue != null) {
-            writeBehindQueue.shutdown();
+        if (energyExecutor != null) {
+            energyExecutor.shutdown();
+            try {
+                energyExecutor.awaitTermination(5L, java.util.concurrent.TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
         if (energyService != null) {
             energyService.persistDirty();
+        }
+        if (fluidsService != null) {
+            fluidsService.persistDirty();
+        }
+        if (databaseWorker != null) {
+            databaseWorker.shutdown(); // writes everything still queued
         }
         if (database != null) {
             database.close();
@@ -449,8 +468,8 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         return uiService;
     }
 
-    public @NotNull TickBucketing tickBucketing() {
-        return tickBucketing;
+    public @NotNull SapientiaEngine engine() {
+        return engine;
     }
 
     public @NotNull CustomBlockStore blockStore() {
@@ -531,6 +550,14 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
     @Override
     public @NotNull Optional<ItemStack> createStack(@NotNull NamespacedKey id, int amount) {
         return Optional.ofNullable(itemRegistry.createStack(id.toString(), amount));
+    }
+
+    /** Networks and network blocks loaded, for /sapientia perf: energy, item, fluid. */
+    public int @NotNull [] networkCounts() {
+        return new int[] {
+                energyService.graph().networkCount(), energyService.graph().nodeCount(),
+                logisticsService.graph().networkCount(), logisticsService.graph().nodeCount(),
+                fluidsService.graph().networkCount(), fluidsService.graph().nodeCount()};
     }
 
     @Override

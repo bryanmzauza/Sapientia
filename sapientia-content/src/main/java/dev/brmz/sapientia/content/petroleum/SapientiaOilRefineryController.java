@@ -34,6 +34,7 @@ public final class SapientiaOilRefineryController implements SapientiaBlock {
     @Override public @NotNull Material baseMaterial() { return Material.LOOM; }
     @Override public @NotNull String displayNameKey() { return "block.oil_refinery_controller.name"; }
     @Override public @NotNull GuideCategory guideCategory() { return GuideCategory.MACHINE; }
+    @Override public int chunkLimit() { return 1; }
 
     @Override
     public void onInteract(@NotNull SapientiaBlockInteractEvent event) {

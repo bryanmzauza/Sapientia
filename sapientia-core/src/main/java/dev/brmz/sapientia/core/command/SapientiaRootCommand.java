@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import dev.brmz.sapientia.api.logic.LogicProgram;
@@ -12,6 +13,8 @@ import dev.brmz.sapientia.api.overrides.ContentOverrides;
 import dev.brmz.sapientia.core.SapientiaPlugin;
 import dev.brmz.sapientia.core.i18n.Messages;
 import dev.brmz.sapientia.core.item.ItemRegistry;
+import dev.brmz.sapientia.core.engine.PerfMonitor;
+import dev.brmz.sapientia.core.engine.SapientiaEngine;
 import dev.brmz.sapientia.core.pack.ResourcePackBuilder;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
@@ -29,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 public final class SapientiaRootCommand implements TabExecutor {
 
     private static final List<String> SUBCOMMANDS = List.of(
-            "help", "reload", "give", "pack", "logistics", "fluids", "logic");
+            "help", "reload", "give", "pack", "logistics", "fluids", "logic", "perf");
 
     private final SapientiaPlugin plugin;
     private final ItemRegistry registry;
@@ -67,6 +70,7 @@ public final class SapientiaRootCommand implements TabExecutor {
             case "logistics" -> handleLogistics(sender, msg, args);
             case "fluids" -> handleFluids(sender, msg, args);
             case "logic" -> handleLogic(sender, msg, args);
+            case "perf" -> handlePerf(sender, msg);
             default -> sender.sendMessage(msg.component("command.unknown"));
         }
         return true;
@@ -84,6 +88,7 @@ public final class SapientiaRootCommand implements TabExecutor {
         sendHelpLine(sender, msg, "/sapientia logistics", "command.help.desc.logistics");
         sendHelpLine(sender, msg, "/sapientia fluids", "command.help.desc.fluids");
         sendHelpLine(sender, msg, "/sapientia logic", "command.help.desc.logic");
+        sendHelpLine(sender, msg, "/sapientia perf", "command.help.desc.perf");
     }
 
     private void sendHelpLine(CommandSender sender, Messages msg, String usage, String descKey) {
@@ -153,6 +158,48 @@ public final class SapientiaRootCommand implements TabExecutor {
             sender.sendMessage(msg.component("command.pack.failure",
                     Placeholder.parsed("error", String.valueOf(e.getMessage()))));
         }
+    }
+
+    private void handlePerf(CommandSender sender, Messages msg) {
+        if (!sender.hasPermission("sapientia.command.perf")) {
+            sender.sendMessage(msg.component("command.no-permission"));
+            return;
+        }
+        SapientiaEngine engine = plugin.engine();
+        PerfMonitor.Section total = engine.perf().total();
+        sender.sendMessage(msg.component("command.perf.header",
+                Placeholder.unparsed("budget", format(engine.config().tickBudgetMs()))));
+        sender.sendMessage(msg.component("command.perf.total",
+                Placeholder.unparsed("avg", format(total.averageMs())),
+                Placeholder.unparsed("peak", format(total.peakMs()))));
+        for (PerfMonitor.Section section : engine.perf().sections().values()) {
+            sender.sendMessage(msg.component("command.perf.section",
+                    Placeholder.unparsed("name", section.name()),
+                    Placeholder.unparsed("avg", format(section.averageMs())),
+                    Placeholder.unparsed("peak", format(section.peakMs()))));
+        }
+        Map<String, Integer> machines = engine.machineCounts();
+        sender.sendMessage(msg.component("command.perf.machines",
+                Placeholder.unparsed("registered", Integer.toString(machines.get("registered"))),
+                Placeholder.unparsed("scheduled", Integer.toString(machines.get("scheduled"))),
+                Placeholder.unparsed("sleeping", Integer.toString(machines.get("sleeping"))),
+                Placeholder.unparsed("paused", Integer.toString(machines.get("paused"))),
+                Placeholder.unparsed("backlog", Integer.toString(machines.get("backlog")))));
+        int[] networks = plugin.networkCounts();
+        sender.sendMessage(msg.component("command.perf.networks",
+                Placeholder.unparsed("energy", Integer.toString(networks[0])),
+                Placeholder.unparsed("energy_blocks", Integer.toString(networks[1])),
+                Placeholder.unparsed("items", Integer.toString(networks[2])),
+                Placeholder.unparsed("item_blocks", Integer.toString(networks[3])),
+                Placeholder.unparsed("fluids", Integer.toString(networks[4])),
+                Placeholder.unparsed("fluid_blocks", Integer.toString(networks[5]))));
+        sender.sendMessage(msg.component("command.perf.chunks",
+                Placeholder.unparsed("active", Integer.toString(engine.activity().activeCount())),
+                Placeholder.unparsed("radius", Integer.toString(engine.activity().radius()))));
+    }
+
+    private static String format(double ms) {
+        return String.format(Locale.ROOT, "%.2f", ms);
     }
 
     private void reportJavaPack(CommandSender sender, Messages msg, ResourcePackBuilder.JavaPackResult result) {

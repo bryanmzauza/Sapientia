@@ -1,5 +1,6 @@
 package dev.brmz.sapientia.core.energy;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,7 +15,8 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Default {@link EnergyService} implementation. Holds the in-memory
- * {@link NetworkGraph} and persists every mutation through {@link EnergyNodeStore}.
+ * {@link NetworkGraph}; every change is queued on {@link EnergyNodeStore} and
+ * written by the database thread.
  */
 public final class EnergyServiceImpl implements EnergyService {
 
@@ -30,6 +32,10 @@ public final class EnergyServiceImpl implements EnergyService {
         return graph;
     }
 
+    public @NotNull EnergyNodeStore store() {
+        return store;
+    }
+
     @Override
     public @NotNull EnergyNode addNode(
             @NotNull Block block, @NotNull EnergyNodeType type,
@@ -39,8 +45,8 @@ public final class EnergyServiceImpl implements EnergyService {
         if (existing != null) {
             return existing;
         }
-        SimpleEnergyNode node = new SimpleEnergyNode(
-                UUID.randomUUID(), key, type, tier, 0L, bufferMax);
+        UUID id = type == EnergyNodeType.CABLE ? NetworkGraph.transitId(key) : UUID.randomUUID();
+        SimpleEnergyNode node = new SimpleEnergyNode(id, key, type, tier, 0L, bufferMax);
         graph.addNode(node);
         store.put(node);
         return node;
@@ -49,8 +55,7 @@ public final class EnergyServiceImpl implements EnergyService {
     @Override
     public void removeNode(@NotNull Block block) {
         BlockKey key = keyOf(block);
-        SimpleEnergyNode existing = graph.nodeAt(key);
-        if (existing == null) return;
+        if (!graph.contains(key)) return;
         graph.removeNode(key);
         store.delete(key);
     }
@@ -65,37 +70,30 @@ public final class EnergyServiceImpl implements EnergyService {
         return Optional.ofNullable(graph.networkOf(node));
     }
 
-    /** Hydrates persisted nodes for a freshly loaded chunk into the live graph. */
+    /** Loads and adds a chunk's nodes on the calling thread. */
     public void hydrateChunk(@NotNull String world, int chunkX, int chunkZ) {
-        for (SimpleEnergyNode node : store.loadChunk(world, chunkX, chunkZ)) {
+        applyLoaded(store.loadChunk(world, chunkX, chunkZ));
+    }
+
+    /** Adds nodes read by the database thread. Nodes placed since the read win. */
+    public void applyLoaded(@NotNull List<SimpleEnergyNode> nodes) {
+        for (SimpleEnergyNode node : nodes) {
             graph.addNode(node);
         }
     }
 
-    /** Removes every node belonging to a chunk from the live graph (no DB writes). */
+    /** Removes a chunk's nodes from the live graph, queueing unsaved buffers first. */
     public void unloadChunk(@NotNull String world, int chunkX, int chunkZ) {
-        int xMin = chunkX * 16, xMax = xMin + 15;
-        int zMin = chunkZ * 16, zMax = zMin + 15;
-        // Snapshot and remove (avoid CME)
-        java.util.List<BlockKey> victims = new java.util.ArrayList<>();
-        for (SimpleEnergyNode n : graph.nodes()) {
-            BlockKey k = n.location();
-            if (k.world().equals(world) && k.x() >= xMin && k.x() <= xMax && k.z() >= zMin && k.z() <= zMax) {
-                victims.add(k);
+        for (SimpleEnergyNode node : graph.removeChunk(world, chunkX, chunkZ)) {
+            if (node.takeDirty()) {
+                store.put(node);
             }
-        }
-        for (BlockKey k : victims) {
-            graph.removeNode(k);
         }
     }
 
-    /** Persists every dirty node. Called on shutdown / periodic flush. */
+    /** Queues every node changed since the last call. Costs the changed nodes, not all nodes. */
     public void persistDirty() {
-        for (SimpleEnergyNode n : graph.nodes()) {
-            if (n.takeDirty()) {
-                store.put(n);
-            }
-        }
+        graph.drainDirty(store::put);
     }
 
     private static BlockKey keyOf(Block b) {

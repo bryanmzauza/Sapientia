@@ -1,23 +1,19 @@
 package dev.brmz.sapientia.core.petroleum;
 
-import java.util.logging.Logger;
 
-import dev.brmz.sapientia.api.block.SapientiaBlock;
 import dev.brmz.sapientia.api.energy.EnergyNodeType;
 import dev.brmz.sapientia.api.fluids.FluidNode;
 import dev.brmz.sapientia.api.fluids.FluidType;
 import dev.brmz.sapientia.api.multiblock.MultiblockShapeValidator;
-import dev.brmz.sapientia.core.block.BlockKey;
-import dev.brmz.sapientia.core.block.ChunkBlockIndex;
+import dev.brmz.sapientia.core.energy.EnergyMachineBehavior;
 import dev.brmz.sapientia.core.energy.EnergyServiceImpl;
+import dev.brmz.sapientia.core.engine.SapientiaEngine;
 import dev.brmz.sapientia.core.energy.SimpleEnergyNode;
 import dev.brmz.sapientia.core.fluids.BuiltinFluidTypes;
 import dev.brmz.sapientia.core.fluids.FluidServiceImpl;
 import dev.brmz.sapientia.core.fluids.SimpleFluidNode;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.jetbrains.annotations.NotNull;
 
@@ -63,10 +59,8 @@ public final class PetroleumTicker {
     private static final int  COMBUSTION_DRAIN_MB = 5;
     private static final int  BIOGAS_DRAIN_MB     = 10;
 
-    private final Logger logger;
     private final EnergyServiceImpl energy;
     private final FluidServiceImpl fluids;
-    private final ChunkBlockIndex chunkIndex;
     private final ReservoirService reservoirs;
 
     private final NamespacedKey pumpjackId;
@@ -74,16 +68,12 @@ public final class PetroleumTicker {
     private final NamespacedKey biogasId;
     private final NamespacedKey refineryId;
 
-    public PetroleumTicker(@NotNull Logger logger,
-                           @NotNull org.bukkit.plugin.Plugin plugin,
+    public PetroleumTicker(@NotNull org.bukkit.plugin.Plugin plugin,
                            @NotNull EnergyServiceImpl energy,
                            @NotNull FluidServiceImpl fluids,
-                           @NotNull ChunkBlockIndex chunkIndex,
                            @NotNull ReservoirService reservoirs) {
-        this.logger = logger;
         this.energy = energy;
         this.fluids = fluids;
-        this.chunkIndex = chunkIndex;
         this.reservoirs = reservoirs;
         this.pumpjackId   = new NamespacedKey(plugin, "pumpjack");
         this.combustionId = new NamespacedKey(plugin, "combustion_gen");
@@ -91,56 +81,38 @@ public final class PetroleumTicker {
         this.refineryId   = new NamespacedKey(plugin, "oil_refinery_controller");
     }
 
-    public void tick() {
-        for (SimpleEnergyNode node : energy.graph().nodes()) {
-            try {
-                tickNode(node);
-            } catch (RuntimeException ex) {
-                logger.warning("PetroleumTicker error at " + node.location() + ": " + ex);
-            }
-        }
+    /** Ticks between production steps while a machine keeps working. */
+    public static final int PERIOD = 5;
+
+    /** Registers the behaviour of each block type driven by this class. */
+    public void registerBehaviors(@NotNull SapientiaEngine engine) {
+        engine.registerBehavior(pumpjackId, PERIOD, EnergyMachineBehavior.of(engine, energy, PERIOD, this::tickPumpjack));
+        engine.registerBehavior(combustionId, PERIOD, EnergyMachineBehavior.of(engine, energy, PERIOD, this::tickCombustion));
+        engine.registerBehavior(biogasId, PERIOD, EnergyMachineBehavior.of(engine, energy, PERIOD, this::tickBiogas));
+        engine.registerBehavior(refineryId, PERIOD, EnergyMachineBehavior.of(engine, energy, PERIOD, this::tickRefinery));
     }
 
-    private void tickNode(SimpleEnergyNode node) {
-        BlockKey key = node.location();
-        World world = Bukkit.getWorld(key.world());
-        if (world == null) return;
-        Block block = world.getBlockAt(key.x(), key.y(), key.z());
-        SapientiaBlock def = chunkIndex.at(block);
-        if (def == null) return;
-        NamespacedKey id = def.id();
-
-        if (id.equals(pumpjackId)) {
-            tickPumpjack(node, block);
-        } else if (id.equals(combustionId)) {
-            tickCombustion(node, block);
-        } else if (id.equals(biogasId)) {
-            tickBiogas(node, block);
-        } else if (id.equals(refineryId)) {
-            tickRefinery(node, block);
-        }
-    }
-
-    private void tickPumpjack(SimpleEnergyNode node, Block block) {
-        if (node.type() != EnergyNodeType.CONSUMER) return;
-        if (node.bufferCurrent() < PUMPJACK_DRAW) return;
+    private boolean tickPumpjack(SimpleEnergyNode node, Block block) {
+        if (node.type() != EnergyNodeType.CONSUMER) return false;
+        if (node.bufferCurrent() < PUMPJACK_DRAW) return false;
         SimpleFluidNode tank = tankAbove(block);
-        if (tank == null) return;
+        if (tank == null) return false;
         int avail = reservoirs.amount(block.getWorld().getName(), block.getChunk().getX(), block.getChunk().getZ());
-        if (avail <= 0) return;
+        if (avail <= 0) return false;
         int request = Math.min(PUMPJACK_MB, avail);
         long inserted = tank.offer(BuiltinFluidTypes.CRUDE_OIL, request);
-        if (inserted <= 0L) return;
+        if (inserted <= 0L) return false;
         reservoirs.drain(block.getWorld().getName(), block.getChunk().getX(), block.getChunk().getZ(), (int) inserted);
         node.draw(PUMPJACK_DRAW);
+        return true;
     }
 
-    private void tickCombustion(SimpleEnergyNode node, Block block) {
-        if (node.type() != EnergyNodeType.GENERATOR) return;
+    private boolean tickCombustion(SimpleEnergyNode node, Block block) {
+        if (node.type() != EnergyNodeType.GENERATOR) return false;
         long room = node.bufferMax() - node.bufferCurrent();
-        if (room <= 0L) return;
+        if (room <= 0L) return false;
         SimpleFluidNode tank = tankBelow(block);
-        if (tank == null) return;
+        if (tank == null) return false;
         FluidType fuel = tankFuel(tank);
         long suPerMb;
         if (fuel != null && fuel.id().equals(BuiltinFluidTypes.DIESEL.id())) {
@@ -148,65 +120,68 @@ public final class PetroleumTicker {
         } else if (fuel != null && fuel.id().equals(BuiltinFluidTypes.GASOLINE.id())) {
             suPerMb = GASOLINE_SU_PER_MB;
         } else {
-            return;
+            return false;
         }
         long mbForRoom = (room + suPerMb - 1L) / suPerMb;
         long ask = Math.min((long) COMBUSTION_DRAIN_MB, mbForRoom);
         long burned = tank.draw(ask);
-        if (burned <= 0L) return;
+        if (burned <= 0L) return false;
         long produced = Math.min(room, burned * suPerMb);
         node.offer(produced);
+        return true;
     }
 
-    private void tickBiogas(SimpleEnergyNode node, Block block) {
-        if (node.type() != EnergyNodeType.GENERATOR) return;
+    private boolean tickBiogas(SimpleEnergyNode node, Block block) {
+        if (node.type() != EnergyNodeType.GENERATOR) return false;
         long room = node.bufferMax() - node.bufferCurrent();
-        if (room <= 0L) return;
+        if (room <= 0L) return false;
         SimpleFluidNode tank = tankBelow(block);
-        if (tank == null) return;
+        if (tank == null) return false;
         FluidType fuel = tankFuel(tank);
-        if (fuel == null || !fuel.id().equals(BuiltinFluidTypes.NUTRIENT_BROTH.id())) return;
+        if (fuel == null || !fuel.id().equals(BuiltinFluidTypes.NUTRIENT_BROTH.id())) return false;
         long mbForRoom = (room + BIOGAS_SU_PER_MB - 1L) / BIOGAS_SU_PER_MB;
         long ask = Math.min((long) BIOGAS_DRAIN_MB, mbForRoom);
         long burned = tank.draw(ask);
-        if (burned <= 0L) return;
+        if (burned <= 0L) return false;
         node.offer(Math.min(room, burned * BIOGAS_SU_PER_MB));
+        return true;
     }
 
-    private void tickRefinery(SimpleEnergyNode node, Block block) {
-        if (node.type() != EnergyNodeType.CONSUMER) return;
-        if (node.bufferCurrent() < REFINERY_DRAW) return;
+    private boolean tickRefinery(SimpleEnergyNode node, Block block) {
+        if (node.type() != EnergyNodeType.CONSUMER) return false;
+        if (node.bufferCurrent() < REFINERY_DRAW) return false;
         // Cheap structural gate. Reuses the validator from the controller's
         // onPlace path so a partially-broken multiblock stops producing.
         if (!MultiblockShapeValidator.validateHollowBox(block, 5, 7, 5,
                 Material.LIGHT_GRAY_GLAZED_TERRACOTTA)) {
-            return;
+            return false;
         }
         SimpleFluidNode input = tankAbove(block);
-        if (input == null) return;
+        if (input == null) return false;
         FluidType heldType = tankFuel(input);
-        if (heldType == null || !heldType.id().equals(BuiltinFluidTypes.CRUDE_OIL.id())) return;
+        if (heldType == null || !heldType.id().equals(BuiltinFluidTypes.CRUDE_OIL.id())) return false;
         SimpleFluidNode dieselOut    = tankAt(block.getRelative( 0, 0,  1));
         SimpleFluidNode gasolineOut  = tankAt(block.getRelative( 1, 0,  0));
         SimpleFluidNode lubricantOut = tankAt(block.getRelative( 0, 0, -1));
         SimpleFluidNode residueOut   = tankAt(block.getRelative(-1, 0,  0));
-        if (dieselOut == null || gasolineOut == null || lubricantOut == null || residueOut == null) return;
+        if (dieselOut == null || gasolineOut == null || lubricantOut == null || residueOut == null) return false;
         // Capacity preflight: don't drain crude unless every output can accept its share.
-        if (input.contents() == null || input.contents().amountMb() < REFINERY_BATCH_MB) return;
-        if (capacityFreeFor(dieselOut,    BuiltinFluidTypes.DIESEL)    < REFINERY_DIESEL)    return;
-        if (capacityFreeFor(gasolineOut,  BuiltinFluidTypes.GASOLINE)  < REFINERY_GASOLINE)  return;
-        if (capacityFreeFor(lubricantOut, BuiltinFluidTypes.LUBRICANT) < REFINERY_LUBRICANT) return;
-        if (capacityFreeFor(residueOut,   BuiltinFluidTypes.WATER)     < REFINERY_RESIDUE)   return;
+        if (input.contents() == null || input.contents().amountMb() < REFINERY_BATCH_MB) return false;
+        if (capacityFreeFor(dieselOut,    BuiltinFluidTypes.DIESEL)    < REFINERY_DIESEL)    return false;
+        if (capacityFreeFor(gasolineOut,  BuiltinFluidTypes.GASOLINE)  < REFINERY_GASOLINE)  return false;
+        if (capacityFreeFor(lubricantOut, BuiltinFluidTypes.LUBRICANT) < REFINERY_LUBRICANT) return false;
+        if (capacityFreeFor(residueOut,   BuiltinFluidTypes.WATER)     < REFINERY_RESIDUE)   return false;
         long drawn = input.draw(REFINERY_BATCH_MB);
         if (drawn < REFINERY_BATCH_MB) {
             // Shouldn't happen given the preflight but be safe.
-            return;
+            return false;
         }
         dieselOut.offer(BuiltinFluidTypes.DIESEL, REFINERY_DIESEL);
         gasolineOut.offer(BuiltinFluidTypes.GASOLINE, REFINERY_GASOLINE);
         lubricantOut.offer(BuiltinFluidTypes.LUBRICANT, REFINERY_LUBRICANT);
         residueOut.offer(BuiltinFluidTypes.WATER, REFINERY_RESIDUE);
         node.draw(REFINERY_DRAW);
+        return true;
     }
 
     private static FluidType tankFuel(SimpleFluidNode tank) {

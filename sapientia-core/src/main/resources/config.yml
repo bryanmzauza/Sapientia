@@ -26,3 +26,24 @@ inspector:
   range: 6
   # How often the look-scan runs, in server ticks (20 ticks = 1 s).
   interval-ticks: 10
+
+# Engine performance (Foundation 1). Sapientia is built to stay smooth with
+# millions of active blocks: per-tick cost depends only on work that is due.
+performance:
+  # Main-thread time machines may use per tick, in milliseconds (a tick is 50 ms).
+  # When exceeded, the remaining machines run on the next tick instead.
+  tick-budget-ms: 5
+  # Machines run only in chunks within this many chunks of a player.
+  activity-radius: 4
+  # How long a chunk keeps running after the last player leaves the radius.
+  deactivate-delay-seconds: 30
+  limits:
+    # Every Sapientia block in one chunk, including cables and pipes.
+    blocks-per-chunk: 2048
+    # Blocks that process recipes or run periodically.
+    processors-per-chunk: 256
+    # Default limit for any single block type (heavy machines declare lower ones).
+    same-type-per-chunk: 64
+    # Per-block overrides, for example:
+    #   "sapientia:quarry_controller": 1
+    per-type: {}

@@ -8,6 +8,13 @@ plugin:
     failure: "<red>Falha ao recarregar: <white><error></white></red>"
 
 command:
+  perf:
+    header: "<gold>=== Desempenho do Sapientia <gray>(orçamento <white><budget> ms</white>/tick)</gray> ===</gold>"
+    total: "<yellow>Total:</yellow> <white><avg> ms</white> <gray>média,</gray> <white><peak> ms</white> <gray>pico</gray>"
+    section: "<gray> - <name>:</gray> <white><avg> ms</white> <gray>média,</gray> <white><peak> ms</white> <gray>pico</gray>"
+    machines: "<yellow>Máquinas:</yellow> <white><registered></white> <gray>carregadas,</gray> <white><scheduled></white> <gray>agendadas,</gray> <white><sleeping></white> <gray>dormindo,</gray> <white><paused></white> <gray>pausadas,</gray> <white><backlog></white> <gray>atrasadas</gray>"
+    networks: "<yellow>Redes:</yellow> <white><energy></white> <gray>de energia (<energy_blocks> blocos),</gray> <white><items></white> <gray>de itens (<item_blocks> blocos),</gray> <white><fluids></white> <gray>de fluidos (<fluid_blocks> blocos)</gray>"
+    chunks: "<yellow>Chunks ativos:</yellow> <white><active></white> <gray>(raio de <radius> em volta de cada jogador)</gray>"
   unknown: "<red>Comando desconhecido. Tente <white>/sapientia help</white>.</red>"
   no-permission: "<red>Você não tem permissão para fazer isso.</red>"
   players-only: "<red>Este comando só pode ser executado por jogadores.</red>"
@@ -25,6 +32,7 @@ command:
       logistics: "Inspeciona e gerencia redes de logistica de itens."
       fluids: "Inspeciona redes de fluidos do Sapientia."
       logic: "Gerencia programas de logica programavel (DAG)."
+      perf: "Mostra o custo por tick de cada subsistema do Sapientia."
   logistics:
     usage: "<red>Uso: /sapientia logistics <info|policy|filter></red>"
     info:
@@ -850,3 +858,9 @@ android:
       name: "<aqua>Modulo de Combustivel T3</aqua>"
     fuel_module_t4:
       name: "<light_purple>Modulo de Combustivel T4</light_purple>"
+
+limit:
+  chunk:
+    blocks: "<red>Este chunk já tem <white><limit></white> blocos do Sapientia, o máximo por chunk.</red>"
+    processors: "<red>Este chunk já tem <white><limit></white> máquinas, o máximo por chunk.</red>"
+    same-type: "<red>Este chunk já tem <white><limit></white> de <block><red>, o máximo por chunk.</red>"

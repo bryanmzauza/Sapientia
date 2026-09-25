@@ -1,22 +1,18 @@
 package dev.brmz.sapientia.core.electronics;
 
-import java.util.logging.Logger;
 
-import dev.brmz.sapientia.api.block.SapientiaBlock;
 import dev.brmz.sapientia.api.energy.EnergyNodeType;
 import dev.brmz.sapientia.api.fluids.FluidNode;
 import dev.brmz.sapientia.api.fluids.FluidType;
-import dev.brmz.sapientia.core.block.BlockKey;
-import dev.brmz.sapientia.core.block.ChunkBlockIndex;
+import dev.brmz.sapientia.core.energy.EnergyMachineBehavior;
 import dev.brmz.sapientia.core.energy.EnergyServiceImpl;
+import dev.brmz.sapientia.core.engine.SapientiaEngine;
 import dev.brmz.sapientia.core.energy.SimpleEnergyNode;
 import dev.brmz.sapientia.core.fluids.BuiltinFluidTypes;
 import dev.brmz.sapientia.core.fluids.FluidServiceImpl;
 import dev.brmz.sapientia.core.fluids.SimpleFluidNode;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -88,10 +84,8 @@ public final class ElectronicsTicker {
     public static final int  GAS_TURBINE_DRAIN_MB   = 10;
     public static final long RTG_SU_PER_TICK        = 50L;
 
-    private final Logger logger;
     private final EnergyServiceImpl energy;
     private final FluidServiceImpl fluids;
-    private final ChunkBlockIndex chunkIndex;
 
     private final NamespacedKey electrolyzerId;
     private final NamespacedKey boilerId;
@@ -100,15 +94,11 @@ public final class ElectronicsTicker {
     private final NamespacedKey gasTurbineId;
     private final NamespacedKey rtgId;
 
-    public ElectronicsTicker(@NotNull Logger logger,
-                             @NotNull org.bukkit.plugin.Plugin plugin,
+    public ElectronicsTicker(@NotNull org.bukkit.plugin.Plugin plugin,
                              @NotNull EnergyServiceImpl energy,
-                             @NotNull FluidServiceImpl fluids,
-                             @NotNull ChunkBlockIndex chunkIndex) {
-        this.logger = logger;
+                             @NotNull FluidServiceImpl fluids) {
         this.energy = energy;
         this.fluids = fluids;
-        this.chunkIndex = chunkIndex;
         this.electrolyzerId = new NamespacedKey(plugin, "electrolyzer");
         this.boilerId       = new NamespacedKey(plugin, "boiler");
         this.condenserId    = new NamespacedKey(plugin, "condenser");
@@ -117,114 +107,97 @@ public final class ElectronicsTicker {
         this.rtgId          = new NamespacedKey(plugin, "rtg");
     }
 
-    public void tick() {
-        for (SimpleEnergyNode node : energy.graph().nodes()) {
-            try {
-                tickNode(node);
-            } catch (RuntimeException ex) {
-                logger.warning("ElectronicsTicker error at " + node.location() + ": " + ex);
-            }
-        }
+    /** Ticks between production steps while a machine keeps working. */
+    public static final int PERIOD = 5;
+
+    /** Registers the behaviour of each block type driven by this class. */
+    public void registerBehaviors(@NotNull SapientiaEngine engine) {
+        engine.registerBehavior(electrolyzerId, PERIOD, EnergyMachineBehavior.of(engine, energy, PERIOD, this::tickElectrolyzer));
+        engine.registerBehavior(boilerId, PERIOD, EnergyMachineBehavior.of(engine, energy, PERIOD, this::tickBoiler));
+        engine.registerBehavior(condenserId, PERIOD, EnergyMachineBehavior.of(engine, energy, PERIOD, this::tickCondenser));
+        engine.registerBehavior(geothermalId, PERIOD, EnergyMachineBehavior.of(engine, energy, PERIOD, this::tickGeothermal));
+        engine.registerBehavior(gasTurbineId, PERIOD, EnergyMachineBehavior.of(engine, energy, PERIOD, this::tickGasTurbine));
+        engine.registerBehavior(rtgId, PERIOD, EnergyMachineBehavior.of(engine, energy, PERIOD, (node, block) -> tickRtg(node)));
     }
 
-    private void tickNode(SimpleEnergyNode node) {
-        BlockKey key = node.location();
-        World world = Bukkit.getWorld(key.world());
-        if (world == null) return;
-        Block block = world.getBlockAt(key.x(), key.y(), key.z());
-        SapientiaBlock def = chunkIndex.at(block);
-        if (def == null) return;
-        NamespacedKey id = def.id();
-
-        if (id.equals(electrolyzerId)) {
-            tickElectrolyzer(node, block);
-        } else if (id.equals(boilerId)) {
-            tickBoiler(node, block);
-        } else if (id.equals(condenserId)) {
-            tickCondenser(node, block);
-        } else if (id.equals(geothermalId)) {
-            tickGeothermal(node, block);
-        } else if (id.equals(gasTurbineId)) {
-            tickGasTurbine(node, block);
-        } else if (id.equals(rtgId)) {
-            tickRtg(node);
-        }
-    }
-
-    private void tickElectrolyzer(SimpleEnergyNode node, Block block) {
-        if (node.type() != EnergyNodeType.CONSUMER) return;
-        if (node.bufferCurrent() < ELECTROLYZER_ENERGY) return;
+    private boolean tickElectrolyzer(SimpleEnergyNode node, Block block) {
+        if (node.type() != EnergyNodeType.CONSUMER) return false;
+        if (node.bufferCurrent() < ELECTROLYZER_ENERGY) return false;
         SimpleFluidNode water = tankAbove(block);
         SimpleFluidNode hydrogenOut = tankBelow(block);
-        if (water == null || hydrogenOut == null) return;
+        if (water == null || hydrogenOut == null) return false;
         FluidType heldType = tankFuel(water);
-        if (heldType == null || !heldType.id().equals(BuiltinFluidTypes.WATER.id())) return;
-        if (water.contents() == null || water.contents().amountMb() < ELECTROLYZER_WATER_MB) return;
-        if (capacityFreeFor(hydrogenOut, BuiltinFluidTypes.HYDROGEN) < ELECTROLYZER_HYDROGEN_MB) return;
+        if (heldType == null || !heldType.id().equals(BuiltinFluidTypes.WATER.id())) return false;
+        if (water.contents() == null || water.contents().amountMb() < ELECTROLYZER_WATER_MB) return false;
+        if (capacityFreeFor(hydrogenOut, BuiltinFluidTypes.HYDROGEN) < ELECTROLYZER_HYDROGEN_MB) return false;
 
         // Optional oxygen sink (north neighbour). Vented if absent or full.
         SimpleFluidNode oxygenOut = tankAt(block.getRelative(0, 0, -1));
 
         long drawn = water.draw(ELECTROLYZER_WATER_MB);
-        if (drawn < ELECTROLYZER_WATER_MB) return;
+        if (drawn < ELECTROLYZER_WATER_MB) return false;
         hydrogenOut.offer(BuiltinFluidTypes.HYDROGEN, ELECTROLYZER_HYDROGEN_MB);
         if (oxygenOut != null && capacityFreeFor(oxygenOut, BuiltinFluidTypes.OXYGEN_GAS) >= ELECTROLYZER_OXYGEN_MB) {
             oxygenOut.offer(BuiltinFluidTypes.OXYGEN_GAS, ELECTROLYZER_OXYGEN_MB);
         }
         node.draw(ELECTROLYZER_ENERGY);
+        return true;
     }
 
-    private void tickBoiler(SimpleEnergyNode node, Block block) {
-        if (node.type() != EnergyNodeType.CONSUMER) return;
-        if (node.bufferCurrent() < BOILER_ENERGY) return;
+    private boolean tickBoiler(SimpleEnergyNode node, Block block) {
+        if (node.type() != EnergyNodeType.CONSUMER) return false;
+        if (node.bufferCurrent() < BOILER_ENERGY) return false;
         SimpleFluidNode liquid = tankAbove(block);
         SimpleFluidNode gasOut = tankBelow(block);
-        if (liquid == null || gasOut == null) return;
+        if (liquid == null || gasOut == null) return false;
         FluidType held = tankFuel(liquid);
-        if (held == null || !held.id().equals(BuiltinFluidTypes.WATER.id())) return;
-        if (liquid.contents() == null || liquid.contents().amountMb() < BOILER_WATER_MB) return;
-        if (capacityFreeFor(gasOut, BuiltinFluidTypes.COMPRESSED_AIR) < BOILER_GAS_MB) return;
+        if (held == null || !held.id().equals(BuiltinFluidTypes.WATER.id())) return false;
+        if (liquid.contents() == null || liquid.contents().amountMb() < BOILER_WATER_MB) return false;
+        if (capacityFreeFor(gasOut, BuiltinFluidTypes.COMPRESSED_AIR) < BOILER_GAS_MB) return false;
 
         long drawn = liquid.draw(BOILER_WATER_MB);
-        if (drawn < BOILER_WATER_MB) return;
+        if (drawn < BOILER_WATER_MB) return false;
         gasOut.offer(BuiltinFluidTypes.COMPRESSED_AIR, BOILER_GAS_MB);
         node.draw(BOILER_ENERGY);
+        return true;
     }
 
-    private void tickCondenser(SimpleEnergyNode node, Block block) {
-        if (node.type() != EnergyNodeType.CONSUMER) return;
-        if (node.bufferCurrent() < CONDENSER_ENERGY) return;
+    private boolean tickCondenser(SimpleEnergyNode node, Block block) {
+        if (node.type() != EnergyNodeType.CONSUMER) return false;
+        if (node.bufferCurrent() < CONDENSER_ENERGY) return false;
         SimpleFluidNode gasIn = tankAbove(block);
         SimpleFluidNode liquidOut = tankBelow(block);
-        if (gasIn == null || liquidOut == null) return;
+        if (gasIn == null || liquidOut == null) return false;
         FluidType held = tankFuel(gasIn);
-        if (held == null || !held.id().equals(BuiltinFluidTypes.COMPRESSED_AIR.id())) return;
-        if (gasIn.contents() == null || gasIn.contents().amountMb() < BOILER_GAS_MB) return;
-        if (capacityFreeFor(liquidOut, BuiltinFluidTypes.WATER) < BOILER_WATER_MB) return;
+        if (held == null || !held.id().equals(BuiltinFluidTypes.COMPRESSED_AIR.id())) return false;
+        if (gasIn.contents() == null || gasIn.contents().amountMb() < BOILER_GAS_MB) return false;
+        if (capacityFreeFor(liquidOut, BuiltinFluidTypes.WATER) < BOILER_WATER_MB) return false;
 
         long drawn = gasIn.draw(BOILER_GAS_MB);
-        if (drawn < BOILER_GAS_MB) return;
+        if (drawn < BOILER_GAS_MB) return false;
         liquidOut.offer(BuiltinFluidTypes.WATER, BOILER_WATER_MB);
         node.draw(CONDENSER_ENERGY);
+        return true;
     }
 
-    private void tickGeothermal(SimpleEnergyNode node, Block block) {
-        if (node.type() != EnergyNodeType.GENERATOR) return;
+    private boolean tickGeothermal(SimpleEnergyNode node, Block block) {
+        if (node.type() != EnergyNodeType.GENERATOR) return false;
         long room = node.bufferMax() - node.bufferCurrent();
-        if (room <= 0L) return;
+        if (room <= 0L) return false;
         int lavaCount = countLavaNeighbours(block);
-        if (lavaCount <= 0) return;
+        if (lavaCount <= 0) return false;
         long produced = Math.min(room, lavaCount * GEOTHERMAL_SU_PER_LAVA);
-        if (produced <= 0L) return;
+        if (produced <= 0L) return false;
         node.offer(produced);
+        return true;
     }
 
-    private void tickGasTurbine(SimpleEnergyNode node, Block block) {
-        if (node.type() != EnergyNodeType.GENERATOR) return;
+    private boolean tickGasTurbine(SimpleEnergyNode node, Block block) {
+        if (node.type() != EnergyNodeType.GENERATOR) return false;
         long room = node.bufferMax() - node.bufferCurrent();
-        if (room <= 0L) return;
+        if (room <= 0L) return false;
         SimpleFluidNode tank = tankBelow(block);
-        if (tank == null) return;
+        if (tank == null) return false;
         FluidType fuel = tankFuel(tank);
         long suPerMb;
         if (fuel != null && fuel.id().equals(BuiltinFluidTypes.HYDROGEN.id())) {
@@ -232,20 +205,22 @@ public final class ElectronicsTicker {
         } else if (fuel != null && fuel.id().equals(BuiltinFluidTypes.ETHYLENE.id())) {
             suPerMb = ETHYLENE_SU_PER_MB;
         } else {
-            return;
+            return false;
         }
         long mbForRoom = (room + suPerMb - 1L) / suPerMb;
         long ask = Math.min((long) GAS_TURBINE_DRAIN_MB, mbForRoom);
         long burned = tank.draw(ask);
-        if (burned <= 0L) return;
+        if (burned <= 0L) return false;
         node.offer(Math.min(room, burned * suPerMb));
+        return true;
     }
 
-    private void tickRtg(SimpleEnergyNode node) {
-        if (node.type() != EnergyNodeType.GENERATOR) return;
+    private boolean tickRtg(SimpleEnergyNode node) {
+        if (node.type() != EnergyNodeType.GENERATOR) return false;
         long room = node.bufferMax() - node.bufferCurrent();
-        if (room <= 0L) return;
+        if (room <= 0L) return false;
         node.offer(Math.min(room, RTG_SU_PER_TICK));
+        return true;
     }
 
     /** Counts how many of the 6 immediate neighbours contain lava (any state). */

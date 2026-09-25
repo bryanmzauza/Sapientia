@@ -6,7 +6,8 @@ dependencies {
     implementation(project(":sapientia-api"))
     implementation(project(":sapientia-core"))
 
-    compileOnly(libs.paper.api)
+    // Solvers build Bukkit event objects, so the API is needed at run time too (no server is started).
+    implementation(libs.paper.api)
 
     implementation(libs.jmh.core)
     annotationProcessor(libs.jmh.ap)
@@ -34,7 +35,26 @@ val jmhRun = tasks.register<JavaExec>("jmh") {
         "-wi", "1",
         "-i", "3",
         "-f", "1"
+    ) + listOfNotNull(project.findProperty("jmhInclude") as String?)
+    // Run a subset with: ./gradlew :sapientia-benchmarks:jmh -PjmhInclude=MachineScheduler
+}
+
+// --- Memory footprint ---------------------------------------------------------
+//
+// Heap bytes per block of the block index, a cable in the energy graph and a
+// machine in the engine, for the memory targets in docs/jogabilidade.md 9.3.
+
+tasks.register<JavaExec>("footprint") {
+    group = "benchmark"
+    description = "Prints the heap cost per block of the main in-memory structures."
+    mainClass.set("dev.brmz.sapientia.benchmarks.MemoryFootprint")
+    classpath = sourceSets["main"].runtimeClasspath
+    javaLauncher.set(
+        javaToolchains.launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(25))
+        }
     )
+    maxHeapSize = "2g"
 }
 
 // --- Baseline comparator (T-171 / 1.0.0-beta) --------------------------------

@@ -39,6 +39,7 @@ public final class SapientiaQuarryController implements SapientiaBlock {
     @Override public @NotNull Material baseMaterial() { return Material.LODESTONE; }
     @Override public @NotNull String displayNameKey() { return "block.quarry_controller.name"; }
     @Override public @NotNull GuideCategory guideCategory() { return GuideCategory.MACHINE; }
+    @Override public int chunkLimit() { return 1; }
 
     @Override
     public void onInteract(@NotNull SapientiaBlockInteractEvent event) {
