@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Routes UI opens to the right provider based on the player's platform, and dispatches
- * inventory events back to the descriptor that created them. See docs/ui-strategy.md.
+ * inventory events back to the descriptor that created them. See docs/internal/ui-strategy.md.
  */
 public final class UIService implements Listener {
 

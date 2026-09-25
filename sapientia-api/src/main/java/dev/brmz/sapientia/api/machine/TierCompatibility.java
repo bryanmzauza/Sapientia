@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
  * (under-feed). Connecting equal tiers always {@link Policy#ALLOW}s. Transformers
  * bypass this check by exposing two endpoints, each on its native tier.
  *
- * <p>See {@code docs/adr-017-voltage-policy.md}.
+ * <p>See {@code docs/internal/adr-017-voltage-policy.md}.
  */
 public final class TierCompatibility {
 

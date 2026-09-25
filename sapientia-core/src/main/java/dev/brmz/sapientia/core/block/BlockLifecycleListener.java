@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Bridges vanilla Bukkit block/item events to the Sapientia events and hooks
- * defined in {@code sapientia-api}. See ADR-012 and docs/api-spec.md §2.
+ * defined in {@code sapientia-api}. See ADR-012 and docs/internal/api-spec.md §2.
  *
  * <p>Responsibilities:
  * <ul>

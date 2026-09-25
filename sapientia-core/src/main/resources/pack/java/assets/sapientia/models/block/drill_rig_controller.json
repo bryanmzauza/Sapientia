@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "sapientia:block/drill_rig_controller_front",
+    "top": "sapientia:block/drill_rig_controller_top",
+    "side": "sapientia:block/drill_rig_controller_side"
+  }
+}

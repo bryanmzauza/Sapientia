@@ -1,81 +1,133 @@
 # Sapientia
 
-Modular tech/automation platform for **Minecraft Paper 26.1.2+** servers, with functional parity between **Java** and **Bedrock** (via Geyser + Floodgate).
+Technology and automation for **Paper 26.3** servers, with the same content and interfaces for
+**Java** and **Bedrock** players (through Geyser and Floodgate).
+
+Sapientia adds energy networks, item and fluid logistics, metallurgy, electronics, petroleum and
+chemistry chains, programmable logic and androids, all defined in Java and rebalanced through YAML
+overrides.
 
 Created and maintained by **[BRMZ.dev](https://brmz.dev)**.
 
-> Status: `0.1.0-SNAPSHOT` — early development. No public release yet.
+> **Status:** the current version is 1.11.0. Version 2.0.0, which reorganizes Sapientia into 25
+> historical eras, is in development. See the [changelog](docs/CHANGELOG.md) and the
+> [roadmap](docs/ROADMAP.md).
 
----
+## Features
 
-## Highlights
-
-- 🧩 **Multi-module** — public API separated from the core; addons compile only against `sapientia-api`.
-- 🌐 **Native Java + Bedrock** — per-platform `UIProvider`, automatic detection via Floodgate.
-- 💾 **Embedded SQLite** — numbered migrations with checksum, HikariCP pool, WAL.
-- ⏱️ **Unified scheduler** — adapts transparently to Paper and Folia.
-- 🎯 **Tick bucketing** — 20 rotating buckets prevent tick spikes as the world grows.
-- 🌍 **Built-in i18n** — `en` and `pt_BR` MiniMessage catalogs, no hardcoded strings.
+- **Energy:** generators, cables, capacitors and transformers across LV, MV and HV tiers.
+- **Logistics:** item cables, filters, splitters, buffers and packagers; fluid pipes, pumps, tanks
+  and valves; gases handled through the same network.
+- **Processing chains:** 138 metallurgy items, electronic components, petroleum refining,
+  chemistry, electrolysis and multiblock machines.
+- **Automation:** programmable logic graphs and eight android types with upgrades.
+- **Guide:** an in-game guide organised by category, with per-player unlocks.
+- **Bedrock parity:** every menu has a Bedrock form, and the Bedrock pack ships textures, icons,
+  translations and Geyser item mappings.
+- **Textures:** all 254 built-in items and blocks ship with their own textures.
+- **Translations:** English and Brazilian Portuguese.
 
 ## Requirements
 
-| Component | Minimum version |
-|-----------|-----------------|
-| Java      | 25              |
-| Paper     | 26.1.2          |
-| Floodgate | 2.2.2 (optional, enables Bedrock) |
-| Geyser    | 2.4.x (optional, enables Bedrock) |
+| Component | Version |
+|-----------|---------|
+| Java | 25 |
+| Paper | 26.3 or newer |
+| Floodgate | 2.2.2 or newer (optional, needed for Bedrock) |
+| Geyser | A build that supports Minecraft 26.3 (optional, needed for Bedrock) |
 
-## Build
+## Installation
 
-```powershell
-./gradlew build
-```
+1. Build the plugin (see [Building from source](#building-from-source)) or download a release when
+   one is available.
+2. Copy `sapientia-core-<version>.jar` into the server's `plugins/` folder and start the server.
+3. Build the resource packs as described below so players see the textures.
 
-The shadow JAR lands in `sapientia-core/build/libs/sapientia-core-<version>.jar`. Drop it into the server's `plugins/` folder.
-
-## Running benchmarks
-
-```powershell
-./gradlew :sapientia-benchmarks:jmh                    # runs the JMH harness
-./gradlew :sapientia-benchmarks:compareToBaseline       # fails if any bench regresses >10 % vs docs/benchmarks/baseline.json
-./gradlew :sapientia-benchmarks:saveBenchmarkBaseline   # promote the latest result to the committed baseline
-```
-
-Current benches cover P-003 (energy graph rebuild, 500 nodes), P-007 (tick bucket dispatch, 20 000 tickables across 20 buckets), and the Bedrock parity suite — P-009/P-010 (`PlatformDetectBenchmark`), P-011 (`CustomFormOpenBenchmark`), P-012 (`BedrockMixOverheadBenchmark`), P-014 (`GeyserMappingBenchmark`). See [docs/performance-contract.md](docs/performance-contract.md).
+Configuration lives in `plugins/Sapientia/config.yml`. Balance overrides go in
+`plugins/Sapientia/overrides/` (`items.yml`, `blocks.yml`, `recipes.yml`) and reload with
+`/sapientia reload content`.
 
 ## Resource packs
 
-```powershell
-# Java + Bedrock packs at once
-./gradlew :sapientia-core:buildPluginJar
-# In-game (op required):
-#   /sapientia pack build java
-#   /sapientia pack build bedrock
-#   /sapientia pack build all
+Sapientia items use the `minecraft:item_model` component, so players need the Sapientia resource
+pack to see their textures. Without it they render as missing textures. If you cannot distribute a
+pack, set `resource-pack.item-models: false` to keep vanilla appearances.
+
+### Java Edition
+
+1. Run `/sapientia pack build java`. The pack is written to
+   `plugins/Sapientia/sapientia-resources.zip`, and the command prints its SHA-1.
+2. Upload the zip to a web host and set `resource-pack` (URL) and `resource-pack-sha1` in
+   `server.properties`.
+3. To replace a texture, put your file under `plugins/Sapientia/pack/` with the same path as in the
+   pack (for example `assets/sapientia/textures/item/wrench.png`) and rebuild.
+
+### Bedrock Edition
+
+1. Run `/sapientia pack build bedrock`. This writes `plugins/Sapientia/sapientia-bedrock.mcpack` and
+   the Geyser mappings in `plugins/Sapientia/geyser/sapientia_items.json`.
+2. If Geyser runs on the same server, both files are copied into Geyser automatically. Otherwise,
+   copy the `.mcpack` into Geyser's `packs/` folder and the mappings into `custom_mappings/`.
+3. Make sure `enable-custom-content: true` is set in Geyser's config, then restart Geyser.
+
+`/sapientia pack build all` builds both packs.
+
+## Commands and permissions
+
+| Command | Permission | Default |
+|---------|------------|---------|
+| `/sapientia help` | — | everyone |
+| `/sapientia give <player> <id> [amount]` | `sapientia.command.give` | op |
+| `/sapientia reload` · `/sapientia reload content` | `sapientia.command.reload` | op |
+| `/sapientia pack build java\|bedrock\|all` | `sapientia.command.pack` | op |
+| `/sapientia logistics info\|policy\|filter` | `sapientia.command.logistics` | op |
+| `/sapientia fluids info` | `sapientia.command.fluids` | op |
+| `/sapientia logic list\|info\|load\|unload\|enable\|disable\|export\|tick` | `sapientia.command.logic` | op |
+
+`/sap` is an alias for `/sapientia`.
+
+## Building from source
+
+```bash
+./gradlew build                          # compile, run tests and checks, build the plugin jar
+./gradlew :sapientia-core:runServer      # start a local Paper 26.3 server with the plugin
 ```
 
-The Bedrock pipeline emits `plugins/Sapientia/sapientia-bedrock.mcpack` containing a stable manifest, generated `.lang` files for every loaded locale, and a Geyser `mappings/sapientia_items.json`. Smoke-test a release with [scripts/smoke-bedrock.ps1](scripts/smoke-bedrock.ps1) (or `.sh`) and the [Bedrock smoke checklist](docs/bedrock-smoke-checklist.md).
+The plugin jar is written to `sapientia-core/build/libs/sapientia-core-<version>.jar`.
 
-## Layout
+Textures are generated by a script and committed to the repository. After adding content or
+changing the art, regenerate them (requires Python 3 with Pillow and PyYAML):
+
+```bash
+python scripts/textures/generate_textures.py --preview build/textures-preview.png
+```
+
+Performance benchmarks use JMH:
+
+```bash
+./gradlew :sapientia-benchmarks:jmh                   # run all benchmarks
+./gradlew :sapientia-benchmarks:compareToBaseline     # fail on a regression above 10 %
+./gradlew :sapientia-benchmarks:saveBenchmarkBaseline # store the latest results as the baseline
+```
+
+## Project layout
 
 ```
-sapientia-api/         public contract (interfaces, enums, events)
-sapientia-core/        main implementation (JavaPlugin + services)
-sapientia-content/     bundled content (declarative machines/items)
-sapientia-bedrock/     Bedrock UI provider (Floodgate soft-dep)
-sapientia-testkit/     test utilities for addons
+sapientia-api/         Public API for addons: interfaces, events, records
+sapientia-core/        The plugin: services, persistence, UI, resource packs
+sapientia-content/     Built-in items, blocks, machines and recipes
+sapientia-bedrock/     Bedrock forms (Floodgate, optional at runtime)
+sapientia-testkit/     Test utilities for addons (placeholder)
 sapientia-benchmarks/  JMH benchmarks
+scripts/               Texture generator and smoke-test helpers
 ```
 
-## Roadmap
-
-Full plan in [ROADMAP.md](ROADMAP.md).
-
-## License
-
-Distributed under the **MIT** license — see [LICENSE](LICENSE). © BRMZ.dev.
+Addons compile against `sapientia-api` only.
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a PR.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
+
+## License
+
+Distributed under the [MIT](LICENSE) license. © BRMZ.dev.

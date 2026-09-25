@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Sapientia Bedrock smoke test (T-210 / 1.0.0).
+# Sapientia Bedrock smoke test.
 #
 # Drives a local Paper + Floodgate + Geyser stack from a clean slate so a
 # release engineer can validate the cross-platform path in ~5 minutes. The
@@ -9,7 +9,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 WORK="${WORK:-$ROOT/build/smoke-bedrock}"
-PAPER_VERSION="${PAPER_VERSION:-1.20.4}"
+PAPER_VERSION="${PAPER_VERSION:-26.3}"
 
 echo "[smoke] Workspace: $WORK"
 mkdir -p "$WORK/plugins"
@@ -37,5 +37,5 @@ echo "[smoke] Sapientia jar copied: $(basename "$SAP_JAR")"
 # Auto-accept EULA in dev workspace.
 echo "eula=true" > eula.txt
 
-echo "[smoke] Starting Paper. Connect with a Bedrock client to localhost:19132 and run through docs/bedrock-smoke-checklist.md."
+echo "[smoke] Starting Paper. Connect with a Bedrock client to localhost:19132 and follow the smoke checklist in CONTRIBUTING.md."
 exec java -Xms2G -Xmx2G -jar paper.jar nogui

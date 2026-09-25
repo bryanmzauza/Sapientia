@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "sapientia:block/gps_transmitter_front",
+    "top": "sapientia:block/gps_transmitter_top",
+    "side": "sapientia:block/gps_transmitter_side"
+  }
+}

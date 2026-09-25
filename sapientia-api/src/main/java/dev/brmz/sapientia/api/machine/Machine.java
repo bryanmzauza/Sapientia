@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * A block-backed automation device registered with Sapientia. Implementations are
- * supplied by the Core; addons consume this interface. See docs/api-spec.md §2.1.
+ * supplied by the Core; addons consume this interface. See docs/internal/api-spec.md §2.1.
  */
 public interface Machine {
 

@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 import dev.brmz.sapientia.api.energy.EnergyTier;
 import dev.brmz.sapientia.api.logistics.ItemFilterRule;
@@ -19,16 +20,17 @@ import org.bukkit.block.Block;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Default {@link ItemService} implementation (T-300 / 1.1.0). Holds the
- * in-memory {@link ItemNetworkGraph} and persists every mutation through
- * {@link ItemNodeStore}. Filter rules are cached in-memory per filter id
- * for fast lookup by the solver.
+ * Default {@link ItemService} implementation. Holds the in-memory
+ * {@link ItemNetworkGraph}; node changes are queued on {@link ItemNodeStore}
+ * and written by the database thread. Filter rules are cached per filter id
+ * and preloaded with their chunk.
  */
 public final class ItemServiceImpl implements ItemService {
 
     private final ItemNetworkGraph graph;
     private final ItemNodeStore store;
     private final Map<UUID, List<ItemFilterRule>> filterRules = new ConcurrentHashMap<>();
+    private Consumer<Runnable> database = Runnable::run;
 
     public ItemServiceImpl(@NotNull ItemNetworkGraph graph, @NotNull ItemNodeStore store) {
         this.graph = graph;
@@ -37,6 +39,15 @@ public final class ItemServiceImpl implements ItemService {
 
     public @NotNull ItemNetworkGraph graph() {
         return graph;
+    }
+
+    public @NotNull ItemNodeStore store() {
+        return store;
+    }
+
+    /** Runs filter rule writes through {@code database} (the database thread) instead of inline. */
+    public void runDatabaseWorkOn(@NotNull Consumer<Runnable> database) {
+        this.database = database;
     }
 
     @Override
@@ -48,9 +59,14 @@ public final class ItemServiceImpl implements ItemService {
         if (existing != null) {
             return existing;
         }
-        SimpleItemNode node = new SimpleItemNode(UUID.randomUUID(), key, type, tier, priority);
+        boolean transit = type == ItemNodeType.CABLE || type == ItemNodeType.JUNCTION;
+        UUID id = transit ? ItemNetworkGraph.transitId(key) : UUID.randomUUID();
+        SimpleItemNode node = new SimpleItemNode(id, key, type, tier, priority);
         graph.addNode(node);
         store.put(node);
+        if (type == ItemNodeType.FILTER) {
+            filterRules.put(node.nodeId(), List.of()); // a new filter has no rules yet
+        }
         return node;
     }
 
@@ -76,8 +92,9 @@ public final class ItemServiceImpl implements ItemService {
 
     @Override
     public void setFilterRules(@NotNull UUID filterNodeId, @NotNull List<ItemFilterRule> rules) {
-        filterRules.put(filterNodeId, List.copyOf(rules));
-        store.replaceFilterRules(filterNodeId, rules);
+        List<ItemFilterRule> copy = List.copyOf(rules);
+        filterRules.put(filterNodeId, copy);
+        database.accept(() -> store.replaceFilterRules(filterNodeId, copy));
     }
 
     @Override
@@ -90,30 +107,40 @@ public final class ItemServiceImpl implements ItemService {
         graph.setRoutingPolicy(networkId, policy);
     }
 
-    /** Hydrates persisted nodes for a freshly loaded chunk into the live graph. */
+    /** Nodes of one chunk and the rules of its filters, read by the database thread. */
+    public record Loaded(@NotNull List<SimpleItemNode> nodes, @NotNull Map<UUID, List<ItemFilterRule>> rules) {}
+
+    /** Reads a chunk's nodes and filter rules. Runs on the database thread. */
+    public @NotNull Loaded loadChunk(@NotNull String world, int chunkX, int chunkZ) {
+        List<SimpleItemNode> nodes = store.loadChunk(world, chunkX, chunkZ);
+        Map<UUID, List<ItemFilterRule>> rules = new HashMap<>();
+        for (SimpleItemNode node : nodes) {
+            if (node.type() == ItemNodeType.FILTER) {
+                rules.put(node.nodeId(), List.copyOf(store.loadFilterRules(node.nodeId())));
+            }
+        }
+        return new Loaded(nodes, rules);
+    }
+
+    /** Loads and adds a chunk's nodes on the calling thread. */
     public void hydrateChunk(@NotNull String world, int chunkX, int chunkZ) {
-        for (SimpleItemNode node : store.loadChunk(world, chunkX, chunkZ)) {
+        applyLoaded(loadChunk(world, chunkX, chunkZ));
+    }
+
+    /** Adds nodes read by the database thread. Nodes placed since the read win. */
+    public void applyLoaded(@NotNull Loaded loaded) {
+        for (SimpleItemNode node : loaded.nodes()) {
             graph.addNode(node);
+        }
+        for (Map.Entry<UUID, List<ItemFilterRule>> entry : loaded.rules().entrySet()) {
+            filterRules.putIfAbsent(entry.getKey(), entry.getValue());
         }
     }
 
-    /** Removes every node belonging to a chunk from the live graph (no DB writes). */
+    /** Removes a chunk's nodes from the live graph. Item nodes hold no unsaved state. */
     public void unloadChunk(@NotNull String world, int chunkX, int chunkZ) {
-        int xMin = chunkX * 16, xMax = xMin + 15;
-        int zMin = chunkZ * 16, zMax = zMin + 15;
-        java.util.List<BlockKey> victims = new java.util.ArrayList<>();
-        for (SimpleItemNode n : graph.nodes()) {
-            BlockKey k = n.location();
-            if (k.world().equals(world) && k.x() >= xMin && k.x() <= xMax && k.z() >= zMin && k.z() <= zMax) {
-                victims.add(k);
-            }
-        }
-        for (BlockKey k : victims) {
-            SimpleItemNode n = graph.nodeAt(k);
-            if (n != null) {
-                filterRules.remove(n.nodeId());
-            }
-            graph.removeNode(k);
+        for (SimpleItemNode node : graph.removeChunk(world, chunkX, chunkZ)) {
+            filterRules.remove(node.nodeId());
         }
     }
 

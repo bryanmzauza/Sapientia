@@ -6,7 +6,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * A UI addons can register once and have Sapientia render on whichever platform the
- * player is on. See docs/ui-strategy.md §1.2.
+ * player is on. See docs/internal/ui-strategy.md §1.2.
  */
 public interface UIDescriptor<C> {
 

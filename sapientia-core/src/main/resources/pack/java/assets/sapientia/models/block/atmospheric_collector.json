@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "sapientia:block/atmospheric_collector_front",
+    "top": "sapientia:block/atmospheric_collector_top",
+    "side": "sapientia:block/atmospheric_collector_side"
+  }
+}

@@ -1,24 +1,20 @@
 package dev.brmz.sapientia.core.geo;
 
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.logging.Logger;
 
-import dev.brmz.sapientia.api.block.SapientiaBlock;
 import dev.brmz.sapientia.api.energy.EnergyNodeType;
 import dev.brmz.sapientia.api.fluids.FluidNode;
 import dev.brmz.sapientia.api.fluids.FluidType;
 import dev.brmz.sapientia.api.multiblock.MultiblockShapeValidator;
-import dev.brmz.sapientia.core.block.BlockKey;
-import dev.brmz.sapientia.core.block.ChunkBlockIndex;
+import dev.brmz.sapientia.core.energy.EnergyMachineBehavior;
 import dev.brmz.sapientia.core.energy.EnergyServiceImpl;
+import dev.brmz.sapientia.core.engine.SapientiaEngine;
 import dev.brmz.sapientia.core.energy.SimpleEnergyNode;
 import dev.brmz.sapientia.core.fluids.BuiltinFluidTypes;
 import dev.brmz.sapientia.core.fluids.FluidServiceImpl;
 import dev.brmz.sapientia.core.fluids.SimpleFluidNode;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -85,10 +81,8 @@ public final class GeoTicker {
     /** mB of atmospheric gas offered per cycle (round-robin). */
     public static final int  ATMO_COLLECTOR_MB   = 15;
 
-    private final Logger logger;
     private final EnergyServiceImpl energy;
     private final FluidServiceImpl fluids;
-    private final ChunkBlockIndex chunkIndex;
 
     private final NamespacedKey quarryId;
     private final NamespacedKey drillRigId;
@@ -99,15 +93,11 @@ public final class GeoTicker {
     /** Round-robin counter for the atmospheric collector (N₂ → Ar → CO₂ → N₂…). */
     private long atmoCounter;
 
-    public GeoTicker(@NotNull Logger logger,
-                     @NotNull org.bukkit.plugin.Plugin plugin,
+    public GeoTicker(@NotNull org.bukkit.plugin.Plugin plugin,
                      @NotNull EnergyServiceImpl energy,
-                     @NotNull FluidServiceImpl fluids,
-                     @NotNull ChunkBlockIndex chunkIndex) {
-        this.logger = logger;
+                     @NotNull FluidServiceImpl fluids) {
         this.energy = energy;
         this.fluids = fluids;
-        this.chunkIndex = chunkIndex;
         this.quarryId        = new NamespacedKey(plugin, "quarry_controller");
         this.drillRigId      = new NamespacedKey(plugin, "drill_rig_controller");
         this.desalinatorId   = new NamespacedKey(plugin, "desalinator_controller");
@@ -115,114 +105,98 @@ public final class GeoTicker {
         this.atmoCollectorId = new NamespacedKey(plugin, "atmospheric_collector");
     }
 
-    public void tick() {
-        for (SimpleEnergyNode node : energy.graph().nodes()) {
-            try {
-                tickNode(node);
-            } catch (RuntimeException ex) {
-                logger.warning("GeoTicker error at " + node.location() + ": " + ex);
-            }
-        }
-        atmoCounter++;
+    /** Ticks between production steps while a machine keeps working. */
+    public static final int PERIOD = 5;
+
+    /** Registers the behaviour of each block type driven by this class. */
+    public void registerBehaviors(@NotNull SapientiaEngine engine) {
+        engine.registerBehavior(quarryId, PERIOD, EnergyMachineBehavior.of(engine, energy, PERIOD, this::tickQuarry));
+        engine.registerBehavior(drillRigId, PERIOD, EnergyMachineBehavior.of(engine, energy, PERIOD, this::tickDrillRig));
+        engine.registerBehavior(desalinatorId, PERIOD, EnergyMachineBehavior.of(engine, energy, PERIOD, this::tickDesalinator));
+        engine.registerBehavior(gasExtractorId, PERIOD, EnergyMachineBehavior.of(engine, energy, PERIOD, this::tickGasExtractor));
+        engine.registerBehavior(atmoCollectorId, PERIOD, EnergyMachineBehavior.of(engine, energy, PERIOD, this::tickAtmoCollector));
     }
 
-    private void tickNode(SimpleEnergyNode node) {
-        BlockKey key = node.location();
-        World world = Bukkit.getWorld(key.world());
-        if (world == null) return;
-        Block block = world.getBlockAt(key.x(), key.y(), key.z());
-        SapientiaBlock def = chunkIndex.at(block);
-        if (def == null) return;
-        NamespacedKey id = def.id();
-
-        if (id.equals(quarryId)) {
-            tickQuarry(node, block);
-        } else if (id.equals(drillRigId)) {
-            tickDrillRig(node, block);
-        } else if (id.equals(desalinatorId)) {
-            tickDesalinator(node, block);
-        } else if (id.equals(gasExtractorId)) {
-            tickGasExtractor(node, block);
-        } else if (id.equals(atmoCollectorId)) {
-            tickAtmoCollector(node, block);
-        }
-    }
-
-    private void tickQuarry(SimpleEnergyNode node, Block block) {
-        if (node.type() != EnergyNodeType.CONSUMER) return;
-        if (node.bufferCurrent() < QUARRY_DRAW) return;
+    private boolean tickQuarry(SimpleEnergyNode node, Block block) {
+        if (node.type() != EnergyNodeType.CONSUMER) return false;
+        if (node.bufferCurrent() < QUARRY_DRAW) return false;
         // Cheap structural gate — the 3×3×4 hollow shell of stainless casing
         // (or iron blocks as vanilla proxy) must still be intact.
         if (!MultiblockShapeValidator.validateHollowBox(block, 3, 3, 4,
                 Material.LIGHT_GRAY_GLAZED_TERRACOTTA, Material.IRON_BLOCK)) {
-            return;
+            return false;
         }
         SimpleFluidNode tank = tankAbove(block);
-        if (tank == null) return;
-        if (capacityFreeFor(tank, BuiltinFluidTypes.WATER) < QUARRY_SLURRY_MB) return;
+        if (tank == null) return false;
+        if (capacityFreeFor(tank, BuiltinFluidTypes.WATER) < QUARRY_SLURRY_MB) return false;
         long inserted = tank.offer(BuiltinFluidTypes.WATER, QUARRY_SLURRY_MB);
-        if (inserted <= 0L) return;
+        if (inserted <= 0L) return false;
         node.draw(QUARRY_DRAW);
+        return true;
     }
 
-    private void tickDrillRig(SimpleEnergyNode node, Block block) {
-        if (node.type() != EnergyNodeType.CONSUMER) return;
-        if (node.bufferCurrent() < DRILL_RIG_DRAW) return;
+    private boolean tickDrillRig(SimpleEnergyNode node, Block block) {
+        if (node.type() != EnergyNodeType.CONSUMER) return false;
+        if (node.bufferCurrent() < DRILL_RIG_DRAW) return false;
         if (!MultiblockShapeValidator.validateHollowBox(block, 5, 5, 8,
                 Material.LIGHT_GRAY_GLAZED_TERRACOTTA, Material.IRON_BLOCK)) {
-            return;
+            return false;
         }
         // Energy is always drawn (the rig is running). The yield is probabilistic.
         node.draw(DRILL_RIG_DRAW);
         int roll = ThreadLocalRandom.current().nextInt(1000);
-        if (roll >= DRILL_HIT_PROB_PERMIL) return;
+        if (roll >= DRILL_HIT_PROB_PERMIL) return false;
         SimpleFluidNode tank = tankAbove(block);
-        if (tank == null) return;
-        if (capacityFreeFor(tank, BuiltinFluidTypes.CRUDE_OIL) < DRILL_YIELD_MB) return;
+        if (tank == null) return false;
+        if (capacityFreeFor(tank, BuiltinFluidTypes.CRUDE_OIL) < DRILL_YIELD_MB) return false;
         tank.offer(BuiltinFluidTypes.CRUDE_OIL, DRILL_YIELD_MB);
+        return true;
     }
 
-    private void tickDesalinator(SimpleEnergyNode node, Block block) {
-        if (node.type() != EnergyNodeType.CONSUMER) return;
-        if (node.bufferCurrent() < DESALINATOR_DRAW) return;
+    private boolean tickDesalinator(SimpleEnergyNode node, Block block) {
+        if (node.type() != EnergyNodeType.CONSUMER) return false;
+        if (node.bufferCurrent() < DESALINATOR_DRAW) return false;
         if (!MultiblockShapeValidator.validateHollowBox(block, 5, 3, 3,
                 Material.LIGHT_GRAY_GLAZED_TERRACOTTA, Material.IRON_BLOCK)) {
-            return;
+            return false;
         }
         SimpleFluidNode input  = tankAbove(block);
         SimpleFluidNode output = tankBelow(block);
-        if (input == null || output == null) return;
+        if (input == null || output == null) return false;
         FluidType heldType = tankFuel(input);
-        if (heldType == null || !heldType.id().equals(BuiltinFluidTypes.WATER.id())) return;
-        if (input.contents() == null || input.contents().amountMb() < DESALINATOR_INPUT_MB) return;
-        if (capacityFreeFor(output, BuiltinFluidTypes.WATER) < DESALINATOR_OUTPUT_MB) return;
+        if (heldType == null || !heldType.id().equals(BuiltinFluidTypes.WATER.id())) return false;
+        if (input.contents() == null || input.contents().amountMb() < DESALINATOR_INPUT_MB) return false;
+        if (capacityFreeFor(output, BuiltinFluidTypes.WATER) < DESALINATOR_OUTPUT_MB) return false;
         long drawn = input.draw(DESALINATOR_INPUT_MB);
-        if (drawn < DESALINATOR_INPUT_MB) return;
+        if (drawn < DESALINATOR_INPUT_MB) return false;
         output.offer(BuiltinFluidTypes.WATER, DESALINATOR_OUTPUT_MB);
         node.draw(DESALINATOR_DRAW);
+        return true;
     }
 
-    private void tickGasExtractor(SimpleEnergyNode node, Block block) {
-        if (node.type() != EnergyNodeType.CONSUMER) return;
-        if (node.bufferCurrent() < GAS_EXTRACTOR_DRAW) return;
+    private boolean tickGasExtractor(SimpleEnergyNode node, Block block) {
+        if (node.type() != EnergyNodeType.CONSUMER) return false;
+        if (node.bufferCurrent() < GAS_EXTRACTOR_DRAW) return false;
         SimpleFluidNode tank = tankAbove(block);
-        if (tank == null) return;
-        if (capacityFreeFor(tank, BuiltinFluidTypes.NITROGEN) < GAS_EXTRACTOR_MB) return;
+        if (tank == null) return false;
+        if (capacityFreeFor(tank, BuiltinFluidTypes.NITROGEN) < GAS_EXTRACTOR_MB) return false;
         long inserted = tank.offer(BuiltinFluidTypes.NITROGEN, GAS_EXTRACTOR_MB);
-        if (inserted <= 0L) return;
+        if (inserted <= 0L) return false;
         node.draw(GAS_EXTRACTOR_DRAW);
+        return true;
     }
 
-    private void tickAtmoCollector(SimpleEnergyNode node, Block block) {
-        if (node.type() != EnergyNodeType.CONSUMER) return;
-        if (node.bufferCurrent() < ATMO_COLLECTOR_DRAW) return;
+    private boolean tickAtmoCollector(SimpleEnergyNode node, Block block) {
+        if (node.type() != EnergyNodeType.CONSUMER) return false;
+        if (node.bufferCurrent() < ATMO_COLLECTOR_DRAW) return false;
         SimpleFluidNode tank = tankAbove(block);
-        if (tank == null) return;
-        FluidType pick = atmoPick(atmoCounter);
-        if (capacityFreeFor(tank, pick) < ATMO_COLLECTOR_MB) return;
+        if (tank == null) return false;
+        FluidType pick = atmoPick(atmoCounter++);
+        if (capacityFreeFor(tank, pick) < ATMO_COLLECTOR_MB) return false;
         long inserted = tank.offer(pick, ATMO_COLLECTOR_MB);
-        if (inserted <= 0L) return;
+        if (inserted <= 0L) return false;
         node.draw(ATMO_COLLECTOR_DRAW);
+        return true;
     }
 
     /**

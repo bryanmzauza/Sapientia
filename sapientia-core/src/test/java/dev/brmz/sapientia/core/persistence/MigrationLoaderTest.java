@@ -56,6 +56,14 @@ final class MigrationLoaderTest {
                 assertThat(rs.getInt(1)).isEqualTo(8);
                 assertThat(rs.getString(2)).isEqualTo("V008__crude_oil_reservoirs.sql");
 
+                assertThat(rs.next()).isTrue();
+                assertThat(rs.getInt(1)).isEqualTo(9);
+                assertThat(rs.getString(2)).isEqualTo("V009__androids.sql");
+
+                assertThat(rs.next()).isTrue();
+                assertThat(rs.getInt(1)).isEqualTo(10);
+                assertThat(rs.getString(2)).isEqualTo("V010__network_node_chunks.sql");
+
                 assertThat(rs.next()).isFalse();
             }
         }
@@ -71,7 +79,7 @@ final class MigrationLoaderTest {
             try (Statement st = connection.createStatement();
                  ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM schema_version")) {
                 assertThat(rs.next()).isTrue();
-                assertThat(rs.getInt(1)).isEqualTo(8);
+                assertThat(rs.getInt(1)).isEqualTo(10);
             }
         }
     }

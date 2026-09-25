@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "sapientia:block/combustion_gen_front",
+    "top": "sapientia:block/combustion_gen_top",
+    "side": "sapientia:block/combustion_gen_side"
+  }
+}

@@ -4,11 +4,11 @@
 
 ## Related task
 
-Refs: T-NNN
+Refs: E<era>.<n> or F<foundation>.<n>
 
 ## Checklist
 
 - [ ] `./gradlew build` passes locally
 - [ ] New user-facing strings exist in both `en.yml` **and** `pt_BR.yml`
 - [ ] Tests added/updated when applicable
-- [ ] Documentation updated (`ROADMAP.md`, `CHANGELOG.md`, etc.)
+- [ ] Documentation updated (`docs/ROADMAP.md`, `docs/CHANGELOG.md`, etc.)

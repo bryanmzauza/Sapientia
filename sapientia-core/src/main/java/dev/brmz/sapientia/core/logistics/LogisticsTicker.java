@@ -1,12 +1,13 @@
 package dev.brmz.sapientia.core.logistics;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiPredicate;
 import java.util.logging.Logger;
 
-import dev.brmz.sapientia.api.block.SapientiaBlock;
 import dev.brmz.sapientia.api.events.SapientiaItemPackagedEvent;
-import dev.brmz.sapientia.core.block.ChunkBlockIndex;import org.bukkit.Bukkit;
+import dev.brmz.sapientia.core.engine.MachineBehavior;
+import dev.brmz.sapientia.core.engine.SapientiaEngine;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
@@ -58,7 +59,6 @@ public final class LogisticsTicker {
     private final Logger logger;
     private final Plugin plugin;
     private final ItemNetworkGraph graph;
-    private final ChunkBlockIndex chunkIndex;
 
     private final NamespacedKey packagerId;
     private final NamespacedKey unpackagerId;
@@ -66,40 +66,44 @@ public final class LogisticsTicker {
     public LogisticsTicker(
             @NotNull Logger logger,
             @NotNull Plugin plugin,
-            @NotNull ItemNetworkGraph graph,
-            @NotNull ChunkBlockIndex chunkIndex) {
+            @NotNull ItemNetworkGraph graph) {
         this.logger = logger;
         this.plugin = plugin;
         this.graph = graph;
-        this.chunkIndex = chunkIndex;
         this.packagerId = new NamespacedKey(plugin, "packager");
         this.unpackagerId = new NamespacedKey(plugin, "unpackager");
     }
 
-    public void tick() {
-        for (SimpleItemNode node : new ArrayList<>(graph.nodes())) {
-            Block block = node.block();
-            if (block == null) continue;
-            SapientiaBlock def = chunkIndex.at(block);
-            if (def == null) continue;
-            if (def.id().equals(packagerId)) {
-                tickPackager(node, block);
-            } else if (def.id().equals(unpackagerId)) {
-                tickUnpackager(node, block);
+    /** Ticks between packaging steps while a machine keeps working. */
+    public static final int PERIOD = 10;
+
+    /** Registers the packager and unpackager behaviours. */
+    public void registerBehaviors(@NotNull SapientiaEngine engine) {
+        engine.registerBehavior(packagerId, PERIOD, behavior(engine, this::tickPackager));
+        engine.registerBehavior(unpackagerId, PERIOD, behavior(engine, this::tickUnpackager));
+    }
+
+    private MachineBehavior behavior(SapientiaEngine engine, BiPredicate<SimpleItemNode, Block> step) {
+        return context -> {
+            SimpleItemNode node = graph.nodeAt(engine.keyOf(context));
+            Block block = engine.blockOf(context);
+            if (node == null || block == null) {
+                return MachineBehavior.idle(PERIOD);
             }
-        }
+            return step.test(node, block) ? PERIOD : MachineBehavior.idle(PERIOD);
+        };
     }
 
     /** Pulls one stack from chest above, fires the event, deposits below. */
-    private void tickPackager(@NotNull SimpleItemNode node, @NotNull Block block) {
+    private boolean tickPackager(@NotNull SimpleItemNode node, @NotNull Block block) {
         Block above = block.getRelative(0, 1, 0);
         Block below = block.getRelative(0, -1, 0);
         Inventory source = AdjacentContainers.findAdjacent(above);
         Inventory sink   = AdjacentContainers.findAdjacent(below);
-        if (source == null || sink == null) return;
+        if (source == null || sink == null) return false;
 
         ItemStack pulled = AdjacentContainers.extractAny(source, 64);
-        if (pulled == null || pulled.getAmount() <= 0) return;
+        if (pulled == null || pulled.getAmount() <= 0) return false;
 
         ItemStack bundle = wrapAsBundle(pulled);
         List<ItemStack> contents = List.of(pulled.clone());
@@ -110,7 +114,7 @@ public final class LogisticsTicker {
         if (event.isCancelled()) {
             // Roll the source back; nothing to deposit.
             AdjacentContainers.insertInto(source, pulled);
-            return;
+            return false;
         }
 
         int inserted = AdjacentContainers.insertInto(sink, event.bundle());
@@ -118,26 +122,29 @@ public final class LogisticsTicker {
             // Sink full — best-effort rollback to source so we don't leak items.
             ItemStack rollback = pulled.clone();
             AdjacentContainers.insertInto(source, rollback);
+            return false;
         }
+        return true;
     }
 
     /** Inverse of {@link #tickPackager}. */
-    private void tickUnpackager(@NotNull SimpleItemNode node, @NotNull Block block) {
+    private boolean tickUnpackager(@NotNull SimpleItemNode node, @NotNull Block block) {
         Block above = block.getRelative(0, 1, 0);
         Block below = block.getRelative(0, -1, 0);
         Inventory source = AdjacentContainers.findAdjacent(above);
         Inventory sink   = AdjacentContainers.findAdjacent(below);
-        if (source == null || sink == null) return;
+        if (source == null || sink == null) return false;
 
         ItemStack pulled = AdjacentContainers.extractAny(source, 1);
         if (pulled == null || pulled.getType() != BUNDLE_MATERIAL) {
             if (pulled != null) AdjacentContainers.insertInto(source, pulled);
-            return;
+            return false;
         }
         // 1.8.1 single-stack proxy: the unpackager just emits a plain BUNDLE
         // back into the sink. The full multi-stack expand path lands with the
         // packaged_bundle content item (ADR-020 §3).
         AdjacentContainers.insertInto(sink, pulled);
+        return true;
     }
 
     /**

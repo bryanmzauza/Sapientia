@@ -12,7 +12,6 @@ tasks.named<ShadowJar>("shadowJar") {
     // Relocate embedded libraries to avoid clashes with other plugins on the server.
     val base = "dev.brmz.sapientia.libs"
     relocate("com.zaxxer.hikari",           "$base.hikari")
-    relocate("org.sqlite",                   "$base.sqlite")
     relocate("org.incendo.cloud",            "$base.cloud")
     relocate("org.yaml.snakeyaml",           "$base.snakeyaml")
     relocate("com.esotericsoftware.kryo",    "$base.kryo")

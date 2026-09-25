@@ -37,4 +37,7 @@ secrets.properties
 build_output*.txt
 
 # Others
-docs/
+docs/internal/
+
+# Python
+__pycache__/

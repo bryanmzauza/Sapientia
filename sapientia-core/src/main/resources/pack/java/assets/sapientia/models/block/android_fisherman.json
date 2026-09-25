@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "sapientia:block/android_fisherman_front",
+    "top": "sapientia:block/android_fisherman_top",
+    "side": "sapientia:block/android_fisherman_side"
+  }
+}

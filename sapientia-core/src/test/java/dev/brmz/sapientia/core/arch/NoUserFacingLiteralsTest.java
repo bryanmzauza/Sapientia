@@ -30,7 +30,7 @@ final class NoUserFacingLiteralsTest {
                 .should().callMethod(org.bukkit.command.CommandSender.class, "sendMessage", String.class)
                 .orShould().callMethod(org.bukkit.command.CommandSender.class, "sendMessage", String[].class)
                 .orShould().callMethod(org.bukkit.entity.Player.class, "sendMessage", String.class)
-                .because("user-facing text must be resolved through Messages (see docs/i18n-strategy.md).")
+                .because("user-facing text must be resolved through Messages (see docs/internal/i18n-strategy.md).")
                 .allowEmptyShould(true);
         rule.check(CORE_CLASSES);
     }

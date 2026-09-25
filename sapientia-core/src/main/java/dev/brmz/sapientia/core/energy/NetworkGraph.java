@@ -1,198 +1,109 @@
 package dev.brmz.sapientia.core.energy;
 
-import java.util.ArrayDeque;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import dev.brmz.sapientia.api.energy.EnergyNetwork;
 import dev.brmz.sapientia.api.energy.EnergyNode;
+import dev.brmz.sapientia.api.energy.EnergyNodeType;
+import dev.brmz.sapientia.api.energy.EnergySpecs;
+import dev.brmz.sapientia.api.energy.EnergyTier;
 import dev.brmz.sapientia.core.block.BlockKey;
+import dev.brmz.sapientia.core.network.NodeGraph;
+import dev.brmz.sapientia.core.network.NodeGroup;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * In-memory adjacency graph of {@link SimpleEnergyNode}s grouped into connected
- * components ({@link EnergyNetwork}s). Nodes are adjacent when their {@link BlockKey}s
- * differ by 1 along exactly one axis (6-neighborhood) and are in the same world.
- *
- * <p>Mutations ({@link #addNode}, {@link #removeNode}) recompute the affected
- * networks lazily by BFS. {@link #networks()} returns a stable read-only view for
- * the solver. Designed to be called from the main/region thread; not thread-safe.
- *
- * <p>See ROADMAP 0.3.0 (T-141).
+ * Energy networks: {@link SimpleEnergyNode}s grouped into connected
+ * {@link EnergyNetwork}s. Generators, capacitors and consumers are objects
+ * tracked per network, so the solver never walks cables; cables are primitive
+ * entries. Keeps role snapshots because the energy solver runs on its own
+ * thread (see {@link EnergySolver}).
  */
-public final class NetworkGraph {
+public final class NetworkGraph extends NodeGraph<SimpleEnergyNode, NetworkGraph.Network> {
 
-    private final Map<BlockKey, SimpleEnergyNode> nodesByKey = new HashMap<>();
-    private final Map<UUID, Network> networksById = new LinkedHashMap<>();
-    private final Map<UUID, Network> networkOfNode = new HashMap<>();
+    static final int GENERATORS = 0;
+    static final int CAPACITORS = 1;
+    static final int CONSUMERS = 2;
+    private static final EnergyTier[] TIERS = EnergyTier.values();
 
-    /** Adds a node to the graph, merging or extending networks as needed. */
-    public void addNode(@NotNull SimpleEnergyNode node) {
-        BlockKey key = node.location();
-        if (nodesByKey.putIfAbsent(key, node) != null) {
-            return;
-        }
-        Set<Network> neighbours = neighbouringNetworks(key);
-        Network host;
-        if (neighbours.isEmpty()) {
-            host = new Network();
-            networksById.put(host.networkId, host);
-        } else {
-            // Merge into the largest neighbour to minimise re-bucketing cost.
-            host = neighbours.stream().max((a, b) -> Integer.compare(a.size(), b.size())).orElseThrow();
-            for (Network other : neighbours) {
-                if (other == host) continue;
-                for (SimpleEnergyNode n : other.members) {
-                    host.members.add(n);
-                    networkOfNode.put(n.nodeId(), host);
-                }
-                networksById.remove(other.networkId);
-            }
-        }
-        host.members.add(node);
-        networkOfNode.put(node.nodeId(), host);
+    public NetworkGraph() {
+        super(3, true);
     }
 
-    /** Removes a node and splits the host network if it becomes disconnected. */
-    public void removeNode(@NotNull BlockKey key) {
-        SimpleEnergyNode removed = nodesByKey.remove(key);
-        if (removed == null) return;
-        Network host = networkOfNode.remove(removed.nodeId());
-        if (host == null) return;
-        host.members.remove(removed);
-        if (host.members.isEmpty()) {
-            networksById.remove(host.networkId);
-            return;
-        }
-        // Re-flood from each remaining member; collect components.
-        Set<UUID> seen = new HashSet<>();
-        List<List<SimpleEnergyNode>> components = new ArrayList<>();
-        for (SimpleEnergyNode start : host.members) {
-            if (!seen.add(start.nodeId())) continue;
-            List<SimpleEnergyNode> comp = new ArrayList<>();
-            Deque<SimpleEnergyNode> queue = new ArrayDeque<>();
-            queue.add(start);
-            while (!queue.isEmpty()) {
-                SimpleEnergyNode cur = queue.removeFirst();
-                comp.add(cur);
-                for (SimpleEnergyNode adj : neighbours(cur.location())) {
-                    if (seen.add(adj.nodeId())) {
-                        queue.add(adj);
-                    }
-                }
-            }
-            components.add(comp);
-        }
-        if (components.size() == 1) {
-            return; // still connected
-        }
-        networksById.remove(host.networkId);
-        for (List<SimpleEnergyNode> comp : components) {
-            Network n = new Network();
-            n.members.addAll(comp);
-            networksById.put(n.networkId, n);
-            for (SimpleEnergyNode m : comp) {
-                networkOfNode.put(m.nodeId(), n);
-            }
-        }
+    @Override
+    protected @NotNull Network newGroup() {
+        return new Network();
+    }
+
+    @Override
+    protected byte transitKind(@NotNull SimpleEnergyNode node) {
+        return (byte) node.tier().ordinal();
+    }
+
+    @Override
+    protected @NotNull SimpleEnergyNode transitView(@NotNull BlockKey key, byte kind) {
+        EnergyTier tier = TIERS[kind];
+        return new SimpleEnergyNode(transitId(key), key, EnergyNodeType.CABLE, tier, 0L,
+                EnergySpecs.bufferMax(EnergyNodeType.CABLE, tier));
+    }
+
+    /** Stable id of the cable at {@code key}; cables are not stored as objects, so their id is derived. */
+    public static @NotNull UUID transitId(@NotNull BlockKey key) {
+        return UUID.nameUUIDFromBytes(("sapientia:energy:" + key.world() + ":" + key.x() + ":" + key.y() + ":" + key.z())
+                .getBytes(StandardCharsets.UTF_8));
+    }
+
+    @Override
+    protected int roleOf(@NotNull SimpleEnergyNode node) {
+        return switch (node.type()) {
+            case GENERATOR -> GENERATORS;
+            case CAPACITOR -> CAPACITORS;
+            case CONSUMER -> CONSUMERS;
+            case CABLE -> -1;
+        };
     }
 
     public @NotNull Collection<EnergyNetwork> networks() {
-        return Collections.unmodifiableCollection(networksById.values());
-    }
-
-    public @NotNull Collection<SimpleEnergyNode> nodes() {
-        return Collections.unmodifiableCollection(nodesByKey.values());
-    }
-
-    public SimpleEnergyNode nodeAt(@NotNull BlockKey key) {
-        return nodesByKey.get(key);
+        return Collections.unmodifiableCollection(groups());
     }
 
     public EnergyNetwork networkOf(@NotNull EnergyNode node) {
-        return networkOfNode.get(node.nodeId());
+        return node instanceof SimpleEnergyNode simple ? groupOf(simple) : null;
     }
 
-    public int networkCount() {
-        return networksById.size();
+    /** Members of a network of this graph. */
+    public @NotNull Collection<SimpleEnergyNode> membersOf(@NotNull EnergyNetwork network) {
+        return network instanceof Network n && !n.isRemoved() ? n.members() : Collections.emptyList();
     }
 
-    public int nodeCount() {
-        return nodesByKey.size();
-    }
+    /** One energy network. The public surface goes through {@link EnergyNetwork}. */
+    public static final class Network extends NodeGroup<SimpleEnergyNode> implements EnergyNetwork {
 
-    private Set<Network> neighbouringNetworks(BlockKey key) {
-        Set<Network> out = new HashSet<>();
-        for (SimpleEnergyNode adj : neighbours(key)) {
-            Network n = networkOfNode.get(adj.nodeId());
-            if (n != null) out.add(n);
-        }
-        return out;
-    }
-
-    private Iterable<SimpleEnergyNode> neighbours(BlockKey key) {
-        List<SimpleEnergyNode> out = new ArrayList<>(6);
-        check(out, key.world(), key.x() + 1, key.y(), key.z());
-        check(out, key.world(), key.x() - 1, key.y(), key.z());
-        check(out, key.world(), key.x(), key.y() + 1, key.z());
-        check(out, key.world(), key.x(), key.y() - 1, key.z());
-        check(out, key.world(), key.x(), key.y(), key.z() + 1);
-        check(out, key.world(), key.x(), key.y(), key.z() - 1);
-        return out;
-    }
-
-    private void check(List<SimpleEnergyNode> sink, String world, int x, int y, int z) {
-        SimpleEnergyNode n = nodesByKey.get(new BlockKey(world, x, y, z));
-        if (n != null) sink.add(n);
-    }
-
-    /** Internal mutable network. Public surface goes through {@link EnergyNetwork}. */
-    private static final class Network implements EnergyNetwork {
-        private final UUID networkId = UUID.randomUUID();
-        private final Set<SimpleEnergyNode> members = new HashSet<>();
-
-        @Override
-        public UUID networkId() {
-            return networkId;
+        Network() {
+            super(3);
         }
 
         @Override
         public Collection<EnergyNode> nodes() {
-            return Collections.unmodifiableCollection(new ArrayList<>(members));
+            return Collections.unmodifiableCollection(new ArrayList<>(members()));
         }
 
         @Override
         public long totalStored() {
-            long t = 0;
-            for (SimpleEnergyNode m : members) t += m.bufferCurrent();
-            return t;
+            long total = 0;
+            for (SimpleEnergyNode m : members()) total += m.bufferCurrent();
+            return total;
         }
 
         @Override
         public long totalCapacity() {
-            long t = 0;
-            for (SimpleEnergyNode m : members) t += m.bufferMax();
-            return t;
+            long total = 0;
+            for (SimpleEnergyNode m : members()) total += m.bufferMax();
+            return total;
         }
-
-        @Override
-        public int size() {
-            return members.size();
-        }
-    }
-
-    /** Test/diagnostic accessor returning the mutable members of a network. */
-    public Collection<SimpleEnergyNode> membersOf(@NotNull EnergyNetwork network) {
-        Network n = networksById.get(network.networkId());
-        return n == null ? Collections.emptyList() : Collections.unmodifiableSet(n.members);
     }
 }

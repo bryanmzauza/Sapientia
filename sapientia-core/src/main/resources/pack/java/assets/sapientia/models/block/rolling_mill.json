@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "sapientia:block/rolling_mill_front",
+    "top": "sapientia:block/rolling_mill_top",
+    "side": "sapientia:block/rolling_mill_side"
+  }
+}

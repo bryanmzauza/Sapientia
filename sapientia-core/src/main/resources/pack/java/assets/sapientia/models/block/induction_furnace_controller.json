@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "sapientia:block/induction_furnace_controller_front",
+    "top": "sapientia:block/induction_furnace_controller_top",
+    "side": "sapientia:block/induction_furnace_controller_side"
+  }
+}

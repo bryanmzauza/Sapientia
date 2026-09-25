@@ -6,7 +6,8 @@ dependencies {
     implementation(project(":sapientia-api"))
     implementation(project(":sapientia-core"))
 
-    compileOnly(libs.paper.api)
+    // Solvers build Bukkit event objects, so the API is needed at run time too (no server is started).
+    implementation(libs.paper.api)
 
     implementation(libs.jmh.core)
     annotationProcessor(libs.jmh.ap)
@@ -34,13 +35,32 @@ val jmhRun = tasks.register<JavaExec>("jmh") {
         "-wi", "1",
         "-i", "3",
         "-f", "1"
+    ) + listOfNotNull(project.findProperty("jmhInclude") as String?)
+    // Run a subset with: ./gradlew :sapientia-benchmarks:jmh -PjmhInclude=MachineScheduler
+}
+
+// --- Memory footprint ---------------------------------------------------------
+//
+// Heap bytes per block of the block index, a cable in the energy graph and a
+// machine in the engine, for the memory targets in docs/jogabilidade.md 9.3.
+
+tasks.register<JavaExec>("footprint") {
+    group = "benchmark"
+    description = "Prints the heap cost per block of the main in-memory structures."
+    mainClass.set("dev.brmz.sapientia.benchmarks.MemoryFootprint")
+    classpath = sourceSets["main"].runtimeClasspath
+    javaLauncher.set(
+        javaToolchains.launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(25))
+        }
     )
+    maxHeapSize = "2g"
 }
 
 // --- Baseline comparator (T-171 / 1.0.0-beta) --------------------------------
 //
 // compareToBaseline reads the latest JMH result.json produced by `:jmh` and
-// compares it against `docs/benchmarks/baseline.json`. Any benchmark whose
+// compares it against `docs/internal/benchmarks/baseline.json`. Any benchmark whose
 // score regresses by more than 10 % fails the build. Missing benchmarks in
 // the baseline are reported as informational. New baselines are captured with
 // `saveBenchmarkBaseline`.
@@ -52,7 +72,7 @@ tasks.register("compareToBaseline") {
 
     doLast {
         val resultFile = layout.buildDirectory.file("reports/benchmarks/result.json").get().asFile
-        val baselineFile = rootProject.file("docs/benchmarks/baseline.json")
+        val baselineFile = rootProject.file("docs/internal/benchmarks/baseline.json")
         if (!resultFile.exists()) {
             throw GradleException("No JMH result at ${resultFile.absolutePath}. Run :jmh first.")
         }
@@ -103,9 +123,9 @@ fun parseBenchmarkScores(json: String): Map<String, Double> {
 
 tasks.register<Copy>("saveBenchmarkBaseline") {
     group = "verification"
-    description = "Promotes the latest JMH report to docs/benchmarks/baseline.json (T-171)."
+    description = "Promotes the latest JMH report to docs/internal/benchmarks/baseline.json (T-171)."
     dependsOn(jmhRun)
     from(layout.buildDirectory.file("reports/benchmarks/result.json"))
-    into(rootProject.file("docs/benchmarks"))
+    into(rootProject.file("docs/internal/benchmarks"))
     rename { "baseline.json" }
 }

@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "sapientia:block/cracker_front",
+    "top": "sapientia:block/cracker_top",
+    "side": "sapientia:block/cracker_side"
+  }
+}

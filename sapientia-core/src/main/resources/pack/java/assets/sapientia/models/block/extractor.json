@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "sapientia:block/extractor_front",
+    "top": "sapientia:block/extractor_top",
+    "side": "sapientia:block/extractor_side"
+  }
+}

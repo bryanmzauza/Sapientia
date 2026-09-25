@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import dev.brmz.sapientia.api.logic.LogicProgram;
@@ -12,6 +13,8 @@ import dev.brmz.sapientia.api.overrides.ContentOverrides;
 import dev.brmz.sapientia.core.SapientiaPlugin;
 import dev.brmz.sapientia.core.i18n.Messages;
 import dev.brmz.sapientia.core.item.ItemRegistry;
+import dev.brmz.sapientia.core.engine.PerfMonitor;
+import dev.brmz.sapientia.core.engine.SapientiaEngine;
 import dev.brmz.sapientia.core.pack.ResourcePackBuilder;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
@@ -29,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 public final class SapientiaRootCommand implements TabExecutor {
 
     private static final List<String> SUBCOMMANDS = List.of(
-            "help", "reload", "give", "pack", "logistics", "fluids", "logic");
+            "help", "reload", "give", "pack", "logistics", "fluids", "logic", "perf");
 
     private final SapientiaPlugin plugin;
     private final ItemRegistry registry;
@@ -67,6 +70,7 @@ public final class SapientiaRootCommand implements TabExecutor {
             case "logistics" -> handleLogistics(sender, msg, args);
             case "fluids" -> handleFluids(sender, msg, args);
             case "logic" -> handleLogic(sender, msg, args);
+            case "perf" -> handlePerf(sender, msg);
             default -> sender.sendMessage(msg.component("command.unknown"));
         }
         return true;
@@ -82,7 +86,9 @@ public final class SapientiaRootCommand implements TabExecutor {
         sendHelpLine(sender, msg, "/sapientia pack build bedrock", "command.help.desc.pack-build-bedrock");
         sendHelpLine(sender, msg, "/sapientia pack build all", "command.help.desc.pack-build-all");
         sendHelpLine(sender, msg, "/sapientia logistics", "command.help.desc.logistics");
+        sendHelpLine(sender, msg, "/sapientia fluids", "command.help.desc.fluids");
         sendHelpLine(sender, msg, "/sapientia logic", "command.help.desc.logic");
+        sendHelpLine(sender, msg, "/sapientia perf", "command.help.desc.perf");
     }
 
     private void sendHelpLine(CommandSender sender, Messages msg, String usage, String descKey) {
@@ -118,11 +124,11 @@ public final class SapientiaRootCommand implements TabExecutor {
             String locale = plugin.getConfig().getString("locale", "en");
             plugin.messages().setActiveLocale(locale);
             long ms = (System.nanoTime() - started) / 1_000_000;
-            sender.sendMessage(msg.component("command.reload.success",
+            sender.sendMessage(msg.component("plugin.reload.success",
                     Placeholder.parsed("ms", Long.toString(ms))));
         } catch (RuntimeException e) {
             plugin.getLogger().warning("Reload failed: " + e);
-            sender.sendMessage(msg.component("command.reload.failure",
+            sender.sendMessage(msg.component("plugin.reload.failure",
                     Placeholder.parsed("error", String.valueOf(e.getMessage()))));
         }
     }
@@ -139,23 +145,11 @@ public final class SapientiaRootCommand implements TabExecutor {
         String target = args[2].toLowerCase(java.util.Locale.ROOT);
         try {
             switch (target) {
-                case "java" -> {
-                    java.nio.file.Path output = packBuilder.buildJavaPack();
-                    sender.sendMessage(msg.component("command.pack.success",
-                            Placeholder.parsed("path", output.toString())));
-                }
-                case "bedrock" -> {
-                    java.nio.file.Path output = packBuilder.buildBedrockPack();
-                    sender.sendMessage(msg.component("command.pack.bedrock.success",
-                            Placeholder.parsed("path", output.toString())));
-                }
+                case "java" -> reportJavaPack(sender, msg, packBuilder.buildJavaPack());
+                case "bedrock" -> reportBedrockPack(sender, msg, packBuilder.buildBedrockPack());
                 case "all" -> {
-                    java.nio.file.Path j = packBuilder.buildJavaPack();
-                    sender.sendMessage(msg.component("command.pack.success",
-                            Placeholder.parsed("path", j.toString())));
-                    java.nio.file.Path b = packBuilder.buildBedrockPack();
-                    sender.sendMessage(msg.component("command.pack.bedrock.success",
-                            Placeholder.parsed("path", b.toString())));
+                    reportJavaPack(sender, msg, packBuilder.buildJavaPack());
+                    reportBedrockPack(sender, msg, packBuilder.buildBedrockPack());
                 }
                 default -> sender.sendMessage(msg.component("command.pack.usage"));
             }
@@ -163,6 +157,68 @@ public final class SapientiaRootCommand implements TabExecutor {
             plugin.getLogger().warning("Pack build failed: " + e);
             sender.sendMessage(msg.component("command.pack.failure",
                     Placeholder.parsed("error", String.valueOf(e.getMessage()))));
+        }
+    }
+
+    private void handlePerf(CommandSender sender, Messages msg) {
+        if (!sender.hasPermission("sapientia.command.perf")) {
+            sender.sendMessage(msg.component("command.no-permission"));
+            return;
+        }
+        SapientiaEngine engine = plugin.engine();
+        PerfMonitor.Section total = engine.perf().total();
+        sender.sendMessage(msg.component("command.perf.header",
+                Placeholder.unparsed("budget", format(engine.config().tickBudgetMs()))));
+        sender.sendMessage(msg.component("command.perf.total",
+                Placeholder.unparsed("avg", format(total.averageMs())),
+                Placeholder.unparsed("peak", format(total.peakMs()))));
+        for (PerfMonitor.Section section : engine.perf().sections().values()) {
+            sender.sendMessage(msg.component("command.perf.section",
+                    Placeholder.unparsed("name", section.name()),
+                    Placeholder.unparsed("avg", format(section.averageMs())),
+                    Placeholder.unparsed("peak", format(section.peakMs()))));
+        }
+        Map<String, Integer> machines = engine.machineCounts();
+        sender.sendMessage(msg.component("command.perf.machines",
+                Placeholder.unparsed("registered", Integer.toString(machines.get("registered"))),
+                Placeholder.unparsed("scheduled", Integer.toString(machines.get("scheduled"))),
+                Placeholder.unparsed("sleeping", Integer.toString(machines.get("sleeping"))),
+                Placeholder.unparsed("paused", Integer.toString(machines.get("paused"))),
+                Placeholder.unparsed("backlog", Integer.toString(machines.get("backlog")))));
+        int[] networks = plugin.networkCounts();
+        sender.sendMessage(msg.component("command.perf.networks",
+                Placeholder.unparsed("energy", Integer.toString(networks[0])),
+                Placeholder.unparsed("energy_blocks", Integer.toString(networks[1])),
+                Placeholder.unparsed("items", Integer.toString(networks[2])),
+                Placeholder.unparsed("item_blocks", Integer.toString(networks[3])),
+                Placeholder.unparsed("fluids", Integer.toString(networks[4])),
+                Placeholder.unparsed("fluid_blocks", Integer.toString(networks[5]))));
+        sender.sendMessage(msg.component("command.perf.chunks",
+                Placeholder.unparsed("active", Integer.toString(engine.activity().activeCount())),
+                Placeholder.unparsed("radius", Integer.toString(engine.activity().radius()))));
+    }
+
+    private static String format(double ms) {
+        return String.format(Locale.ROOT, "%.2f", ms);
+    }
+
+    private void reportJavaPack(CommandSender sender, Messages msg, ResourcePackBuilder.JavaPackResult result) {
+        sender.sendMessage(msg.component("command.pack.success",
+                Placeholder.unparsed("path", result.pack().toString()),
+                Placeholder.unparsed("sha1", result.sha1()),
+                Placeholder.unparsed("overrides", Integer.toString(result.overrides()))));
+    }
+
+    private void reportBedrockPack(CommandSender sender, Messages msg, ResourcePackBuilder.BedrockPackResult result) {
+        String mappings = result.mappings() == null ? "-" : result.mappings().toString();
+        sender.sendMessage(msg.component("command.pack.bedrock.success",
+                Placeholder.unparsed("pack", result.pack().toString()),
+                Placeholder.unparsed("mappings", mappings)));
+        if (result.geyserFolder() != null) {
+            sender.sendMessage(msg.component("command.pack.bedrock.installed",
+                    Placeholder.unparsed("path", result.geyserFolder().toString())));
+        } else {
+            sender.sendMessage(msg.component("command.pack.bedrock.manual"));
         }
     }
 

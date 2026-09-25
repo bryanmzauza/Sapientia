@@ -35,6 +35,7 @@ public final class SapientiaDrillRigController implements SapientiaBlock {
     @Override public @NotNull Material baseMaterial() { return Material.OBSERVER; }
     @Override public @NotNull String displayNameKey() { return "block.drill_rig_controller.name"; }
     @Override public @NotNull GuideCategory guideCategory() { return GuideCategory.MACHINE; }
+    @Override public int chunkLimit() { return 1; }
 
     @Override
     public void onInteract(@NotNull SapientiaBlockInteractEvent event) {

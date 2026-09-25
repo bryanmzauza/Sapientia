@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "sapientia:block/item_filter_front",
+    "top": "sapientia:block/item_filter_top",
+    "side": "sapientia:block/item_filter_side"
+  }
+}

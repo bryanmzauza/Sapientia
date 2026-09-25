@@ -1,0 +1,471 @@
+# Changelog
+
+All notable changes to Sapientia are documented in this file.
+
+The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/), and the
+project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Breaking changes to the
+public `sapientia-api` module only happen in major versions.
+
+Versions 0.1.0 through 1.10.0 were development milestones; no binaries were published for them.
+
+## [Unreleased]
+
+Development of **2.0.0**, the era-based rewrite of Sapientia, begins. 2.0.0 will contain the
+performance and progression foundations plus era 0; each following era ships as its own minor
+version (era 1 as 2.1.0, era 2 as 2.2.0, and so on), with fixes as patch versions.
+
+### Added
+
+- New engine with a single tick loop. Machines run on an event-driven scheduler: each machine
+  costs CPU only on the tick its next step is due, and all machines together stay within a
+  per-tick time budget (`performance.tick-budget-ms`, default 5 ms). When the budget is used up,
+  the remaining machines run on the next tick instead of slowing the server.
+- Activity radius: machines, generators, pipes and androids only work within
+  `performance.activity-radius` chunks of a player (default 4), and keep running for
+  `performance.deactivate-delay-seconds` (default 30) after the last player leaves.
+- Per-chunk limits for Sapientia blocks (2,048), machines (256) and blocks of the same type (64 by
+  default, lower for multiblock controllers), configurable under `performance.limits`. Players see
+  which limit was reached.
+- `/sapientia perf` (permission `sapientia.command.perf`) shows the cost of each subsystem, the
+  number of loaded, scheduled, sleeping and paused machines, and the active chunks.
+- API: `SapientiaBlock#chunkLimit()` lets content declare its own per-chunk limit.
+- Energy, item and fluid networks only do work when something changed. Solvers visit the blocks
+  that produce, store or consume (never cables and pipes), and skip networks with nothing to do:
+  an energy network sleeps until a machine uses energy, a generator is fuelled, its layout changes
+  or a player comes near; idle item and fluid networks check back less and less often (at most
+  every 1.6 seconds for items and 2 seconds for fluids) and wake early when a machine fills or
+  empties a tank.
+- Energy networks are solved on their own thread (`Sapientia-Energy`). Events are still fired on
+  the main thread.
+- A single database thread (`Sapientia-Database`) now does all SQLite work. Changes to blocks and
+  network nodes are written in batches every 500 ms, and a chunk's Sapientia data is read in the
+  background when the chunk loads, then applied at the start of the next tick (within 2 ms per
+  tick). The main thread no longer waits on the database.
+- Scale benchmarks with up to 10 million machines or network blocks and for loading a chunk with
+  1,000 blocks (`./gradlew :sapientia-benchmarks:jmh -PjmhInclude=<MachineScheduler|NetworkScale|ChunkLoad>`),
+  and a memory report (`./gradlew :sapientia-benchmarks:footprint`).
+- Gameplay design proposal in `docs/jogabilidade.md` (in Portuguese): 25 eras from the Stone Age
+  to the far future, unlocked by the server admin with per-player research inside each era; metals
+  obtained by breaking natural (never player-placed) rock, from 38 multi-metal minerals plus
+  non-metallic minerals; separation that improves era by era; material chains for agriculture (the
+  base of the server), food, wood, fibres, water, chemicals and oil; world-altering mining
+  automation (explosives never drop ores); and the performance contract.
+- One design document per era in `docs/eras/`, listing every item and block, how it is made, what
+  it does, machine numbers, per-chunk limits and implementation tasks.
+
+### Changed
+
+- Recipe machines schedule one step per recipe instead of advancing every 10 ticks, and back off
+  while they have no input (up to 10 seconds between checks).
+- Petroleum, electronics, geology and packaging machines run only when their own step is due,
+  instead of the whole network being scanned every 5 to 10 ticks.
+- Much lower memory use at scale: the block index takes about 5 bytes per Sapientia block, a machine
+  about 32 bytes in the scheduler, and a cable, pipe or junction about 50 bytes in its network
+  (about 210 before). Unloading a chunk costs only that chunk's blocks.
+- Network nodes are now stored with their chunk coordinates. The database migration (`V010`) runs
+  automatically on the first start; chunk loads no longer scan the whole node tables.
+- `SapientiaEnergyFlowEvent` fires only for networks where energy moved, up to one energy cycle
+  (0.5 s) after the fact, and only while a plugin listens to it. `SapientiaItemFlowEvent` fires only
+  when items were extracted.
+- For addons: the `EnergyNode`, `ItemNode` and `FluidNode` returned for cables, pipes and junctions
+  are detached snapshots whose id is derived from their position, and `nodes()` on a network builds
+  a new list each call. Producers, consumers, storage and tanks are unchanged live objects.
+- The roadmap and changelog moved to `docs/`, with an index in `docs/README.md`.
+- The roadmap is now organized by eras: two foundation milestones (performance, then progression
+  and world systems) followed by one milestone per era. Task codes are `F<n>.<n>` and `E<era>.<n>`.
+- The project version is now `2.0.0-SNAPSHOT`.
+- Performance requirement: 10 million active Sapientia blocks (machines, cables and pipes; 100,000
+  per player with 100 players) within a fixed per-tick budget, with per-chunk limits and machines
+  pausing outside a 4-chunk activity radius around players.
+
+### Fixed
+
+- Energy networks took energy from capacitors and generators for consumers but never delivered it,
+  so machines powered through cables received nothing. Consumers now fill their buffer from the
+  network.
+- Tank contents were not saved on shutdown, and energy or fluid changed shortly before a chunk
+  unloaded could be lost. Both are now written before the plugin stops or the chunk leaves memory.
+
+### Removed
+
+- **Breaking (API):** `SapientiaBlock#ticks()`, which was never used, replaced by
+  `SapientiaBlock#chunkLimit()`.
+- The internal `TickBucketing` dispatcher, replaced by the new scheduler.
+
+## [1.11.0] - 2026-09-25
+
+Moves the plugin to Minecraft 26.3 and gives every built-in item and block its own texture on both
+Java and Bedrock.
+
+### Added
+
+- Bundled textures for all 254 built-in items and blocks, shipped inside the plugin jar. Machines
+  render as 3D blocks in the inventory and use trim colours to show their voltage tier; metals,
+  components and android upgrades have dedicated sprites, and tiered items show tier pips.
+- Items now carry the `minecraft:item_model` component so the Java client picks up the bundled
+  models. Controlled by the new `resource-pack.item-models` option (default `true`).
+- `/sapientia pack build java` merges the bundled assets with any file placed in
+  `plugins/Sapientia/pack/` (operator files win) and reports the pack's SHA-1 for the
+  `resource-pack-sha1` entry in `server.properties`. Rebuilding an unchanged pack produces the
+  same hash.
+- `/sapientia pack build bedrock` now includes item textures and inventory icons, and writes Geyser
+  custom item mappings to `plugins/Sapientia/geyser/sapientia_items.json`. When Geyser runs on the
+  same server, the pack and the mappings are copied into its `packs/` and `custom_mappings/`
+  folders automatically.
+
+### Changed
+
+- **Breaking:** requires Paper 26.3 or newer (`api-version: 26.3`). Java 25 is still required.
+- The default resource pack format is now 97 (Minecraft 26.3), and `pack.mcmeta` uses the
+  `min_format`/`max_format` fields. Configured values below 65 are replaced with the default and
+  logged, so existing `config.yml` files keep working.
+- `pack.mcmeta` is always generated; a copy in `plugins/Sapientia/pack/` is ignored.
+- The Bedrock pack manifest version now follows the plugin version, so clients download updated
+  packs instead of reusing a cached copy.
+- Geyser mappings use format version 2, matched by item model, and are no longer placed inside the
+  `.mcpack`.
+- The SQLite driver is now provided by Paper instead of being embedded, which reduces the plugin
+  jar from about 15.7 MB to 2.2 MB. Paper was already the driver in use at runtime.
+- Custom model data is written through the data component API; behaviour is unchanged.
+- Development: the Gradle wrapper is now 9.8.0 and `run-paper` 3.1.0; `:sapientia-core:runServer`
+  starts Paper 26.3. The CI artifact now contains only the plugin jar.
+
+### Removed
+
+- The `plugins/Sapientia/pack/bedrock/` staging folder is no longer used and can be deleted.
+
+### Fixed
+
+- `/sapientia reload` printed a missing-translation placeholder instead of its confirmation.
+- The Bedrock pack build message showed literal `<pack>` and `<mappings>` placeholders instead of
+  the file paths.
+- `/sapientia help` did not list `/sapientia fluids`.
+- Guide icons showed the vanilla base item (for example sugar for dusts) instead of the Sapientia
+  texture. Category buttons on the first page now use representative Sapientia items.
+- The `sapientia.command.logistics` and `sapientia.command.fluids` permissions were checked but not
+  declared in `plugin.yml`. They are now declared with the same default (op).
+
+## [1.10.0] - 2026-04-26
+
+Reorganises the in-game guide and documents how to obtain items that have no obvious source.
+
+### Added
+
+- Guide navigation in three levels: categories (Materials, Tools, Machines, Energy, Logistics,
+  Info), a paginated list per category (28 entries per page) and the entry detail, with Back
+  returning to the originating page. Bedrock players get equivalent forms.
+- Descriptions for items whose origin is not obvious: the ten raw metals, the silicon wafer and the
+  six alloy ingots. Any item with a `<key>.desc` entry next to its `<key>.name` now shows it in the
+  guide.
+
+### Fixed
+
+- The plugin failed to enable because the laser cutter recipe referenced the silicon wafer before
+  it was registered.
+
+## [1.9.1] - 2026-04-26
+
+Makes the eight androids from 1.9.0 perform work.
+
+### Added
+
+- Per-type android behaviour. Farmer, lumberjack, miner, fisherman, butcher and slayer consume fuel
+  from the container above and output simulated loot to the container below; the builder places
+  blocks from its input container within its scan radius; the trader exchanges nine items for one
+  emerald.
+- Upgrade effects: AI chips set the scan radius (4, 6, 9, 13 blocks), motor chips the cooldown
+  (20, 14, 9, 5 ticks), armour plates the health and damage reduction, and fuel modules the fuel
+  buffer (1,000 to 64,000 mB). Solid fuels: coal, charcoal, blaze powder and blaze rods.
+- Program selector: right-clicking an android opens a menu listing the stored logic programs to
+  assign or clear.
+- Logic nodes `comparator_read` (redstone power, 0 to 15) and `fluid_level_read` (tank fill, 0 to
+  100 %).
+- Android tick benchmark for 100 and 200 androids.
+
+### Changed
+
+- `SapientiaAndroidTickEvent` now fires from the live android loop. Cancelling it skips the action
+  but still starts the cooldown.
+- Stored android timers are reset when the plugin loads, because their meaning changed from a
+  timestamp to a tick counter.
+
+## [1.9.0] - 2026-04-26
+
+Adds androids: programmable machines that automate farming, gathering, building and trading.
+
+### Added
+
+- Eight android blocks (farmer, lumberjack, miner, fisherman, butcher, builder, slayer, trader)
+  with persistent state.
+- Sixteen android upgrades: AI chip, motor chip, armour plate and fuel module, each in four tiers,
+  with crafting recipes.
+- Placement limits of 4 androids per chunk and a configurable server-wide cap
+  (`androids.cap.server`, default 200).
+- API: `AndroidType`, `AndroidUpgrade`, `AndroidNode`, `AndroidService` (via
+  `SapientiaAPI#androids()`) and the cancellable `SapientiaAndroidTickEvent`.
+
+## [1.8.1] - 2026-04-25
+
+Activates the packager and unpackager and adds an optional max-flow item router.
+
+### Added
+
+- Packager and unpackager processing: the packager bundles one stack from the container above into
+  the container below, and the unpackager reverses it. Each bundle fires the cancellable
+  `SapientiaItemPackagedEvent`.
+- A max-flow (Edmonds-Karp) solver and the `network.solver: legacy|maxflow` option. The option is
+  read and validated, but item routing still uses the default solver.
+- Item routing benchmark on 100- and 1,000-node networks.
+
+## [1.8.0] - 2026-04-25
+
+Adds advanced item and fluid logistics blocks.
+
+### Added
+
+- Item logistics: buffer, splitter, filter chamber, overflow module, comparator sensor, packager,
+  unpackager and conveyor belt.
+- Fluid logistics: valve and level sensor.
+- Crafting recipes for all ten blocks.
+- API: `SapientiaItemPackagedEvent`.
+
+## [1.7.1] - 2026-04-25
+
+Makes the geology and atmosphere machines from 1.7.0 operate.
+
+### Added
+
+- The quarry controller consumes energy and outputs slurry into the tank above.
+- The drill rig has a 20 % chance per cycle to extract crude oil from below bedrock.
+- The desalinator turns 100 mB of water into 90 mB of fresh water.
+- The gas extractor collects nitrogen and the atmospheric collector rotates between nitrogen, argon
+  and carbon dioxide.
+- The three multiblock controllers join energy networks as high-voltage consumers.
+
+## [1.7.0] - 2026-04-25
+
+Adds large-scale resource gathering and GPS infrastructure.
+
+### Added
+
+- Multiblock controllers for the quarry (3×3×4), drill rig (5×5×8) and desalinator (5×3×3).
+- Gas extractor and atmospheric collector machines.
+- GPS transmitter and marker blocks, the handheld GPS map and the prospector. Coverage, map display
+  and prospecting are not implemented yet.
+- Fluids: argon, carbon dioxide and liquid oxygen.
+- Crafting recipes for the new blocks and items.
+
+## [1.6.1] - 2026-04-25
+
+Makes the high-voltage machines from 1.6.0 operate.
+
+### Added
+
+- Electrolyzer: 100 mB of water becomes 200 mB of hydrogen and 100 mB of oxygen.
+- Boiler and condenser convert between water and compressed air.
+- Geothermal generator output scales with adjacent lava; the gas turbine burns hydrogen or
+  ethylene; the RTG produces a constant trickle without fuel.
+- Rolling mill recipes (ingot to wire) and laser cutter recipes (silicon ingot to wafers).
+
+## [1.6.0] - 2026-04-25
+
+Adds the electronics chain and the high-voltage (HV) tier.
+
+### Added
+
+- Four raw metals (aluminium, silicon, titanium, lithium) and three alloys (stainless steel,
+  Damascus steel, nichrome), bringing the metallurgy catalogue to 138 items.
+- Seventeen electronic components: silicon wafer, motors, circuits, processors and coils in three
+  tiers, RAM in two tiers, and HDD and SSD storage.
+- HV cable, capacitor and MV-to-HV transformer.
+- Generators: geothermal, gas turbine and RTG.
+- HV machines: electrolyzer, rolling mill, laser cutter and chemical reactor.
+- Gases (hydrogen, oxygen, nitrogen, chlorine, ethylene, compressed air) and gas handling blocks:
+  pressurized pipe, gas compressor, boiler, condenser, liquefier and phase separator.
+- Crafting recipes for the new content.
+
+## [1.5.1] - 2026-04-25
+
+Completes the petroleum chain from crude oil to electricity.
+
+### Added
+
+- Finite crude oil reservoirs per chunk (10,000 to 100,000 mB) that regenerate slowly. Pumpjacks
+  drain them into the tank above.
+- The oil refinery splits crude oil into diesel, gasoline, lubricant and water.
+- The combustion generator burns diesel or gasoline and the biogas generator burns nutrient broth.
+- Item recipes for the cracker, fermenter, still and bioreactor.
+
+## [1.5.0] - 2026-04-25
+
+Adds petroleum and basic chemistry blocks.
+
+### Added
+
+- Fluids: crude oil, diesel, gasoline, lubricant and nutrient broth.
+- Pumpjack, oil refinery controller (5×5×7 multiblock) and stainless steel casing.
+- Chemistry machines: cracker, fermenter, still and bioreactor.
+- Combustion generator (MV) and biogas generator (LV).
+- Crafting recipes for the new blocks.
+
+## [1.4.1] - 2026-04-25
+
+Machines now process recipes.
+
+### Added
+
+- Machine processing: a machine takes input from the container above, spends energy when a recipe
+  completes and outputs to the container below. Progress is kept in memory and resets on restart.
+- Around 40 machine recipes covering crushing, smelting, pressing, wire drawing, rod cutting and
+  block compression.
+- Induction furnace alloy recipes for steel, invar and kanthal.
+
+## [1.4.0] - 2026-04-25
+
+Adds metallurgy and the medium-voltage (MV) tier.
+
+### Added
+
+- Six metals (copper, tin, zinc, lead, silver, nickel) in nine forms and three alloys (bronze,
+  brass, electrum) in eight forms: 78 items.
+- Voltage tiers LV, MV, HV and EV. API: `MachineTier` and `TierCompatibility`, which define how
+  mismatched tiers behave (a higher tier burns a lower one; a lower tier is clamped).
+- Machines: macerator, ore washer, electric furnace, bench saw (LV) and mixer, compressor, plate
+  press, extractor (MV).
+- MV cable, MV capacitor, LV-to-MV transformer and LV/MV machine casings.
+- Induction furnace controller (3×3×3 multiblock) and shape validation helpers in the API.
+- More than 50 crafting recipes.
+
+## [1.3.0] - 2026-04-25
+
+Adds programmable logic.
+
+### Added
+
+- Logic programs as directed acyclic graphs, compiled in a deterministic order and evaluated every
+  5 ticks. Programs with cycles or unknown nodes are rejected; programs that throw are disabled.
+- Built-in nodes: constants, arithmetic, comparison, boolean logic, branching, memory, tick counter
+  and logging.
+- `/sapientia logic list|info|load|unload|enable|disable|export|tick` with the
+  `sapientia.command.logic` permission. Programs are stored in the database and can be exported to
+  YAML.
+- API: `LogicService` (via `SapientiaAPI#logic()`) and the cancellable `SapientiaLogicTickEvent`.
+
+## [1.2.0] - 2026-04-25
+
+Adds fluid logistics.
+
+### Added
+
+- Fluid pipe, pump, tank and drain. Pumps take water and lava from source blocks and cauldrons;
+  drains place them back.
+- Tank capacity and pipe throughput scale with tier. A tank holds one fluid type at a time.
+- Built-in fluids: water, lava and milk.
+- `/sapientia fluids info` with the `sapientia.command.fluids` permission.
+- API: `FluidService` (via `SapientiaAPI#fluids()`), `FluidType`, `FluidStack` and the
+  `SapientiaFluidFlowEvent` and `SapientiaFluidTransferEvent` events.
+
+## [1.1.0] - 2026-04-25
+
+Adds item logistics.
+
+### Added
+
+- Item cable, producer, consumer and filter blocks that move items between vanilla containers.
+- Per-network routing policies: round robin, priority and first match.
+- Whitelist and blacklist filters with wildcards (`*`, `namespace:*`), editable with
+  `/sapientia logistics filter add|remove|clear|list` and viewable in a filter UI on Java and
+  Bedrock.
+- `/sapientia logistics info|policy|filter`.
+- API: `ItemService` (via `SapientiaAPI#logistics()`) and the `SapientiaItemFlowEvent`,
+  `SapientiaItemFilterEvent` (cancellable) and `SapientiaItemRouteEvent` events.
+
+### Removed
+
+- The `experimental.filter` configuration option; the filter UI is always available.
+
+## [1.0.0] - 2026-04-24
+
+Bedrock players get the same interfaces and resource pack pipeline as Java players.
+
+### Added
+
+- Bedrock forms for the machine UI and the guide, with an automatic fallback form for any menu that
+  has no dedicated Bedrock layout.
+- `/sapientia pack build java|bedrock|all`, producing a Java resource pack and a Bedrock `.mcpack`
+  with translated `.lang` files.
+- Bedrock smoke-test scripts and platform detection benchmarks.
+- API: `SapientiaAPI#openMachineUI` and `SapientiaAPI#openUI`.
+
+## [1.0.0-beta] - 2026-04-24
+
+Adds performance benchmarks and a regression gate.
+
+### Added
+
+- JMH benchmarks for energy graph rebuilds and tick bucket dispatch
+  (`./gradlew :sapientia-benchmarks:jmh`).
+- `compareToBaseline`, which fails when any benchmark regresses more than 10 % against the stored
+  baseline, and `saveBenchmarkBaseline` to update that baseline.
+
+## [0.5.0] - 2026-04-24
+
+Server operators can rebalance the built-in content without code changes.
+
+### Added
+
+- YAML overrides for items, blocks and recipes in `plugins/Sapientia/overrides/`. Invalid entries
+  are logged and skipped.
+- `/sapientia reload content` applies overrides without a restart.
+- `/sapientia pack build java` and the `resource-pack.pack-format` option.
+- API: `ContentOverrides` (via `SapientiaAPI#overrides()`).
+
+## [0.4.0] - 2026-04-24
+
+Adds crafting and the in-game guide.
+
+### Added
+
+- The Sapientia workbench with shaped 3×3 recipes that accept vanilla and Sapientia ingredients.
+- The guide item, listing every item and block by category; locked entries show as placeholders
+  until unlocked, and recipes unlock when first crafted.
+- API: `RecipeRegistry`, `GuideService`, `UnlockService` and the cancellable
+  `SapientiaRecipeCompleteEvent`.
+
+## [0.3.0] - 2026-04-24
+
+Adds the energy system.
+
+### Added
+
+- Generator, cable, capacitor and consumer blocks forming energy networks that split and merge as
+  blocks are placed and broken. Energy is distributed every 10 ticks and persisted.
+- API: `EnergyService` (via `SapientiaAPI#energy()`) and the `SapientiaEnergyFlowEvent` and
+  `SapientiaMachineTickEvent` events.
+
+## [0.2.0] - 2026-04-24
+
+Adds custom items and persistent custom blocks.
+
+### Added
+
+- API: `SapientiaItem` and `SapientiaBlock` for content defined in Java, plus item interaction and
+  block place, break and interact events.
+- Persistent custom blocks loaded and unloaded with their chunks, with asynchronous batched writes.
+- Wrench item and pedestal and console blocks.
+- Build checks for translation parity between English and Brazilian Portuguese and for untranslated
+  text sent to players.
+
+## [0.1.0] - 2026-04-24
+
+Initial project foundation.
+
+### Added
+
+- Multi-module Gradle build targeting Java 25 and Paper.
+- Public API module with machine, energy and platform types.
+- Translations in English and Brazilian Portuguese using MiniMessage.
+- Embedded SQLite storage with checksummed migrations.
+- Scheduler support for Paper and Folia.
+- Bedrock player detection through Floodgate.
+- `/sapientia give`, `/sapientia reload` and `/sapientia help`.

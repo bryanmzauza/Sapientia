@@ -2,6 +2,7 @@ package dev.brmz.sapientia.api;
 
 import java.util.Optional;
 
+import dev.brmz.sapientia.api.android.AndroidService;
 import dev.brmz.sapientia.api.block.SapientiaBlock;
 import dev.brmz.sapientia.api.crafting.RecipeRegistry;
 import dev.brmz.sapientia.api.energy.EnergyService;
@@ -21,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Top-level Sapientia service. Additional services (machines, energy, UI) are exposed as
- * sub-services and will be added as the core grows. See docs/api-spec.md.
+ * sub-services and will be added as the core grows. See docs/internal/api-spec.md.
  */
 public interface SapientiaAPI {
 
@@ -68,6 +69,9 @@ public interface SapientiaAPI {
 
     /** Programmable-logic DAG runtime entry point (T-302 / 1.3.0). */
     @NotNull LogicService logic();
+
+    /** Programmable autonomous-worker (android) service entry point (T-451 / 1.9.0). */
+    @NotNull AndroidService androids();
 
     /** Recipe registry entry point (T-131 / 0.4.0). */
     @NotNull RecipeRegistry recipes();

@@ -3,10 +3,17 @@ package dev.brmz.sapientia.core.logic.builtin;
 import java.util.Locale;
 import java.util.Map;
 
+import dev.brmz.sapientia.api.Sapientia;
+import dev.brmz.sapientia.api.fluids.FluidNode;
+import dev.brmz.sapientia.api.fluids.FluidStack;
 import dev.brmz.sapientia.api.logic.LogicValue;
 import dev.brmz.sapientia.api.logic.LogicValueType;
 import dev.brmz.sapientia.core.logic.LogicNodeExecutor;
+import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Built-in {@link LogicNodeExecutor} implementations for the small,
@@ -35,6 +42,10 @@ public final class BuiltinKinds {
         registry.put("tick_counter", BuiltinKinds::tickCounter);
         registry.put("log", BuiltinKinds::log);
         registry.put("noop", (id, p, in, ctx) -> Map.of());
+        // Sensor reads (T-441 / T-442 / 1.9.1): bridge logic programs with the
+        // live world so androids can branch on container fill or fluid level.
+        registry.put("comparator_read", BuiltinKinds::comparatorRead);
+        registry.put("fluid_level_read", BuiltinKinds::fluidLevelRead);
     }
 
     @FunctionalInterface
@@ -172,6 +183,66 @@ public final class BuiltinKinds {
         sb.append(value != null ? value.asString() : "<none>");
         ctx.log(id, sb.toString());
         return Map.of();
+    }
+
+    /**
+     * Reads the redstone power of a block (mirroring vanilla comparator
+     * semantics). Params: {@code world} (string), {@code x}/{@code y}/{@code z}
+     * (int). Output: {@code out} (int 0..15). When the world is not loaded or
+     * Bukkit is unavailable (tests), emits {@code 0}.
+     */
+    private static @NotNull Map<String, LogicValue> comparatorRead(@NotNull String id,
+                                                                   @NotNull Map<String, LogicValue> params,
+                                                                   @NotNull Map<String, LogicValue> inputs,
+                                                                   @NotNull dev.brmz.sapientia.core.logic.LogicContext ctx) {
+        Block target = resolveBlock(params);
+        if (target == null) return Map.of("out", LogicValue.ofInt(0L));
+        try {
+            return Map.of("out", LogicValue.ofInt(target.getBlockPower()));
+        } catch (Throwable ignored) {
+            return Map.of("out", LogicValue.ofInt(0L));
+        }
+    }
+
+    /**
+     * Reads the fill ratio of a Sapientia fluid tank as a 0..100 percentage.
+     * Params: {@code world} (string), {@code x}/{@code y}/{@code z} (int).
+     * Output: {@code out} (int 0..100). Non-tank or unloaded coordinates
+     * emit {@code 0}.
+     */
+    private static @NotNull Map<String, LogicValue> fluidLevelRead(@NotNull String id,
+                                                                   @NotNull Map<String, LogicValue> params,
+                                                                   @NotNull Map<String, LogicValue> inputs,
+                                                                   @NotNull dev.brmz.sapientia.core.logic.LogicContext ctx) {
+        Block target = resolveBlock(params);
+        if (target == null) return Map.of("out", LogicValue.ofInt(0L));
+        try {
+            FluidNode node = Sapientia.get().fluids().nodeAt(target).orElse(null);
+            if (node == null) return Map.of("out", LogicValue.ofInt(0L));
+            long capacity = node.capacityMb();
+            if (capacity <= 0L) return Map.of("out", LogicValue.ofInt(0L));
+            FluidStack contents = node.contents();
+            long current = contents == null ? 0L : contents.amountMb();
+            long pct = Math.max(0L, Math.min(100L, (current * 100L) / capacity));
+            return Map.of("out", LogicValue.ofInt(pct));
+        } catch (Throwable ignored) {
+            return Map.of("out", LogicValue.ofInt(0L));
+        }
+    }
+
+    private static @Nullable Block resolveBlock(@NotNull Map<String, LogicValue> params) {
+        LogicValue worldParam = params.get("world");
+        LogicValue xParam = params.get("x");
+        LogicValue yParam = params.get("y");
+        LogicValue zParam = params.get("z");
+        if (worldParam == null || xParam == null || yParam == null || zParam == null) return null;
+        try {
+            World world = Bukkit.getWorld(worldParam.asString());
+            if (world == null) return null;
+            return world.getBlockAt((int) xParam.asInt(), (int) yParam.asInt(), (int) zParam.asInt());
+        } catch (Throwable ignored) {
+            return null;
+        }
     }
 
     private static @NotNull LogicValue inputOrZero(@NotNull Map<String, LogicValue> inputs, @NotNull String port) {

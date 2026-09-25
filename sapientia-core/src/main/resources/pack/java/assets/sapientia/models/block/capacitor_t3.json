@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "sapientia:block/capacitor_t3_front",
+    "top": "sapientia:block/capacitor_t3_top",
+    "side": "sapientia:block/capacitor_t3_side"
+  }
+}

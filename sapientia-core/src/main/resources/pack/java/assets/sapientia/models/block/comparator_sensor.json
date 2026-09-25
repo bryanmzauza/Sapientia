@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "sapientia:block/comparator_sensor_front",
+    "top": "sapientia:block/comparator_sensor_top",
+    "side": "sapientia:block/comparator_sensor_side"
+  }
+}

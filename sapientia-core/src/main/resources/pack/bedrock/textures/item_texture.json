@@ -1,0 +1,768 @@
+{
+  "resource_pack_name": "sapientia",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "sapientia.wrench": {
+      "textures": "textures/items/wrench"
+    },
+    "sapientia.guide": {
+      "textures": "textures/items/guide"
+    },
+    "sapientia.prospector": {
+      "textures": "textures/items/prospector"
+    },
+    "sapientia.gps_handheld_map": {
+      "textures": "textures/items/gps_handheld_map"
+    },
+    "sapientia.pedestal": {
+      "textures": "textures/items/pedestal"
+    },
+    "sapientia.console": {
+      "textures": "textures/items/console"
+    },
+    "sapientia.generator": {
+      "textures": "textures/items/generator"
+    },
+    "sapientia.cable": {
+      "textures": "textures/items/cable"
+    },
+    "sapientia.capacitor": {
+      "textures": "textures/items/capacitor"
+    },
+    "sapientia.consumer": {
+      "textures": "textures/items/consumer"
+    },
+    "sapientia.workbench": {
+      "textures": "textures/items/workbench"
+    },
+    "sapientia.item_cable": {
+      "textures": "textures/items/item_cable"
+    },
+    "sapientia.item_producer": {
+      "textures": "textures/items/item_producer"
+    },
+    "sapientia.item_consumer": {
+      "textures": "textures/items/item_consumer"
+    },
+    "sapientia.item_filter": {
+      "textures": "textures/items/item_filter"
+    },
+    "sapientia.fluid_pipe": {
+      "textures": "textures/items/fluid_pipe"
+    },
+    "sapientia.fluid_pump": {
+      "textures": "textures/items/fluid_pump"
+    },
+    "sapientia.fluid_tank": {
+      "textures": "textures/items/fluid_tank"
+    },
+    "sapientia.fluid_drain": {
+      "textures": "textures/items/fluid_drain"
+    },
+    "sapientia.cable_t2": {
+      "textures": "textures/items/cable_t2"
+    },
+    "sapientia.capacitor_t2": {
+      "textures": "textures/items/capacitor_t2"
+    },
+    "sapientia.transformer_lv_mv": {
+      "textures": "textures/items/transformer_lv_mv"
+    },
+    "sapientia.machine_casing": {
+      "textures": "textures/items/machine_casing"
+    },
+    "sapientia.machine_casing_mv": {
+      "textures": "textures/items/machine_casing_mv"
+    },
+    "sapientia.macerator": {
+      "textures": "textures/items/macerator"
+    },
+    "sapientia.ore_washer": {
+      "textures": "textures/items/ore_washer"
+    },
+    "sapientia.electric_furnace": {
+      "textures": "textures/items/electric_furnace"
+    },
+    "sapientia.mixer": {
+      "textures": "textures/items/mixer"
+    },
+    "sapientia.compressor": {
+      "textures": "textures/items/compressor"
+    },
+    "sapientia.bench_saw": {
+      "textures": "textures/items/bench_saw"
+    },
+    "sapientia.plate_press": {
+      "textures": "textures/items/plate_press"
+    },
+    "sapientia.extractor": {
+      "textures": "textures/items/extractor"
+    },
+    "sapientia.induction_furnace_controller": {
+      "textures": "textures/items/induction_furnace_controller"
+    },
+    "sapientia.stainless_steel_casing": {
+      "textures": "textures/items/stainless_steel_casing"
+    },
+    "sapientia.pumpjack": {
+      "textures": "textures/items/pumpjack"
+    },
+    "sapientia.combustion_gen": {
+      "textures": "textures/items/combustion_gen"
+    },
+    "sapientia.biogas_gen": {
+      "textures": "textures/items/biogas_gen"
+    },
+    "sapientia.cracker": {
+      "textures": "textures/items/cracker"
+    },
+    "sapientia.fermenter": {
+      "textures": "textures/items/fermenter"
+    },
+    "sapientia.still": {
+      "textures": "textures/items/still"
+    },
+    "sapientia.bioreactor": {
+      "textures": "textures/items/bioreactor"
+    },
+    "sapientia.oil_refinery_controller": {
+      "textures": "textures/items/oil_refinery_controller"
+    },
+    "sapientia.cable_t3": {
+      "textures": "textures/items/cable_t3"
+    },
+    "sapientia.capacitor_t3": {
+      "textures": "textures/items/capacitor_t3"
+    },
+    "sapientia.transformer_mv_hv": {
+      "textures": "textures/items/transformer_mv_hv"
+    },
+    "sapientia.geothermal_gen": {
+      "textures": "textures/items/geothermal_gen"
+    },
+    "sapientia.gas_turbine": {
+      "textures": "textures/items/gas_turbine"
+    },
+    "sapientia.rtg": {
+      "textures": "textures/items/rtg"
+    },
+    "sapientia.electrolyzer": {
+      "textures": "textures/items/electrolyzer"
+    },
+    "sapientia.rolling_mill": {
+      "textures": "textures/items/rolling_mill"
+    },
+    "sapientia.laser_cutter": {
+      "textures": "textures/items/laser_cutter"
+    },
+    "sapientia.chemical_reactor": {
+      "textures": "textures/items/chemical_reactor"
+    },
+    "sapientia.pressurized_pipe": {
+      "textures": "textures/items/pressurized_pipe"
+    },
+    "sapientia.gas_compressor": {
+      "textures": "textures/items/gas_compressor"
+    },
+    "sapientia.boiler": {
+      "textures": "textures/items/boiler"
+    },
+    "sapientia.condenser": {
+      "textures": "textures/items/condenser"
+    },
+    "sapientia.liquefier": {
+      "textures": "textures/items/liquefier"
+    },
+    "sapientia.phase_separator": {
+      "textures": "textures/items/phase_separator"
+    },
+    "sapientia.quarry_controller": {
+      "textures": "textures/items/quarry_controller"
+    },
+    "sapientia.drill_rig_controller": {
+      "textures": "textures/items/drill_rig_controller"
+    },
+    "sapientia.desalinator_controller": {
+      "textures": "textures/items/desalinator_controller"
+    },
+    "sapientia.gas_extractor": {
+      "textures": "textures/items/gas_extractor"
+    },
+    "sapientia.atmospheric_collector": {
+      "textures": "textures/items/atmospheric_collector"
+    },
+    "sapientia.gps_transmitter": {
+      "textures": "textures/items/gps_transmitter"
+    },
+    "sapientia.gps_marker": {
+      "textures": "textures/items/gps_marker"
+    },
+    "sapientia.item_buffer": {
+      "textures": "textures/items/item_buffer"
+    },
+    "sapientia.item_splitter": {
+      "textures": "textures/items/item_splitter"
+    },
+    "sapientia.filter_chamber": {
+      "textures": "textures/items/filter_chamber"
+    },
+    "sapientia.overflow_module": {
+      "textures": "textures/items/overflow_module"
+    },
+    "sapientia.comparator_sensor": {
+      "textures": "textures/items/comparator_sensor"
+    },
+    "sapientia.packager": {
+      "textures": "textures/items/packager"
+    },
+    "sapientia.unpackager": {
+      "textures": "textures/items/unpackager"
+    },
+    "sapientia.conveyor_belt": {
+      "textures": "textures/items/conveyor_belt"
+    },
+    "sapientia.fluid_valve": {
+      "textures": "textures/items/fluid_valve"
+    },
+    "sapientia.fluid_level_sensor": {
+      "textures": "textures/items/fluid_level_sensor"
+    },
+    "sapientia.copper_raw": {
+      "textures": "textures/items/copper_raw"
+    },
+    "sapientia.copper_dust": {
+      "textures": "textures/items/copper_dust"
+    },
+    "sapientia.copper_ingot": {
+      "textures": "textures/items/copper_ingot"
+    },
+    "sapientia.copper_block": {
+      "textures": "textures/items/copper_block"
+    },
+    "sapientia.copper_plate": {
+      "textures": "textures/items/copper_plate"
+    },
+    "sapientia.copper_wire": {
+      "textures": "textures/items/copper_wire"
+    },
+    "sapientia.copper_rod": {
+      "textures": "textures/items/copper_rod"
+    },
+    "sapientia.copper_gear": {
+      "textures": "textures/items/copper_gear"
+    },
+    "sapientia.copper_screw": {
+      "textures": "textures/items/copper_screw"
+    },
+    "sapientia.tin_raw": {
+      "textures": "textures/items/tin_raw"
+    },
+    "sapientia.tin_dust": {
+      "textures": "textures/items/tin_dust"
+    },
+    "sapientia.tin_ingot": {
+      "textures": "textures/items/tin_ingot"
+    },
+    "sapientia.tin_block": {
+      "textures": "textures/items/tin_block"
+    },
+    "sapientia.tin_plate": {
+      "textures": "textures/items/tin_plate"
+    },
+    "sapientia.tin_wire": {
+      "textures": "textures/items/tin_wire"
+    },
+    "sapientia.tin_rod": {
+      "textures": "textures/items/tin_rod"
+    },
+    "sapientia.tin_gear": {
+      "textures": "textures/items/tin_gear"
+    },
+    "sapientia.tin_screw": {
+      "textures": "textures/items/tin_screw"
+    },
+    "sapientia.zinc_raw": {
+      "textures": "textures/items/zinc_raw"
+    },
+    "sapientia.zinc_dust": {
+      "textures": "textures/items/zinc_dust"
+    },
+    "sapientia.zinc_ingot": {
+      "textures": "textures/items/zinc_ingot"
+    },
+    "sapientia.zinc_block": {
+      "textures": "textures/items/zinc_block"
+    },
+    "sapientia.zinc_plate": {
+      "textures": "textures/items/zinc_plate"
+    },
+    "sapientia.zinc_wire": {
+      "textures": "textures/items/zinc_wire"
+    },
+    "sapientia.zinc_rod": {
+      "textures": "textures/items/zinc_rod"
+    },
+    "sapientia.zinc_gear": {
+      "textures": "textures/items/zinc_gear"
+    },
+    "sapientia.zinc_screw": {
+      "textures": "textures/items/zinc_screw"
+    },
+    "sapientia.lead_raw": {
+      "textures": "textures/items/lead_raw"
+    },
+    "sapientia.lead_dust": {
+      "textures": "textures/items/lead_dust"
+    },
+    "sapientia.lead_ingot": {
+      "textures": "textures/items/lead_ingot"
+    },
+    "sapientia.lead_block": {
+      "textures": "textures/items/lead_block"
+    },
+    "sapientia.lead_plate": {
+      "textures": "textures/items/lead_plate"
+    },
+    "sapientia.lead_wire": {
+      "textures": "textures/items/lead_wire"
+    },
+    "sapientia.lead_rod": {
+      "textures": "textures/items/lead_rod"
+    },
+    "sapientia.lead_gear": {
+      "textures": "textures/items/lead_gear"
+    },
+    "sapientia.lead_screw": {
+      "textures": "textures/items/lead_screw"
+    },
+    "sapientia.silver_raw": {
+      "textures": "textures/items/silver_raw"
+    },
+    "sapientia.silver_dust": {
+      "textures": "textures/items/silver_dust"
+    },
+    "sapientia.silver_ingot": {
+      "textures": "textures/items/silver_ingot"
+    },
+    "sapientia.silver_block": {
+      "textures": "textures/items/silver_block"
+    },
+    "sapientia.silver_plate": {
+      "textures": "textures/items/silver_plate"
+    },
+    "sapientia.silver_wire": {
+      "textures": "textures/items/silver_wire"
+    },
+    "sapientia.silver_rod": {
+      "textures": "textures/items/silver_rod"
+    },
+    "sapientia.silver_gear": {
+      "textures": "textures/items/silver_gear"
+    },
+    "sapientia.silver_screw": {
+      "textures": "textures/items/silver_screw"
+    },
+    "sapientia.nickel_raw": {
+      "textures": "textures/items/nickel_raw"
+    },
+    "sapientia.nickel_dust": {
+      "textures": "textures/items/nickel_dust"
+    },
+    "sapientia.nickel_ingot": {
+      "textures": "textures/items/nickel_ingot"
+    },
+    "sapientia.nickel_block": {
+      "textures": "textures/items/nickel_block"
+    },
+    "sapientia.nickel_plate": {
+      "textures": "textures/items/nickel_plate"
+    },
+    "sapientia.nickel_wire": {
+      "textures": "textures/items/nickel_wire"
+    },
+    "sapientia.nickel_rod": {
+      "textures": "textures/items/nickel_rod"
+    },
+    "sapientia.nickel_gear": {
+      "textures": "textures/items/nickel_gear"
+    },
+    "sapientia.nickel_screw": {
+      "textures": "textures/items/nickel_screw"
+    },
+    "sapientia.bronze_dust": {
+      "textures": "textures/items/bronze_dust"
+    },
+    "sapientia.bronze_ingot": {
+      "textures": "textures/items/bronze_ingot"
+    },
+    "sapientia.bronze_block": {
+      "textures": "textures/items/bronze_block"
+    },
+    "sapientia.bronze_plate": {
+      "textures": "textures/items/bronze_plate"
+    },
+    "sapientia.bronze_wire": {
+      "textures": "textures/items/bronze_wire"
+    },
+    "sapientia.bronze_rod": {
+      "textures": "textures/items/bronze_rod"
+    },
+    "sapientia.bronze_gear": {
+      "textures": "textures/items/bronze_gear"
+    },
+    "sapientia.bronze_screw": {
+      "textures": "textures/items/bronze_screw"
+    },
+    "sapientia.brass_dust": {
+      "textures": "textures/items/brass_dust"
+    },
+    "sapientia.brass_ingot": {
+      "textures": "textures/items/brass_ingot"
+    },
+    "sapientia.brass_block": {
+      "textures": "textures/items/brass_block"
+    },
+    "sapientia.brass_plate": {
+      "textures": "textures/items/brass_plate"
+    },
+    "sapientia.brass_wire": {
+      "textures": "textures/items/brass_wire"
+    },
+    "sapientia.brass_rod": {
+      "textures": "textures/items/brass_rod"
+    },
+    "sapientia.brass_gear": {
+      "textures": "textures/items/brass_gear"
+    },
+    "sapientia.brass_screw": {
+      "textures": "textures/items/brass_screw"
+    },
+    "sapientia.electrum_dust": {
+      "textures": "textures/items/electrum_dust"
+    },
+    "sapientia.electrum_ingot": {
+      "textures": "textures/items/electrum_ingot"
+    },
+    "sapientia.electrum_block": {
+      "textures": "textures/items/electrum_block"
+    },
+    "sapientia.electrum_plate": {
+      "textures": "textures/items/electrum_plate"
+    },
+    "sapientia.electrum_wire": {
+      "textures": "textures/items/electrum_wire"
+    },
+    "sapientia.electrum_rod": {
+      "textures": "textures/items/electrum_rod"
+    },
+    "sapientia.electrum_gear": {
+      "textures": "textures/items/electrum_gear"
+    },
+    "sapientia.electrum_screw": {
+      "textures": "textures/items/electrum_screw"
+    },
+    "sapientia.aluminum_raw": {
+      "textures": "textures/items/aluminum_raw"
+    },
+    "sapientia.aluminum_dust": {
+      "textures": "textures/items/aluminum_dust"
+    },
+    "sapientia.aluminum_ingot": {
+      "textures": "textures/items/aluminum_ingot"
+    },
+    "sapientia.aluminum_block": {
+      "textures": "textures/items/aluminum_block"
+    },
+    "sapientia.aluminum_plate": {
+      "textures": "textures/items/aluminum_plate"
+    },
+    "sapientia.aluminum_wire": {
+      "textures": "textures/items/aluminum_wire"
+    },
+    "sapientia.aluminum_rod": {
+      "textures": "textures/items/aluminum_rod"
+    },
+    "sapientia.aluminum_gear": {
+      "textures": "textures/items/aluminum_gear"
+    },
+    "sapientia.aluminum_screw": {
+      "textures": "textures/items/aluminum_screw"
+    },
+    "sapientia.silicon_raw": {
+      "textures": "textures/items/silicon_raw"
+    },
+    "sapientia.silicon_dust": {
+      "textures": "textures/items/silicon_dust"
+    },
+    "sapientia.silicon_ingot": {
+      "textures": "textures/items/silicon_ingot"
+    },
+    "sapientia.silicon_block": {
+      "textures": "textures/items/silicon_block"
+    },
+    "sapientia.silicon_plate": {
+      "textures": "textures/items/silicon_plate"
+    },
+    "sapientia.silicon_wire": {
+      "textures": "textures/items/silicon_wire"
+    },
+    "sapientia.silicon_rod": {
+      "textures": "textures/items/silicon_rod"
+    },
+    "sapientia.silicon_gear": {
+      "textures": "textures/items/silicon_gear"
+    },
+    "sapientia.silicon_screw": {
+      "textures": "textures/items/silicon_screw"
+    },
+    "sapientia.titanium_raw": {
+      "textures": "textures/items/titanium_raw"
+    },
+    "sapientia.titanium_dust": {
+      "textures": "textures/items/titanium_dust"
+    },
+    "sapientia.titanium_ingot": {
+      "textures": "textures/items/titanium_ingot"
+    },
+    "sapientia.titanium_block": {
+      "textures": "textures/items/titanium_block"
+    },
+    "sapientia.titanium_plate": {
+      "textures": "textures/items/titanium_plate"
+    },
+    "sapientia.titanium_wire": {
+      "textures": "textures/items/titanium_wire"
+    },
+    "sapientia.titanium_rod": {
+      "textures": "textures/items/titanium_rod"
+    },
+    "sapientia.titanium_gear": {
+      "textures": "textures/items/titanium_gear"
+    },
+    "sapientia.titanium_screw": {
+      "textures": "textures/items/titanium_screw"
+    },
+    "sapientia.lithium_raw": {
+      "textures": "textures/items/lithium_raw"
+    },
+    "sapientia.lithium_dust": {
+      "textures": "textures/items/lithium_dust"
+    },
+    "sapientia.lithium_ingot": {
+      "textures": "textures/items/lithium_ingot"
+    },
+    "sapientia.lithium_block": {
+      "textures": "textures/items/lithium_block"
+    },
+    "sapientia.lithium_plate": {
+      "textures": "textures/items/lithium_plate"
+    },
+    "sapientia.lithium_wire": {
+      "textures": "textures/items/lithium_wire"
+    },
+    "sapientia.lithium_rod": {
+      "textures": "textures/items/lithium_rod"
+    },
+    "sapientia.lithium_gear": {
+      "textures": "textures/items/lithium_gear"
+    },
+    "sapientia.lithium_screw": {
+      "textures": "textures/items/lithium_screw"
+    },
+    "sapientia.stainless_steel_dust": {
+      "textures": "textures/items/stainless_steel_dust"
+    },
+    "sapientia.stainless_steel_ingot": {
+      "textures": "textures/items/stainless_steel_ingot"
+    },
+    "sapientia.stainless_steel_block": {
+      "textures": "textures/items/stainless_steel_block"
+    },
+    "sapientia.stainless_steel_plate": {
+      "textures": "textures/items/stainless_steel_plate"
+    },
+    "sapientia.stainless_steel_wire": {
+      "textures": "textures/items/stainless_steel_wire"
+    },
+    "sapientia.stainless_steel_rod": {
+      "textures": "textures/items/stainless_steel_rod"
+    },
+    "sapientia.stainless_steel_gear": {
+      "textures": "textures/items/stainless_steel_gear"
+    },
+    "sapientia.stainless_steel_screw": {
+      "textures": "textures/items/stainless_steel_screw"
+    },
+    "sapientia.damascus_steel_dust": {
+      "textures": "textures/items/damascus_steel_dust"
+    },
+    "sapientia.damascus_steel_ingot": {
+      "textures": "textures/items/damascus_steel_ingot"
+    },
+    "sapientia.damascus_steel_block": {
+      "textures": "textures/items/damascus_steel_block"
+    },
+    "sapientia.damascus_steel_plate": {
+      "textures": "textures/items/damascus_steel_plate"
+    },
+    "sapientia.damascus_steel_wire": {
+      "textures": "textures/items/damascus_steel_wire"
+    },
+    "sapientia.damascus_steel_rod": {
+      "textures": "textures/items/damascus_steel_rod"
+    },
+    "sapientia.damascus_steel_gear": {
+      "textures": "textures/items/damascus_steel_gear"
+    },
+    "sapientia.damascus_steel_screw": {
+      "textures": "textures/items/damascus_steel_screw"
+    },
+    "sapientia.nichrome_dust": {
+      "textures": "textures/items/nichrome_dust"
+    },
+    "sapientia.nichrome_ingot": {
+      "textures": "textures/items/nichrome_ingot"
+    },
+    "sapientia.nichrome_block": {
+      "textures": "textures/items/nichrome_block"
+    },
+    "sapientia.nichrome_plate": {
+      "textures": "textures/items/nichrome_plate"
+    },
+    "sapientia.nichrome_wire": {
+      "textures": "textures/items/nichrome_wire"
+    },
+    "sapientia.nichrome_rod": {
+      "textures": "textures/items/nichrome_rod"
+    },
+    "sapientia.nichrome_gear": {
+      "textures": "textures/items/nichrome_gear"
+    },
+    "sapientia.nichrome_screw": {
+      "textures": "textures/items/nichrome_screw"
+    },
+    "sapientia.silicon_wafer": {
+      "textures": "textures/items/silicon_wafer"
+    },
+    "sapientia.motor_t1": {
+      "textures": "textures/items/motor_t1"
+    },
+    "sapientia.motor_t2": {
+      "textures": "textures/items/motor_t2"
+    },
+    "sapientia.motor_t3": {
+      "textures": "textures/items/motor_t3"
+    },
+    "sapientia.circuit_t1": {
+      "textures": "textures/items/circuit_t1"
+    },
+    "sapientia.circuit_t2": {
+      "textures": "textures/items/circuit_t2"
+    },
+    "sapientia.circuit_t3": {
+      "textures": "textures/items/circuit_t3"
+    },
+    "sapientia.processor_t1": {
+      "textures": "textures/items/processor_t1"
+    },
+    "sapientia.processor_t2": {
+      "textures": "textures/items/processor_t2"
+    },
+    "sapientia.processor_t3": {
+      "textures": "textures/items/processor_t3"
+    },
+    "sapientia.coil_t1": {
+      "textures": "textures/items/coil_t1"
+    },
+    "sapientia.coil_t2": {
+      "textures": "textures/items/coil_t2"
+    },
+    "sapientia.coil_t3": {
+      "textures": "textures/items/coil_t3"
+    },
+    "sapientia.ram_t2": {
+      "textures": "textures/items/ram_t2"
+    },
+    "sapientia.ram_t3": {
+      "textures": "textures/items/ram_t3"
+    },
+    "sapientia.storage_hdd": {
+      "textures": "textures/items/storage_hdd"
+    },
+    "sapientia.storage_ssd": {
+      "textures": "textures/items/storage_ssd"
+    },
+    "sapientia.android_farmer": {
+      "textures": "textures/items/android_farmer"
+    },
+    "sapientia.android_lumberjack": {
+      "textures": "textures/items/android_lumberjack"
+    },
+    "sapientia.android_miner": {
+      "textures": "textures/items/android_miner"
+    },
+    "sapientia.android_fisherman": {
+      "textures": "textures/items/android_fisherman"
+    },
+    "sapientia.android_butcher": {
+      "textures": "textures/items/android_butcher"
+    },
+    "sapientia.android_builder": {
+      "textures": "textures/items/android_builder"
+    },
+    "sapientia.android_slayer": {
+      "textures": "textures/items/android_slayer"
+    },
+    "sapientia.android_trader": {
+      "textures": "textures/items/android_trader"
+    },
+    "sapientia.ai_chip_t1": {
+      "textures": "textures/items/ai_chip_t1"
+    },
+    "sapientia.ai_chip_t2": {
+      "textures": "textures/items/ai_chip_t2"
+    },
+    "sapientia.ai_chip_t3": {
+      "textures": "textures/items/ai_chip_t3"
+    },
+    "sapientia.ai_chip_t4": {
+      "textures": "textures/items/ai_chip_t4"
+    },
+    "sapientia.motor_chip_t1": {
+      "textures": "textures/items/motor_chip_t1"
+    },
+    "sapientia.motor_chip_t2": {
+      "textures": "textures/items/motor_chip_t2"
+    },
+    "sapientia.motor_chip_t3": {
+      "textures": "textures/items/motor_chip_t3"
+    },
+    "sapientia.motor_chip_t4": {
+      "textures": "textures/items/motor_chip_t4"
+    },
+    "sapientia.armour_plate_t1": {
+      "textures": "textures/items/armour_plate_t1"
+    },
+    "sapientia.armour_plate_t2": {
+      "textures": "textures/items/armour_plate_t2"
+    },
+    "sapientia.armour_plate_t3": {
+      "textures": "textures/items/armour_plate_t3"
+    },
+    "sapientia.armour_plate_t4": {
+      "textures": "textures/items/armour_plate_t4"
+    },
+    "sapientia.fuel_module_t1": {
+      "textures": "textures/items/fuel_module_t1"
+    },
+    "sapientia.fuel_module_t2": {
+      "textures": "textures/items/fuel_module_t2"
+    },
+    "sapientia.fuel_module_t3": {
+      "textures": "textures/items/fuel_module_t3"
+    },
+    "sapientia.fuel_module_t4": {
+      "textures": "textures/items/fuel_module_t4"
+    }
+  }
+}

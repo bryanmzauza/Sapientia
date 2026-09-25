@@ -1,8 +1,8 @@
-# Sapientia Bedrock smoke test (T-210 / 1.0.0) — PowerShell variant.
+# Sapientia Bedrock smoke test — PowerShell variant.
 [CmdletBinding()]
 param(
     [string]$Work = (Join-Path $PSScriptRoot '..\build\smoke-bedrock'),
-    [string]$PaperVersion = '1.20.4'
+    [string]$PaperVersion = '26.3'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -41,5 +41,5 @@ Write-Host "[smoke] Sapientia jar copied: $($jar.Name)"
 
 'eula=true' | Set-Content -Path 'eula.txt'
 
-Write-Host '[smoke] Starting Paper. Connect with a Bedrock client to localhost:19132 and follow docs/bedrock-smoke-checklist.md.'
+Write-Host '[smoke] Starting Paper. Connect with a Bedrock client to localhost:19132 and follow the smoke checklist in CONTRIBUTING.md.'
 & java '-Xms2G' '-Xmx2G' '-jar' 'paper.jar' 'nogui'

@@ -1,20 +1,19 @@
 package dev.brmz.sapientia.core.machine;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
 
 import dev.brmz.sapientia.api.block.SapientiaBlock;
 import dev.brmz.sapientia.api.energy.EnergyNode;
+import dev.brmz.sapientia.api.energy.EnergyNodeType;
 import dev.brmz.sapientia.api.machine.MachineRecipe;
 import dev.brmz.sapientia.api.machine.MachineRecipeRegistry;
 import dev.brmz.sapientia.core.block.BlockKey;
 import dev.brmz.sapientia.core.energy.EnergyServiceImpl;
 import dev.brmz.sapientia.core.energy.SimpleEnergyNode;
-import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
-import org.bukkit.World;
+import dev.brmz.sapientia.core.engine.MachineBehavior;
+import dev.brmz.sapientia.core.engine.MachineContext;
+import dev.brmz.sapientia.core.engine.SapientiaEngine;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.inventory.Inventory;
@@ -23,139 +22,127 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Per-tick recipe processor for {@link dev.brmz.sapientia.content.energy.MachineEnergyBlock}
- * blocks (T-404 / T-405 / T-414 / 1.4.1 / 1.5.1).
+ * Recipe processing for machines that have {@link MachineRecipe}s.
  *
- * <p>I/O contract (intentionally minimal):
+ * <p>I/O contract:
  * <ul>
- *   <li>The vanilla container <strong>directly above</strong> the machine block
- *       (chest, barrel, dispenser, dropper, hopper, etc.) acts as the input
- *       buffer. The processor scans its slots for the first matching
- *       {@link MachineRecipe}.</li>
- *   <li>The vanilla container <strong>directly below</strong> the machine block
- *       acts as the output buffer. Output stacks are deposited via
- *       {@link Inventory#addItem(ItemStack...)}; if the output buffer is full
- *       the recipe rolls back without consuming the input.</li>
- *   <li>Energy is drained from the machine's own
- *       {@link EnergyNode#bufferCurrent() buffer} once per recipe completion.</li>
+ *   <li>The vanilla container <strong>directly above</strong> the machine is the
+ *       input; the first stack that matches a recipe is used.</li>
+ *   <li>The vanilla container <strong>directly below</strong> is the output; if it
+ *       is full, the machine waits without consuming the input.</li>
+ *   <li>Energy is drawn from the machine's own {@link EnergyNode#bufferCurrent()
+ *       buffer} when a recipe completes.</li>
  * </ul>
  *
- * <p>Recipe progress lives in memory only: server restarts roll back any
- * in-flight recipe (input remains in the input chest, no output produced).
+ * <p>Each machine costs one scheduler event per recipe: starting a recipe
+ * schedules its completion {@code ticksRequired} machine ticks later, and
+ * nothing runs in between. Without input the machine backs off; while waiting
+ * for energy or output space it retries every {@value #RETRY_TICKS} ticks.
+ * Progress lives in memory only: a restart or chunk unload restarts the recipe.
  */
 public final class MachineProcessor {
 
-    private final Logger logger;
+    /** Game ticks per recipe "machine tick" ({@link MachineRecipe#ticksRequired()} unit). */
+    public static final int MACHINE_TICK = 10;
+    static final int RETRY_TICKS = 20;
+
     private final EnergyServiceImpl energy;
     private final MachineRecipeRegistry recipes;
-    private final dev.brmz.sapientia.core.block.ChunkBlockIndex chunkIndex;
+    private final Map<BlockKey, InFlight> inFlight = new HashMap<>();
 
-    private final Map<BlockKey, InFlight> inFlight = new ConcurrentHashMap<>();
-
-    public MachineProcessor(@NotNull Logger logger,
-                            @NotNull EnergyServiceImpl energy,
-                            @NotNull MachineRecipeRegistry recipes,
-                            @NotNull dev.brmz.sapientia.core.block.ChunkBlockIndex chunkIndex) {
-        this.logger = logger;
+    public MachineProcessor(@NotNull EnergyServiceImpl energy, @NotNull MachineRecipeRegistry recipes) {
         this.energy = energy;
         this.recipes = recipes;
-        this.chunkIndex = chunkIndex;
     }
 
-    /** Scheduler entry — call once per machine tick (10 ticks recommended). */
-    public void tick() {
-        // Reap stale in-flight entries whose energy node has been removed
-        // (e.g. block broken). Cheap: bounded by inFlight size which is small.
-        if (!inFlight.isEmpty()) {
-            inFlight.keySet().removeIf(key -> energy.graph().nodeAt(key) == null);
-        }
-        for (SimpleEnergyNode node : energy.graph().nodes()) {
-            if (node.type() != dev.brmz.sapientia.api.energy.EnergyNodeType.CONSUMER) continue;
-            tickNode(node);
+    /** Registers the recipe behaviour for every block type that has machine recipes. */
+    public void registerBehaviors(@NotNull SapientiaEngine engine, @NotNull Iterable<SapientiaBlock> blocks) {
+        for (SapientiaBlock block : blocks) {
+            if (!recipes.recipesFor(block.id()).isEmpty() && !engine.isProcessor(block.id())) {
+                engine.registerBehavior(block.id(), RETRY_TICKS, context -> run(engine, block, context));
+            }
         }
     }
 
-    private void tickNode(SimpleEnergyNode node) {
-        BlockKey key = node.location();
-        World world = Bukkit.getWorld(key.world());
-        if (world == null) return;
-        Block block = world.getBlockAt(key.x(), key.y(), key.z());
-        SapientiaBlock def = chunkIndex.at(block);
-        if (def == null) return;
-        NamespacedKey machineId = def.id();
-        if (recipes.recipesFor(machineId).isEmpty()) return;
-
-        InFlight cur = inFlight.get(key);
-        if (cur == null) {
-            startRecipe(node, block, machineId);
-        } else {
-            advanceRecipe(node, block, key, cur);
+    private int run(SapientiaEngine engine, SapientiaBlock definition, MachineContext context) {
+        BlockKey key = engine.keyOf(context);
+        SimpleEnergyNode node = energy.graph().nodeAt(key);
+        Block block = engine.blockOf(context);
+        if (node == null || block == null || node.type() != EnergyNodeType.CONSUMER) {
+            inFlight.remove(key);
+            return MachineBehavior.idle(RETRY_TICKS);
         }
+        InFlight current = inFlight.get(key);
+        if (current != null) {
+            int result = complete(node, block, key, current);
+            if (result != 0) {
+                return result; // still waiting for energy or output space
+            }
+        }
+        return start(node, block, key, definition);
     }
 
-    private void startRecipe(SimpleEnergyNode node, Block block, NamespacedKey machineId) {
+    /** Starts the next recipe; returns the delay until it completes, or an idle result. */
+    private int start(SimpleEnergyNode node, Block block, BlockKey key, SapientiaBlock definition) {
         Inventory input = inventoryAt(block.getRelative(0, 1, 0));
-        if (input == null) return;
+        if (input == null) {
+            return MachineBehavior.idle(RETRY_TICKS);
+        }
         for (int slot = 0; slot < input.getSize(); slot++) {
             ItemStack candidate = input.getItem(slot);
             if (candidate == null || candidate.getAmount() <= 0) continue;
-            MachineRecipe recipe = recipes.findMatching(machineId, candidate);
+            MachineRecipe recipe = recipes.findMatching(definition.id(), candidate);
             if (recipe == null) continue;
-            if (node.bufferCurrent() < recipe.energyCost()) return;
-            inFlight.put(node.location(),
-                    new InFlight(recipe, slot, UUID.randomUUID().toString(), 0));
-            return;
+            if (node.bufferCurrent() < recipe.energyCost()) {
+                return RETRY_TICKS;
+            }
+            inFlight.put(key, new InFlight(recipe, slot));
+            return Math.max(1, recipe.ticksRequired() * MACHINE_TICK);
         }
+        return MachineBehavior.idle(RETRY_TICKS);
     }
 
-    private void advanceRecipe(SimpleEnergyNode node, Block block, BlockKey key, InFlight cur) {
-        int next = cur.ticksElapsed + 1;
-        if (next < cur.recipe.ticksRequired()) {
-            inFlight.put(key, new InFlight(cur.recipe, cur.inputSlot, cur.runId, next));
-            return;
-        }
-        if (node.bufferCurrent() < cur.recipe.energyCost()) {
-            return; // Wait for energy.
+    /**
+     * Finishes an in-flight recipe. Returns {@code 0} when it is done (or had to be
+     * abandoned) so the next one can start, or a retry delay while blocked.
+     */
+    private int complete(SimpleEnergyNode node, Block block, BlockKey key, InFlight current) {
+        MachineRecipe recipe = current.recipe();
+        if (node.bufferCurrent() < recipe.energyCost()) {
+            return RETRY_TICKS;
         }
         Inventory input = inventoryAt(block.getRelative(0, 1, 0));
         Inventory output = inventoryAt(block.getRelative(0, -1, 0));
-        if (input == null || output == null) {
+        ItemStack slotStack = input == null ? null : input.getItem(current.inputSlot());
+        if (output == null || slotStack == null || !recipe.matches(slotStack)) {
             inFlight.remove(key);
-            return;
+            return 0;
         }
-        ItemStack slotStack = input.getItem(cur.inputSlot);
-        if (!cur.recipe.matches(slotStack)) {
-            inFlight.remove(key);
-            return;
+        if (!output.addItem(recipe.output().clone()).isEmpty()) {
+            return RETRY_TICKS; // output full; input untouched
         }
-        ItemStack toAdd = cur.recipe.output().clone();
-        Map<Integer, ItemStack> rejected = output.addItem(toAdd);
-        if (!rejected.isEmpty()) {
-            return; // Output full; retry next tick.
+        slotStack.setAmount(slotStack.getAmount() - recipe.input().getAmount());
+        if (slotStack.getAmount() <= 0) {
+            input.setItem(current.inputSlot(), null);
         }
-        slotStack.setAmount(slotStack.getAmount() - cur.recipe.input().getAmount());
-        if (slotStack.getAmount() <= 0) input.setItem(cur.inputSlot, null);
-        node.draw(cur.recipe.energyCost());
+        node.draw(recipe.energyCost());
         inFlight.remove(key);
+        return 0;
     }
 
     private static Inventory inventoryAt(Block block) {
-        BlockState state = block.getState();
-        if (state instanceof InventoryHolder holder) {
-            return holder.getInventory();
-        }
-        return null;
+        BlockState state = block.getState(false);
+        return state instanceof InventoryHolder holder ? holder.getInventory() : null;
     }
 
-    /** Called when a machine block is broken so we abandon any in-flight recipe. */
+    /** Called when a machine block is broken so any in-flight recipe is dropped. */
     public void onBlockBroken(@NotNull BlockKey key) {
         inFlight.remove(key);
     }
 
-    public int inFlightCount() { return inFlight.size(); }
+    public int inFlightCount() {
+        return inFlight.size();
+    }
 
-    @SuppressWarnings("unused")
-    private Logger logger() { return logger; }
-
-    private record InFlight(MachineRecipe recipe, int inputSlot, String runId, int ticksElapsed) {}
+    private record InFlight(MachineRecipe recipe, int inputSlot) {}
 }

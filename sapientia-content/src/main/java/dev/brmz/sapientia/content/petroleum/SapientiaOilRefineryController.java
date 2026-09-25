@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
  * shape validation works and the player gets feedback sounds, but the refinery
  * tick (crude → diesel + gasoline + lubricant + tar) is deferred to 1.5.1. The
  * block does not yet register as a fluid node — that is added when the recipe
- * pipeline is wired in. See {@code docs/content-spec-T-41x.md}.
+ * pipeline is wired in. See {@code docs/internal/content-spec-T-41x.md}.
  */
 public final class SapientiaOilRefineryController implements SapientiaBlock {
 
@@ -34,6 +34,7 @@ public final class SapientiaOilRefineryController implements SapientiaBlock {
     @Override public @NotNull Material baseMaterial() { return Material.LOOM; }
     @Override public @NotNull String displayNameKey() { return "block.oil_refinery_controller.name"; }
     @Override public @NotNull GuideCategory guideCategory() { return GuideCategory.MACHINE; }
+    @Override public int chunkLimit() { return 1; }
 
     @Override
     public void onInteract(@NotNull SapientiaBlockInteractEvent event) {

@@ -1,6 +1,6 @@
 package dev.brmz.sapientia.api.machine;
 
-/** Lifecycle state of a {@link Machine}. See docs/api-spec.md §2.1. */
+/** Lifecycle state of a {@link Machine}. See docs/internal/api-spec.md §2.1. */
 public enum MachineState {
     /** Waiting for inputs, power or a recipe. */
     IDLE,

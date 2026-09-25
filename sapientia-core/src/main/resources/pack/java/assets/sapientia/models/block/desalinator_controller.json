@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "sapientia:block/desalinator_controller_front",
+    "top": "sapientia:block/desalinator_controller_top",
+    "side": "sapientia:block/desalinator_controller_side"
+  }
+}

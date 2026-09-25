@@ -37,5 +37,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: sapientia-core
-          path: sapientia-core/build/libs/*.jar
+          path: |
+            sapientia-core/build/libs/*.jar
+            !sapientia-core/build/libs/*-sources.jar
           if-no-files-found: warn

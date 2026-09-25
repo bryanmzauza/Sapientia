@@ -5,9 +5,6 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,35 +15,23 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Batches {@code custom_blocks} mutations from the main (or region) thread and flushes
- * them to SQLite from a single worker thread every {@link #FLUSH_INTERVAL_MS} ms.
- * Dedupes concurrent writes per {@link BlockKey} with last-write-wins semantics.
- * See docs/persistence-schema.md §7 and ROADMAP 0.2.0 (T-111).
+ * Batches {@code custom_blocks} mutations from the main (or region) thread; the
+ * {@link DatabaseWorker} flushes them to SQLite every
+ * {@link DatabaseWorker#FLUSH_INTERVAL_MS} ms. Dedupes concurrent writes per
+ * {@link BlockKey} with last-write-wins semantics.
+ * See docs/internal/persistence-schema.md §7.
  */
-public final class WriteBehindQueue {
-
-    /** Flush cadence, in milliseconds. Matches ADR-006 bucketing philosophy. */
-    public static final long FLUSH_INTERVAL_MS = 500L;
+public final class WriteBehindQueue implements DatabaseWorker.Flushable {
 
     private final Logger logger;
     private final DataSource dataSource;
     private final Map<BlockKey, Op> pending = new HashMap<>();
     private final Object lock = new Object();
-    private final ScheduledExecutorService scheduler;
+    private final Object flushLock = new Object();
 
     public WriteBehindQueue(@NotNull Logger logger, @NotNull DataSource dataSource) {
         this.logger = logger;
         this.dataSource = dataSource;
-        this.scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r, "Sapientia-WriteBehind");
-            t.setDaemon(true);
-            return t;
-        });
-    }
-
-    public void start() {
-        scheduler.scheduleWithFixedDelay(
-                this::flushSafely, FLUSH_INTERVAL_MS, FLUSH_INTERVAL_MS, TimeUnit.MILLISECONDS);
     }
 
     public void enqueuePut(@NotNull BlockKey key, @NotNull String itemId, @Nullable byte[] stateBlob) {
@@ -68,20 +53,12 @@ public final class WriteBehindQueue {
         }
     }
 
-    /** Forces a flush and waits for it to complete. Safe to call from any thread. */
-    public void flushNow() {
-        flushSafely();
-    }
-
-    /** Drains remaining operations synchronously and stops the scheduler. */
-    public void shutdown() {
-        scheduler.shutdown();
-        try {
-            scheduler.awaitTermination(2L, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+    /** Writes pending operations and waits for them to complete. Safe to call from any thread. */
+    @Override
+    public void flush() {
+        synchronized (flushLock) {
+            flushSafely();
         }
-        flushSafely();
     }
 
     private void flushSafely() {

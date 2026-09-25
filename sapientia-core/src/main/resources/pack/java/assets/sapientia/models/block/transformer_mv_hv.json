@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "sapientia:block/transformer_mv_hv_front",
+    "top": "sapientia:block/transformer_mv_hv_top",
+    "side": "sapientia:block/transformer_mv_hv_side"
+  }
+}

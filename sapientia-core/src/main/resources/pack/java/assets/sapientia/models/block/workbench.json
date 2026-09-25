@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "top": "sapientia:block/workbench_top",
+    "front": "sapientia:block/workbench_front",
+    "side": "sapientia:block/workbench_side"
+  }
+}

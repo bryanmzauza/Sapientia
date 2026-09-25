@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "sapientia:block/bench_saw_front",
+    "top": "sapientia:block/bench_saw_top",
+    "side": "sapientia:block/bench_saw_side"
+  }
+}

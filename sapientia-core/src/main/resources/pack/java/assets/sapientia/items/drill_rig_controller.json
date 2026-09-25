@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "sapientia:block/drill_rig_controller"
+  }
+}
