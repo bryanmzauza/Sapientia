@@ -9,8 +9,8 @@ overrides.
 
 Created and maintained by **[BRMZ.dev](https://brmz.dev)**.
 
-> **Status:** 1.11.0 is in development and no binary release has been published yet. See the
-> [roadmap](ROADMAP.md) for what comes next and the [changelog](CHANGELOG.md) for what exists.
+> **Status:** current version 1.11.0. See the [changelog](CHANGELOG.md) for what it contains and
+> the [roadmap](ROADMAP.md) for what comes next.
 
 ## Features
 

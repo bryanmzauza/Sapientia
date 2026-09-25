@@ -10,8 +10,10 @@ Versions 0.1.0 through 1.10.0 were development milestones; no binaries were publ
 
 ## [Unreleased]
 
-Planned as 1.11.0. Moves the plugin to Minecraft 26.3 and gives every built-in item and block its
-own texture on both Java and Bedrock.
+## [1.11.0] - 2026-09-25
+
+Moves the plugin to Minecraft 26.3 and gives every built-in item and block its own texture on both
+Java and Bedrock.
 
 ### Added
 
@@ -44,7 +46,7 @@ own texture on both Java and Bedrock.
   jar from about 15.7 MB to 2.2 MB. Paper was already the driver in use at runtime.
 - Custom model data is written through the data component API; behaviour is unchanged.
 - Development: the Gradle wrapper is now 9.8.0 and `run-paper` 3.1.0; `:sapientia-core:runServer`
-  starts Paper 26.3.
+  starts Paper 26.3. The CI artifact now contains only the plugin jar.
 
 ### Removed
 
@@ -56,6 +58,8 @@ own texture on both Java and Bedrock.
 - The Bedrock pack build message showed literal `<pack>` and `<mappings>` placeholders instead of
   the file paths.
 - `/sapientia help` did not list `/sapientia fluids`.
+- Guide icons showed the vanilla base item (for example sugar for dusts) instead of the Sapientia
+  texture. Category buttons on the first page now use representative Sapientia items.
 - The `sapientia.command.logistics` and `sapientia.command.fluids` permissions were checked but not
   declared in `plugin.yml`. They are now declared with the same default (op).
 

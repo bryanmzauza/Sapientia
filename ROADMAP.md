@@ -22,31 +22,6 @@ These apply to every milestone:
 
 ---
 
-## 1.11.0 — Minecraft 26.3 and textures · In progress
-
-**Goal.** Run on the current Minecraft release and give every built-in item and block its own look
-on Java and Bedrock.
-
-- [x] T-470 Target Paper 26.3 (`api-version: 26.3`), Gradle 9.8 and run-paper 3.1.
-- [x] T-471 Texture generator (`scripts/textures/`) and bundled textures for all 254 items and
-  blocks: Java item models and Bedrock icons.
-- [x] T-472 Items carry the `minecraft:item_model` component (`resource-pack.item-models`).
-- [x] T-473 Resource pack pipeline: bundled assets merged with operator overrides, generated
-  `pack.mcmeta` (format 97), stable SHA-1 reported to operators.
-- [x] T-474 Bedrock pack with textures and icons, Geyser mappings in format 2, automatic install
-  into a local Geyser, manifest version tied to the plugin version.
-- [x] T-475 Fixes found in the 26.3 smoke test (reload confirmation, Bedrock pack message).
-- [x] T-476 Use the SQLite driver provided by Paper instead of embedding it.
-- [ ] T-477 In-game check on a Java client with the pack applied: textures render, placed blocks
-  still work, inventories and the guide show the new icons.
-- [ ] T-478 In-game check on a Bedrock client through Geyser: icons and names appear.
-- [ ] T-479 Release: drop `-SNAPSHOT`, tag `v1.11.0`.
-
-**Exit criteria.** The plugin enables on Paper 26.3 without errors; both packs build and load in
-their clients; every built-in item shows its texture on Java and Bedrock.
-
----
-
 ## 1.12.0 — World generation and progression · Planned
 
 **Goal.** A survival world can progress from vanilla materials to high-voltage machines without
@@ -61,6 +36,8 @@ admin commands. Today the ten raw metals are only obtainable through `/sapientia
   slurry.
 - T-484 Persist machine recipe progress across restarts.
 - T-485 Benchmarks for machine processing and the quarry tick budget.
+- T-486 Verify the bundled textures on a Bedrock client through Geyser (icons and names), which
+  was not covered by the 1.11.0 release checks.
 
 **Exit criteria.** On a new world with default settings, every item needed to build an HV laser
 cutter can be obtained by playing; quarry and machine ticks stay within the tick budget.
@@ -159,6 +136,7 @@ Details for each version are in [CHANGELOG.md](CHANGELOG.md).
 
 | Version | Theme | Highlights |
 |---------|-------|------------|
+| 1.11.0 | Platform | Minecraft 26.3; bundled textures for all items and blocks; Java and Bedrock pack pipeline |
 | 1.10.0 | Guide | Category-based guide navigation; descriptions for hard-to-find items |
 | 1.9.1 | Androids | Android behaviour, upgrade effects, program selector |
 | 1.9.0 | Androids | Eight android types, sixteen upgrades, placement caps |

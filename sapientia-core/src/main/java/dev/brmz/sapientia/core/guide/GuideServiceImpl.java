@@ -222,7 +222,7 @@ public final class GuideServiceImpl implements GuideService {
         }
 
         private ItemStack headerBook() {
-            ItemStack stack = new ItemStack(Material.WRITTEN_BOOK);
+            ItemStack stack = sapientiaIcon(new NamespacedKey("sapientia", "guide"), Material.WRITTEN_BOOK);
             ItemMeta meta = stack.getItemMeta();
             if (meta != null) {
                 meta.displayName(messages.component("guide.index.header.name").style(noItalic()));
@@ -233,7 +233,7 @@ public final class GuideServiceImpl implements GuideService {
         }
 
         private ItemStack renderCategoryButton(GuideCategory cat) {
-            ItemStack stack = new ItemStack(categoryIcon(cat));
+            ItemStack stack = categoryIcon(cat);
             ItemMeta meta = stack.getItemMeta();
             if (meta != null) {
                 meta.displayName(messages.component(categoryNameKey(cat)).style(noItalic()));
@@ -333,7 +333,7 @@ public final class GuideServiceImpl implements GuideService {
         }
 
         private ItemStack categoryHeader(GuideCategory cat, int page, int totalPages, int totalEntries) {
-            ItemStack stack = new ItemStack(categoryIcon(cat));
+            ItemStack stack = categoryIcon(cat);
             ItemMeta meta = stack.getItemMeta();
             if (meta != null) {
                 meta.displayName(messages.component(categoryNameKey(cat)).style(noItalic()));
@@ -389,7 +389,7 @@ public final class GuideServiceImpl implements GuideService {
         }
 
         private ItemStack renderIndexEntry(GuideEntry entry) {
-            ItemStack stack = new ItemStack(entry.icon());
+            ItemStack stack = sapientiaIcon(entry.id(), entry.icon());
             ItemMeta meta = stack.getItemMeta();
             if (meta != null) {
                 meta.displayName(messages.component(entry.displayNameKey()).style(noItalic()));
@@ -480,7 +480,7 @@ public final class GuideServiceImpl implements GuideService {
         }
 
         private ItemStack headerIcon(GuideEntry entry) {
-            ItemStack stack = new ItemStack(entry.icon());
+            ItemStack stack = sapientiaIcon(entry.id(), entry.icon());
             ItemMeta meta = stack.getItemMeta();
             if (meta != null) {
                 meta.displayName(messages.component(entry.displayNameKey()).style(noItalic()));
@@ -724,18 +724,35 @@ public final class GuideServiceImpl implements GuideService {
         return "guide.category." + cat.name().toLowerCase(Locale.ROOT) + ".lore";
     }
 
-    private static final Map<GuideCategory, Material> CATEGORY_ICONS = new EnumMap<>(GuideCategory.class);
+    /** Representative built-in item per category, with a vanilla fallback when it is not registered. */
+    private record CategoryIcon(NamespacedKey item, Material fallback) {}
+
+    private static final Map<GuideCategory, CategoryIcon> CATEGORY_ICONS = new EnumMap<>(GuideCategory.class);
     static {
-        CATEGORY_ICONS.put(GuideCategory.MATERIAL,  Material.IRON_INGOT);
-        CATEGORY_ICONS.put(GuideCategory.TOOL,      Material.IRON_PICKAXE);
-        CATEGORY_ICONS.put(GuideCategory.MACHINE,   Material.FURNACE);
-        CATEGORY_ICONS.put(GuideCategory.ENERGY,    Material.REDSTONE);
-        CATEGORY_ICONS.put(GuideCategory.LOGISTICS, Material.HOPPER);
-        CATEGORY_ICONS.put(GuideCategory.MISC,      Material.BOOK);
+        CATEGORY_ICONS.put(GuideCategory.MATERIAL,  categoryIcon("copper_ingot", Material.IRON_INGOT));
+        CATEGORY_ICONS.put(GuideCategory.TOOL,      categoryIcon("wrench", Material.IRON_PICKAXE));
+        CATEGORY_ICONS.put(GuideCategory.MACHINE,   categoryIcon("macerator", Material.FURNACE));
+        CATEGORY_ICONS.put(GuideCategory.ENERGY,    categoryIcon("generator", Material.REDSTONE));
+        CATEGORY_ICONS.put(GuideCategory.LOGISTICS, categoryIcon("item_cable", Material.HOPPER));
+        CATEGORY_ICONS.put(GuideCategory.MISC,      categoryIcon("guide", Material.BOOK));
     }
 
-    private static Material categoryIcon(GuideCategory cat) {
-        return CATEGORY_ICONS.getOrDefault(cat, Material.BOOK);
+    private static CategoryIcon categoryIcon(String item, Material fallback) {
+        return new CategoryIcon(new NamespacedKey("sapientia", item), fallback);
+    }
+
+    private static ItemStack categoryIcon(GuideCategory cat) {
+        CategoryIcon icon = CATEGORY_ICONS.get(cat);
+        return icon == null ? new ItemStack(Material.BOOK) : sapientiaIcon(icon.item(), icon.fallback());
+    }
+
+    /**
+     * Display stack for a Sapientia item, built through the item registry so it
+     * carries the item's bundled model. Falls back to the plain base material
+     * for ids that are not registered items (callers overwrite name and lore).
+     */
+    private static ItemStack sapientiaIcon(NamespacedKey id, Material fallback) {
+        return Sapientia.get().createStack(id, 1).orElseGet(() -> new ItemStack(fallback));
     }
 
     private static List<Component> splitLore(String raw, NamedTextColor color) {
