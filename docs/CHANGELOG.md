@@ -10,7 +10,49 @@ Versions 0.1.0 through 1.10.0 were development milestones; no binaries were publ
 
 ## [Unreleased]
 
-Fixes and additions to era 0, planned as **2.0.3**.
+Era 1 (Stone Age), planned as **2.1.0**: farming, flint tools, the charcoal pit and the clay
+furnace. Its content unlocks when the server reaches era 1; the clay furnace leads to era 2.
+
+### Added
+
+- Flint knife (64 uses): cutting grass and ferns with it may drop plant fibre (30%) and wild seeds
+  (10%): flax in plains, medicinal herb in forests.
+- Two Sapientia plants grown on farmland like vanilla crops: flax and medicinal herb. Harvests
+  drop their own produce and seeds.
+- Food and remedies: hand quern (wheat into flour, by hand), bread dough, flour bread (fills 1.5
+  times as much as vanilla bread), herbal tea (Regeneration I for 10 s), healing salve (3 hearts,
+  30 s cooldown) and compost (advances every crop in a 3x3 by one stage).
+- Charcoal pit: 16 logs from a container above become 24 charcoal and 4 wood ash in a container
+  below, in 4 minutes. The pit is lit only while burning.
+- Wood ash, bucket of lye and potash; fire clay and fire bricks.
+- Stone hammer, the first workbench tool: cobblestone into gravel and gravel into sand.
+- Clay furnace, the gateway to era 2: a blast furnace that burns only coal and charcoal and smelts
+  the crushed ores and alloy mixes that arrive from era 2. Its window and hoppers work as vanilla,
+  on Java and Bedrock.
+- Fibre basket: a 9-slot container that keeps its contents when broken.
+- Sapientia items smelted in vanilla furnaces (bread dough, lye, fire clay). The guide shows these
+  recipes and where they run.
+- Per-chunk limits: 16 hand querns, 8 charcoal pits, 16 clay furnaces.
+- API:
+  - `SmeltingRecipe` with `RecipeRegistry#registerSmelting`, for vanilla furnaces or one Sapientia
+    furnace block.
+  - `WildDrop` and `PlantService#registerWildDrop`.
+  - `SapientiaItem#toolUses()`, `#vanillaUse()` and `#customizeStack(ItemStack)`.
+  - `SapientiaBlock#vanillaInteraction()` and `#furnaceFuels()`.
+  - `SapientiaItemInteractEvent#clickedBlock()`.
+
+### Changed
+
+- Sneaking with a block in hand places it against a Sapientia block, as in vanilla, instead of
+  using the block. This makes it easier to put containers above and below machines.
+- Water buckets and potions used on the Sapientia Workbench give back the empty bucket or bottle,
+  unless the result keeps the container (a bucket of lye).
+- Sapientia blocks standing on a dropper or dispenser never dispense.
+- The guide's text for items without a recipe now points to the item's description.
+
+## [2.0.3] - 2026-09-25
+
+Fixes and additions to era 0.
 
 ### Added
 

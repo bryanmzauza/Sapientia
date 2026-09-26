@@ -421,9 +421,15 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         geoTicker.registerBehaviors(engine);
         logisticsTicker.registerBehaviors(engine);
         machineProcessor.registerBehaviors(engine, blockRegistry.all().values());
+        if (blockRegistry.find(dev.brmz.sapientia.core.machine.CharcoalPitProcessor.BLOCK_ID).isPresent()) {
+            new dev.brmz.sapientia.core.machine.CharcoalPitProcessor(itemRegistry, "sapientia:wood_ash")
+                    .register(engine);
+        }
 
         // Era 0: vanilla crafting table recipes (guide, workbench), in every recipe book.
         java.util.List<NamespacedKey> vanillaRecipes = recipeRegistry.installVanilla(getLogger());
+        recipeRegistry.installSmelting(getLogger(),
+                id -> blockRegistry.find(id).map(SapientiaBlock::baseMaterial).orElse(null));
         getServer().getPluginManager().registerEvents(new dev.brmz.sapientia.core.guide.ArrivalListener(
                 itemRegistry, messages, progression, vanillaRecipes,
                 getConfig().getBoolean("progression.give-guide-on-join", true),
@@ -502,6 +508,7 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         }
         if (recipeRegistry != null) {
             recipeRegistry.uninstallVanilla();
+            recipeRegistry.uninstallSmelting();
         }
         if (energyExecutor != null) {
             energyExecutor.shutdown();
@@ -658,7 +665,10 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
 
     private void registerProgressionListeners() {
         org.bukkit.plugin.PluginManager pm = getServer().getPluginManager();
-        pm.registerEvents(new EraLockListener(progression, itemRegistry, messages), this);
+        pm.registerEvents(new EraLockListener(progression, itemRegistry, messages,
+                key -> recipeRegistry.smeltingRecipe(key) != null), this);
+        pm.registerEvents(new dev.brmz.sapientia.core.crafting.FurnaceListener(
+                this, chunkBlockIndex, recipeRegistry, itemRegistry, progression), this);
         pm.registerEvents(new ResearchListener(progression, itemRegistry, messages, this::recipeNameKey), this);
         for (org.bukkit.entity.Player online : getServer().getOnlinePlayers()) {
             progression.load(online.getUniqueId(), () -> { }); // reload case: players already online
@@ -746,7 +756,10 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
         dev.brmz.sapientia.api.crafting.SapientiaRecipe recipe = recipeRegistry.find(id).orElse(null);
         if (recipe != null) {
             NamespacedKey result = keyOf(itemRegistry.idOf(recipe.result()));
-            return result == null ? null : progression.eraOf(result);
+            if (result != null) return progression.eraOf(result);
+            // A vanilla result: bundled recipes declare their era by recipe id.
+            return "sapientia".equals(id.getNamespace())
+                    ? dev.brmz.sapientia.content.ContentEras.find(id.getKey()) : null;
         }
         return null;
     }
@@ -786,9 +799,14 @@ public final class SapientiaPlugin extends JavaPlugin implements SapientiaAPI {
     private void checkEraCoherence() {
         java.util.List<EraCoherence.Recipe> recipes = new java.util.ArrayList<>();
         for (ResearchBook.Entry entry : researchEntries()) {
-            if (entry.result() != null) {
-                recipes.add(new EraCoherence.Recipe(entry.recipe().toString(), entry.result(), entry.prerequisites()));
-            }
+            // Recipes with a vanilla result take the era of the recipe itself.
+            NamespacedKey result = entry.result() != null ? entry.result() : entry.recipe();
+            recipes.add(new EraCoherence.Recipe(entry.recipe().toString(), result, entry.prerequisites()));
+        }
+        for (dev.brmz.sapientia.api.crafting.SmeltingRecipe recipe : recipeRegistry.smeltingRecipes()) {
+            java.util.List<NamespacedKey> needs = recipe.furnace() == null
+                    ? java.util.List.of(recipe.input()) : java.util.List.of(recipe.input(), recipe.furnace());
+            recipes.add(new EraCoherence.Recipe(recipe.id().toString(), recipe.result(), needs));
         }
         for (dev.brmz.sapientia.api.machine.MachineRecipe recipe : machineRecipes.all()) {
             NamespacedKey output = keyOf(itemRegistry.idOf(recipe.output()));

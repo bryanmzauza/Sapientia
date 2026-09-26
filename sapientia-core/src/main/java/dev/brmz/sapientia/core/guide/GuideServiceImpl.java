@@ -16,6 +16,7 @@ import java.util.function.Consumer;
 import dev.brmz.sapientia.api.Sapientia;
 import dev.brmz.sapientia.api.crafting.RecipeIngredient;
 import dev.brmz.sapientia.api.crafting.SapientiaRecipe;
+import dev.brmz.sapientia.api.crafting.SmeltingRecipe;
 import dev.brmz.sapientia.api.crafting.VanillaRecipe;
 import dev.brmz.sapientia.api.guide.GuideCategory;
 import dev.brmz.sapientia.api.guide.GuideEntry;
@@ -659,6 +660,14 @@ public final class GuideServiceImpl implements GuideService {
                     result.setItemMeta(meta);
                 }
                 inventory.setItem(DETAIL_RESULT_SLOT, result);
+            } else if (findSmeltingFor(entry.id()) != null) {
+                SmeltingRecipe smelting = findSmeltingFor(entry.id());
+                inventory.setItem(DETAIL_RECIPE_SLOTS[4],
+                        renderIngredient(RecipeIngredient.of(smelting.input())));
+                inventory.setItem(DETAIL_ARROW_SLOT, smeltingArrow(smelting));
+                ItemStack result = Sapientia.get().createStack(smelting.result(), smelting.amount())
+                        .orElseGet(() -> new ItemStack(entry.icon()));
+                inventory.setItem(DETAIL_RESULT_SLOT, result);
             } else {
                 ItemStack noRecipe = new ItemStack(Material.BARRIER);
                 ItemMeta meta = noRecipe.getItemMeta();
@@ -750,6 +759,18 @@ public final class GuideServiceImpl implements GuideService {
             if (meta != null) {
                 meta.displayName(messages.component("guide.detail.vanilla.name").style(noItalic()));
                 meta.lore(splitLore(messages.plain("guide.detail.vanilla.lore"), NamedTextColor.GRAY));
+                stack.setItemMeta(meta);
+            }
+            return stack;
+        }
+
+        private ItemStack smeltingArrow(SmeltingRecipe recipe) {
+            ItemStack stack = recipe.furnace() == null ? new ItemStack(Material.FURNACE)
+                    : sapientiaIcon(recipe.furnace(), Material.BLAST_FURNACE);
+            ItemMeta meta = stack.getItemMeta();
+            if (meta != null) {
+                meta.displayName(messages.component("guide.detail.smelting.name").style(noItalic()));
+                meta.lore(List.of(smeltingLine(recipe).decoration(TextDecoration.ITALIC, false)));
                 stack.setItemMeta(meta);
             }
             return stack;
@@ -922,6 +943,12 @@ public final class GuideServiceImpl implements GuideService {
                 body.append('\n').append(dev.brmz.sapientia.core.i18n.TextAdapter.toPlainBedrock(
                         messages.component("guide.detail.yields",
                                 Placeholder.parsed("amount", Integer.toString(vanilla.amount())))));
+            } else if (findSmeltingFor(entry.id()) != null) {
+                SmeltingRecipe smelting = findSmeltingFor(entry.id());
+                body.append(dev.brmz.sapientia.core.i18n.TextAdapter.toPlainBedrock(
+                                messages.component("guide.detail.smelting.name"))).append('\n')
+                        .append("• ").append(describeIngredient(RecipeIngredient.of(smelting.input()))).append('\n')
+                        .append(dev.brmz.sapientia.core.i18n.TextAdapter.toPlainBedrock(smeltingLine(smelting)));
             } else {
                 body.append(messages.plain("guide.detail.recipe.none"));
             }
@@ -946,6 +973,23 @@ public final class GuideServiceImpl implements GuideService {
     }
 
     // -- helpers ---------------------------------------------------------------
+
+    /** The furnace recipe that makes {@code itemId}, if any. */
+    private static @Nullable SmeltingRecipe findSmeltingFor(NamespacedKey itemId) {
+        for (SmeltingRecipe recipe : Sapientia.get().recipes().smeltingRecipes()) {
+            if (recipe.result().equals(itemId)) return recipe;
+        }
+        return null;
+    }
+
+    /** Where a furnace recipe runs: any vanilla furnace, or one Sapientia furnace. */
+    private Component smeltingLine(SmeltingRecipe recipe) {
+        if (recipe.furnace() == null) return messages.component("guide.detail.smelting.vanilla");
+        Component furnace = Sapientia.get().findBlock(recipe.furnace())
+                .map(b -> messages.component(b.displayNameKey()))
+                .orElse(Component.text(recipe.furnace().getKey()));
+        return messages.component("guide.detail.smelting.in", Placeholder.component("furnace", furnace));
+    }
 
     /** The vanilla crafting table recipe that makes {@code itemId}, if any. */
     private static @org.jetbrains.annotations.Nullable VanillaRecipe findVanillaFor(NamespacedKey itemId) {

@@ -161,7 +161,32 @@ public final class ItemRegistry {
         Effective eff = effective(def);
         ItemStack stack = new ItemStack(eff.material(), Math.max(1, amount));
         stack.editMeta(meta -> stamp(meta, def, eff));
+        customize(stack, def);
         return stack;
+    }
+
+    private void customize(ItemStack stack, ItemDefinition def) {
+        NamespacedKey key = NamespacedKey.fromString(def.id());
+        SapientiaItem item = key == null ? null : sapientiaItems.get(key);
+        if (item != null) item.customizeStack(stack);
+    }
+
+    /**
+     * Takes one use off a tool stack (workbench or hand tool). Returns the worn
+     * stack, or {@code null} when it breaks (the break sound is played).
+     */
+    public static @Nullable ItemStack wear(@NotNull org.bukkit.entity.Player player, @NotNull ItemStack tool) {
+        if (!(tool.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable meta) || !meta.hasMaxDamage()) {
+            return tool; // an old stack without durability: refreshed on the next inventory update
+        }
+        int damage = meta.getDamage() + 1;
+        if (damage >= meta.getMaxDamage()) {
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ITEM_BREAK, 1f, 1f);
+            return null;
+        }
+        meta.setDamage(damage);
+        tool.setItemMeta(meta);
+        return tool;
     }
 
     /**
@@ -178,6 +203,7 @@ public final class ItemRegistry {
         if (stamped != null && stamped == revision) return false;
         Effective eff = effective(def);
         stack.editMeta(meta -> stamp(meta, def, eff));
+        customize(stack, def);
         return true;
     }
 
@@ -194,9 +220,11 @@ public final class ItemRegistry {
             lore.add(messages.component(loreKey).style(plain));
         }
         SapientiaItem item = key == null ? null : sapientiaItems.get(key);
-        int toolUses = item == null ? 0 : item.benchToolUses();
+        int benchUses = item == null ? 0 : item.benchToolUses();
+        int handUses = item == null ? 0 : item.toolUses();
+        int toolUses = Math.max(benchUses, handUses);
         if (toolUses > 0) {
-            lore.add(messages.component("workbench.tool",
+            lore.add(messages.component(benchUses > 0 ? "workbench.tool" : "workbench.hand-tool",
                     net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.unparsed("uses",
                             Integer.toString(toolUses))).style(plain));
             meta.setMaxStackSize(1);

@@ -8,6 +8,60 @@
     "sapientia.guide": {
       "textures": "textures/items/guide"
     },
+    "sapientia.flint_knife": {
+      "textures": "textures/items/flint_knife"
+    },
+    "sapientia.stone_hammer": {
+      "textures": "textures/items/stone_hammer"
+    },
+    "sapientia.plant_fiber": {
+      "textures": "textures/items/plant_fiber"
+    },
+    "sapientia.flax_seeds": {
+      "textures": "textures/items/flax_seeds"
+    },
+    "sapientia.flax": {
+      "textures": "textures/items/flax"
+    },
+    "sapientia.herb_seeds": {
+      "textures": "textures/items/herb_seeds"
+    },
+    "sapientia.medicinal_herb": {
+      "textures": "textures/items/medicinal_herb"
+    },
+    "sapientia.flour": {
+      "textures": "textures/items/flour"
+    },
+    "sapientia.bread_dough": {
+      "textures": "textures/items/bread_dough"
+    },
+    "sapientia.flour_bread": {
+      "textures": "textures/items/flour_bread"
+    },
+    "sapientia.herbal_tea": {
+      "textures": "textures/items/herbal_tea"
+    },
+    "sapientia.healing_salve": {
+      "textures": "textures/items/healing_salve"
+    },
+    "sapientia.compost": {
+      "textures": "textures/items/compost"
+    },
+    "sapientia.wood_ash": {
+      "textures": "textures/items/wood_ash"
+    },
+    "sapientia.lye_bucket": {
+      "textures": "textures/items/lye_bucket"
+    },
+    "sapientia.potash": {
+      "textures": "textures/items/potash"
+    },
+    "sapientia.fire_clay": {
+      "textures": "textures/items/fire_clay"
+    },
+    "sapientia.fire_brick": {
+      "textures": "textures/items/fire_brick"
+    },
     "sapientia.era_almanac": {
       "textures": "textures/items/era_almanac"
     },
@@ -34,6 +88,18 @@
     },
     "sapientia.consumer": {
       "textures": "textures/items/consumer"
+    },
+    "sapientia.hand_quern": {
+      "textures": "textures/items/hand_quern"
+    },
+    "sapientia.charcoal_pit": {
+      "textures": "textures/items/charcoal_pit"
+    },
+    "sapientia.clay_furnace": {
+      "textures": "textures/items/clay_furnace"
+    },
+    "sapientia.fiber_basket": {
+      "textures": "textures/items/fiber_basket"
     },
     "sapientia.workbench": {
       "textures": "textures/items/workbench"

@@ -137,6 +137,60 @@ item:
     name: "<gold>Guia Sapientia</gold>"
     lore: "<gray>Clique direito para abrir o guia.</gray>"
     desc: "Seu manual de campo. Abre uma UI em bau listando todos\nos itens, blocos e receitas Sapientia desbloqueados."
+  flint_knife:
+    name: "<white>Faca de Sílex</white>"
+    desc: "Corte grama e samambaia com ela: 30% de chance de\nfibra vegetal, 10% de semente silvestre (linho em\nplanícies, erva medicinal em florestas). 64 usos."
+  stone_hammer:
+    name: "<white>Martelo de Pedra</white>"
+    desc: "Ferramenta de bancada. Acima de pedregulho dá\ncascalho, acima de cascalho dá areia; a partir da\nera 2 tritura fragmentos de mineral. 64 usos."
+  plant_fiber:
+    name: "<green>Fibra Vegetal</green>"
+    desc: "Cortada da grama com a faca de sílex. 3 fibras\nfazem um barbante; também cestos e o martelo."
+  flax_seeds:
+    name: "<yellow>Sementes de Linho</yellow>"
+    desc: "Plante em terra arada. Encontradas com a faca de\nsílex em planícies e devolvidas na colheita."
+  flax:
+    name: "<yellow>Linho</yellow>"
+    desc: "Colhido do linho maduro. A fibra vira tecido na\nera 2."
+  herb_seeds:
+    name: "<green>Sementes de Erva Medicinal</green>"
+    desc: "Plante em terra arada. Encontradas com a faca de\nsílex em florestas e devolvidas na colheita."
+  medicinal_herb:
+    name: "<green>Erva Medicinal</green>"
+    desc: "Colhida da erva madura. Faz chá medicinal e\npomada curativa."
+  flour:
+    name: "<white>Farinha</white>"
+    desc: "Trigo moído na mó manual (3 cliques por farinha).\nFaz massa de pão."
+  bread_dough:
+    name: "<gold>Massa de Pão</gold>"
+    desc: "Asse numa fornalha vanilla para ter pão de farinha."
+  flour_bread:
+    name: "<gold>Pão de Farinha</gold>"
+    desc: "Sacia uma vez e meia o pão vanilla."
+  herbal_tea:
+    name: "<green>Chá Medicinal</green>"
+    desc: "Beba para ter Regeneração I por 10 segundos."
+  healing_salve:
+    name: "<red>Pomada Curativa</red>"
+    desc: "Clique direito para recuperar 3 corações. 30\nsegundos entre usos."
+  compost:
+    name: "<dark_green>Composto</dark_green>"
+    desc: "Clique direito numa plantação: toda planta em\ncrescimento no 3x3 em volta avança um estágio."
+  wood_ash:
+    name: "<gray>Cinza de Madeira</gray>"
+    desc: "Sobra da carvoaria. Faz lixívia; adubo na era 2."
+  lye_bucket:
+    name: "<gray>Balde de Lixívia</gray>"
+    desc: "Ferva numa fornalha vanilla para ter potassa; o\nbalde vazio fica na fornalha."
+  potash:
+    name: "<white>Potassa</white>"
+    desc: "Adubo na era 2, sabão e vidro na era 7."
+  fire_clay:
+    name: "<gold>Argila Refratária</gold>"
+    desc: "Queime numa fornalha vanilla para ter um tijolo\nrefratário."
+  fire_brick:
+    name: "<gold>Tijolo Refratário</gold>"
+    desc: "Reveste os fornos até a era 8, a começar pelo\nforno de argila."
   era_almanac:
     name: "<gold>Almanaque das Eras</gold>"
     lore: "<gray>Clique direito para ver o que cada era traz.</gray>"
@@ -169,6 +223,18 @@ block:
   consumer:
     name: "<red>Consumidor Sapientia</red>"
     desc: "Consome energia a cada tick. Usado para verificar\nse sua rede esta gerando e entregando energia."
+  hand_quern:
+    name: "<white>Mó Manual</white>"
+    desc: "Clique direito com trigo na mão: a cada três\ncliques, um trigo vira farinha. Até 16 por chunk."
+  charcoal_pit:
+    name: "<gold>Carvoaria</gold>"
+    desc: "Queima lenta: 16 toras de um baú acima viram 24\ncarvões vegetais e 4 cinzas num baú abaixo, em 4\nminutos. Acesa enquanto queima. Até 8 por chunk."
+  clay_furnace:
+    name: "<gold>Forno de Argila</gold>"
+    desc: "Funde minérios triturados e misturas de liga das\neras 2 a 4 (20 s cada). Só queima carvão e carvão\nvegetal; funis funcionam como num alto-forno. Até\n16 por chunk."
+  fiber_basket:
+    name: "<green>Cesto de Fibra</green>"
+    desc: "Recipiente de 9 espaços que mantém o conteúdo\nquando quebrado. Funis enchem e esvaziam."
   workbench:
     name: "<gold>Bancada Sapientia</gold>"
     desc: "Grade 3x3 do Sapientia. Clique direito para abrir\ne montar as receitas empacotadas."
@@ -485,8 +551,12 @@ guide:
     title: "<gold>Guia</gold> <gray>·</gray> <white><name></white>"
     recipe:
       header: "<aqua><bold>Receita</bold></aqua>"
-      none: "<gray>Este item nao possui receita.\nObtenha por drops no mundo, pelo\ncomando /sapientia give ou via admin.</gray>"
+      none: "<gray>Este item não tem receita.\nEle vem do mundo, de uma máquina\nou de uma ferramenta: veja a descrição.</gray>"
     yields: "<gray>Produz <white><amount>x</white> por craft.</gray>"
+    smelting:
+      name: "<gold><bold>Fornalha</bold></gold>"
+      vanilla: "<gray>Funda numa fornalha vanilla.</gray>"
+      in: "<gray>Funda no <white><furnace></white>.</gray>"
     vanilla:
       name: "<aqua><bold>Mesa de trabalho vanilla</bold></aqua>"
       lore: "<gray>Feito numa mesa de trabalho comum,
@@ -1265,3 +1335,4 @@ mineral:
 
 workbench:
   tool: "<gray>Ferramenta de bancada: <white><uses></white> usos, não é consumida</gray>"
+  hand-tool: "<gray>Ferramenta: <white><uses></white> usos</gray>"

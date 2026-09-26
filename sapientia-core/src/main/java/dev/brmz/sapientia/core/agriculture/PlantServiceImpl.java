@@ -1,15 +1,18 @@
 package dev.brmz.sapientia.core.agriculture;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 import dev.brmz.sapientia.api.agriculture.PlantService;
 import dev.brmz.sapientia.api.agriculture.SapientiaPlant;
+import dev.brmz.sapientia.api.agriculture.WildDrop;
 import dev.brmz.sapientia.api.agriculture.WildSeedSource;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -23,6 +26,7 @@ public final class PlantServiceImpl implements PlantService {
     private final Map<NamespacedKey, SapientiaPlant> plants = new LinkedHashMap<>();
     private final Map<NamespacedKey, SapientiaPlant> bySeed = new LinkedHashMap<>();
     private final Set<Material> wildHosts = EnumSet.noneOf(Material.class);
+    private final List<WildDrop> wildDrops = new ArrayList<>();
 
     public PlantServiceImpl(@NotNull PlantTracker tracker) {
         this.tracker = tracker;
@@ -41,6 +45,17 @@ public final class PlantServiceImpl implements PlantService {
         for (WildSeedSource source : plant.wildSources()) {
             wildHosts.addAll(source.hosts());
         }
+    }
+
+    @Override
+    public void registerWildDrop(@NotNull WildDrop drop) {
+        wildDrops.add(drop);
+        wildHosts.addAll(drop.source().hosts());
+    }
+
+    /** Items dropped by wild vegetation, in registration order. */
+    public @NotNull List<WildDrop> wildDrops() {
+        return Collections.unmodifiableList(wildDrops);
     }
 
     @Override

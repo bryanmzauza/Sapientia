@@ -7,6 +7,7 @@ import dev.brmz.sapientia.api.guide.GuideCategory;
 import dev.brmz.sapientia.api.progression.Era;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -55,6 +56,31 @@ public interface SapientiaItem {
     default int benchToolUses() {
         return 0;
     }
+
+    /**
+     * Uses of a hand tool (for example a flint knife): the stack does not stack,
+     * shows a durability bar and loses one use each time the tool does its job.
+     * Defaults to {@code 0} (not a hand tool).
+     */
+    default int toolUses() {
+        return 0;
+    }
+
+    /**
+     * Whether right-clicking with this item keeps its vanilla behaviour: planting
+     * a seed, eating food, drinking. By default Sapientia items have no vanilla
+     * right-click action and only {@link #onUse(SapientiaItemInteractEvent)} runs.
+     */
+    default boolean vanillaUse() {
+        return false;
+    }
+
+    /**
+     * Adjusts a freshly made or refreshed stack of this item, after the core has
+     * written its name, lore and model: food values, potion effects and other
+     * item components. The default does nothing.
+     */
+    default void customizeStack(@NotNull ItemStack stack) {}
 
     /** Whether this item appears in the guide before being unlocked. Defaults to {@code true}. */
     default boolean discoveredByDefault() {

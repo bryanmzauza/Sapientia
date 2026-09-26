@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "top": "sapientia:block/hand_quern_top",
+    "front": "sapientia:block/hand_quern_front",
+    "side": "sapientia:block/hand_quern_side"
+  }
+}

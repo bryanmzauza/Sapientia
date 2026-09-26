@@ -61,6 +61,24 @@ public interface SapientiaBlock {
         return true;
     }
 
+    /**
+     * Whether right-clicking the block keeps its vanilla behaviour, for blocks
+     * whose vanilla container is their interface (a furnace, a dropper). When
+     * {@code true}, {@link #onInteract(SapientiaBlockInteractEvent)} is not
+     * called. Defaults to {@code false}.
+     */
+    default boolean vanillaInteraction() {
+        return false;
+    }
+
+    /**
+     * For blocks on a vanilla furnace, blast furnace or smoker: the fuels they
+     * accept. Empty (the default) accepts every vanilla fuel.
+     */
+    default @NotNull java.util.Set<org.bukkit.Material> furnaceFuels() {
+        return java.util.Set.of();
+    }
+
     /** Invoked after the block was successfully placed and persisted. */
     default void onPlace(@NotNull SapientiaBlockPlaceEvent event) {}
 

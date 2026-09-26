@@ -124,6 +124,14 @@ public final class BlockLifecycleListener implements Listener {
         }
     }
 
+    /** Sapientia blocks standing on a dropper or dispenser never dispense. */
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onDispense(@NotNull org.bukkit.event.block.BlockDispenseEvent event) {
+        if (index.at(event.getBlock()) != null) {
+            event.setCancelled(true);
+        }
+    }
+
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = false)
     public void onInteract(@NotNull PlayerInteractEvent event) {
         // PlayerInteractEvent fires once per hand. We only react to the main-hand
@@ -148,6 +156,13 @@ public final class BlockLifecycleListener implements Listener {
                 return;
             }
             SapientiaBlock def = index.at(clicked);
+            if (def != null && action == Action.RIGHT_CLICK_BLOCK && def.vanillaInteraction()) {
+                return; // its vanilla container is its interface (furnace, dropper)
+            }
+            if (def != null && action == Action.RIGHT_CLICK_BLOCK && event.getPlayer().isSneaking()
+                    && event.getItem() != null && event.getItem().getType().isBlock()) {
+                return; // sneaking with a block places it against the machine, as in vanilla
+            }
             if (def != null && action == Action.RIGHT_CLICK_BLOCK) {
                 SapientiaBlockInteractEvent interactEvent = new SapientiaBlockInteractEvent(
                         event.getPlayer(), clicked, def, action, hand);
@@ -173,9 +188,12 @@ public final class BlockLifecycleListener implements Listener {
             }
             // Suppress vanilla side-effects (e.g. opening WRITTEN_BOOK UI for the guide,
             // eating food, etc.) BEFORE handlers run so any UI we open is not shadowed.
-            event.setCancelled(true);
+            // Seeds, food and drinks keep their vanilla use.
+            if (!item.vanillaUse()) {
+                event.setCancelled(true);
+            }
             SapientiaItemInteractEvent itemEvent = new SapientiaItemInteractEvent(
-                    event.getPlayer(), used, item, action, hand);
+                    event.getPlayer(), used, item, action, hand, clicked);
             Bukkit.getPluginManager().callEvent(itemEvent);
             if (itemEvent.isCancelled()) {
                 return;

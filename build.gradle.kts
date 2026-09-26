@@ -4,7 +4,7 @@ plugins {
 
 allprojects {
     group = "dev.brmz.sapientia"
-    version = "2.0.3-SNAPSHOT"
+    version = "2.1.0-SNAPSHOT"
 }
 
 /**

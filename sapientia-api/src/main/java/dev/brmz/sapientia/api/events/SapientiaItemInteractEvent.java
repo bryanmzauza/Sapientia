@@ -1,6 +1,7 @@
 package dev.brmz.sapientia.api.events;
 
 import dev.brmz.sapientia.api.item.SapientiaItem;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
@@ -9,6 +10,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Fired when a player right-clicks while holding a Sapientia item. Cancellable:
@@ -24,6 +26,7 @@ public class SapientiaItemInteractEvent extends Event implements Cancellable {
     private final SapientiaItem item;
     private final Action action;
     private final EquipmentSlot hand;
+    private final @Nullable Block clickedBlock;
     private boolean cancelled;
 
     public SapientiaItemInteractEvent(
@@ -32,11 +35,27 @@ public class SapientiaItemInteractEvent extends Event implements Cancellable {
             @NotNull SapientiaItem item,
             @NotNull Action action,
             @NotNull EquipmentSlot hand) {
+        this(player, stack, item, action, hand, null);
+    }
+
+    public SapientiaItemInteractEvent(
+            @NotNull Player player,
+            @NotNull ItemStack stack,
+            @NotNull SapientiaItem item,
+            @NotNull Action action,
+            @NotNull EquipmentSlot hand,
+            @Nullable Block clickedBlock) {
         this.player = player;
         this.stack = stack;
         this.item = item;
         this.action = action;
         this.hand = hand;
+        this.clickedBlock = clickedBlock;
+    }
+
+    /** The block that was right-clicked, or {@code null} for a click in the air. */
+    public @Nullable Block clickedBlock() {
+        return clickedBlock;
     }
 
     public @NotNull Player player() {

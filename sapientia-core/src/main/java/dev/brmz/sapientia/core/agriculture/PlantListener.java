@@ -3,7 +3,9 @@ package dev.brmz.sapientia.core.agriculture;
 import java.util.concurrent.ThreadLocalRandom;
 
 import dev.brmz.sapientia.api.agriculture.SapientiaPlant;
+import dev.brmz.sapientia.api.agriculture.WildDrop;
 import dev.brmz.sapientia.api.agriculture.WildSeedSource;
+import dev.brmz.sapientia.api.item.SapientiaItem;
 import dev.brmz.sapientia.api.progression.ProgressionService;
 import dev.brmz.sapientia.core.item.ItemRegistry;
 import org.bukkit.GameMode;
@@ -87,21 +89,37 @@ public final class PlantListener implements Listener {
         }
     }
 
+    /** Wild seeds and other wild drops (plant fibre); a hand tool that was needed loses one use. */
     private void wildSeeds(Block block, Player player) {
-        String held = items.idOf(player.getInventory().getItemInMainHand());
+        ItemStack hand = player.getInventory().getItemInMainHand();
+        String held = items.idOf(hand);
         ThreadLocalRandom random = ThreadLocalRandom.current();
         NamespacedKey biome = block.getBiome().getKey();
+        Location at = block.getLocation().add(0.5, 0.5, 0.5);
+        boolean toolUsed = false;
         for (SapientiaPlant plant : plants.plants()) {
             if (!progression.isUnlocked(plant.era())) continue;
             for (WildSeedSource source : plant.wildSources()) {
-                if (!source.hosts().contains(block.getType())) continue;
-                if (!source.biomes().isEmpty() && !source.biomes().contains(biome)) continue;
-                if (source.requiredTool() != null && !source.requiredTool().toString().equals(held)) continue;
-                if (random.nextDouble() < source.chance()) {
-                    drop(block.getLocation().add(0.5, 0.5, 0.5), plant.seedItem(), 1);
-                }
+                if (!applies(source, block, biome, held)) continue;
+                toolUsed |= source.requiredTool() != null;
+                if (random.nextDouble() < source.chance()) drop(at, plant.seedItem(), 1);
             }
         }
+        for (WildDrop wild : plants.wildDrops()) {
+            if (!progression.isUnlocked(wild.era()) || !applies(wild.source(), block, biome, held)) continue;
+            toolUsed |= wild.source().requiredTool() != null;
+            if (random.nextDouble() < wild.source().chance()) drop(at, wild.item(), 1);
+        }
+        SapientiaItem tool = toolUsed ? items.resolve(hand) : null;
+        if (tool != null && tool.toolUses() > 0) {
+            player.getInventory().setItemInMainHand(ItemRegistry.wear(player, hand));
+        }
+    }
+
+    private static boolean applies(WildSeedSource source, Block block, NamespacedKey biome, String held) {
+        return source.hosts().contains(block.getType())
+                && (source.biomes().isEmpty() || source.biomes().contains(biome))
+                && (source.requiredTool() == null || source.requiredTool().toString().equals(held));
     }
 
     private void drop(Location at, NamespacedKey item, int amount) {

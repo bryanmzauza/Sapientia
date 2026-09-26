@@ -1265,11 +1265,456 @@ for _kind in ANDROID_ACCENT:
     BLOCKS[f"android_{_kind}"] = android(_kind)
 
 
+# =============================================================================
+# Era 1 (Stone Age)
+# =============================================================================
+
+FLINT_KNIFE = [
+    "................",
+    "............35..",
+    "...........3452.",
+    "..........34521.",
+    ".........34521..",
+    "........34521...",
+    ".......34521....",
+    "......z4521.....",
+    ".....zz221......",
+    "....DzzE........",
+    "...DED..........",
+    "..DED...........",
+    ".DED............",
+    "CDD.............",
+    "CC..............",
+    "................",
+]
+
+STONE_HAMMER = [
+    "................",
+    "....2344........",
+    "...234554.......",
+    "..2345543.......",
+    "..1234432z......",
+    "...12321zz......",
+    "....111zDE......",
+    ".......DE.......",
+    "......DE........",
+    ".....DE.........",
+    "....DE..........",
+    "...DE...........",
+    "..CD............",
+    "..C.............",
+    "................",
+    "................",
+]
+
+PLANT_FIBER = [
+    "................",
+    "......2.....3...",
+    ".....23....34...",
+    "....23....34....",
+    "...234...34..3..",
+    "...23...34..34..",
+    "..234..34..34...",
+    "..23..34..34....",
+    ".234.34..34.....",
+    ".23.34..34......",
+    ".2.34..34.......",
+    "..34..34........",
+    ".34..34.........",
+    ".3..3...........",
+    "................",
+    "................",
+]
+
+SEEDS = [
+    "................",
+    "................",
+    "......2.........",
+    ".....243....2...",
+    ".....232...243..",
+    "......2....232..",
+    "..2.........2...",
+    ".243....2.......",
+    ".232...243......",
+    "..2....232...2..",
+    "........2...243.",
+    "....2.......232.",
+    "...243.......2..",
+    "...232..........",
+    "....2...........",
+    "................",
+]
+
+FLAX = [
+    "................",
+    "...E.....E......",
+    "..EFE...EFE..E..",
+    "...E.....E..EFE.",
+    "...3.....3...E..",
+    "...3....3....3..",
+    "....3...3...3...",
+    "....3..3....3...",
+    ".....3.3...3....",
+    ".....3.3..3.....",
+    "......33.3......",
+    "......333.......",
+    "......z3z.......",
+    "......zzz.......",
+    "......333.......",
+    ".......3........",
+]
+
+HERB = [
+    "................",
+    ".......4........",
+    "......454.......",
+    "..3...454...3...",
+    ".343..343..343..",
+    ".3453.343.3543..",
+    "..3452343254.3..",
+    "...34523254.....",
+    "....3423243.....",
+    ".....32223......",
+    "......222.......",
+    ".......2........",
+    ".......2........",
+    "......2.2.......",
+    ".....2...2......",
+    "................",
+]
+
+POWDER = [
+    "................",
+    "................",
+    "................",
+    "................",
+    "................",
+    "................",
+    ".......44.......",
+    ".....445544.....",
+    "....34555543....",
+    "...3445555443...",
+    "..233444444332..",
+    ".22333444433322.",
+    ".11222233322211.",
+    "..111111111111..",
+    "................",
+    "................",
+]
+
+DOUGH = [
+    "................",
+    "................",
+    "................",
+    ".....344443.....",
+    "...3455555543...",
+    "..345555555543..",
+    "..34555555554.3.",
+    ".3445555555443..",
+    ".3344455554433..",
+    ".2333444444332..",
+    "..22333333322...",
+    "...222222222....",
+    ".....1111.......",
+    "................",
+    "................",
+    "................",
+]
+
+LOAF = [
+    "................",
+    "................",
+    "................",
+    "................",
+    ".....2344432....",
+    "...23455E554.3..",
+    "..2345E54E5543..",
+    ".2345E54E5E5432.",
+    ".234E54E5E54432.",
+    ".2345454545.432.",
+    ".2234444444.322.",
+    "..12233333322.1.",
+    "...1112222111...",
+    "................",
+    "................",
+    "................",
+]
+
+TEA = [
+    "................",
+    "......ttt.......",
+    "......ddd.......",
+    "......c.c.......",
+    "......c.c.......",
+    ".....c...c......",
+    "....c.....c.....",
+    "...c3444443c....",
+    "...c3455543c....",
+    "...c3444443c....",
+    "...c2333332c....",
+    "....c22222c.....",
+    ".....ccccc......",
+    "................",
+    "................",
+    "................",
+]
+
+SALVE = [
+    "................",
+    "................",
+    "................",
+    "................",
+    "....2344432.....",
+    "...234555432....",
+    "...CDDDDDDDC....",
+    "...BCDEEEDCB....",
+    "...BCDEEEDCB....",
+    "...BCDDDDDCB....",
+    "...BCCCCCCCB....",
+    "...ABBBBBBBA....",
+    "....AAAAAAA.....",
+    "................",
+    "................",
+    "................",
+]
+
+BUCKET = [
+    "................",
+    "................",
+    "...kkkkkkkkkk...",
+    "..ks33444433sk..",
+    "..ks34455443sk..",
+    "..kis3333333ik..",
+    "..kisssssssik...",
+    "...kiisssiiik...",
+    "...kiisssiiik...",
+    "...kiisssiiik...",
+    "....kiissiik....",
+    "....kiiiiiik....",
+    ".....kkkkkk.....",
+    "................",
+    "................",
+    "................",
+]
+
+CRYSTALS = [
+    "................",
+    "................",
+    "................",
+    "..........5.....",
+    ".........545....",
+    "....5...54443...",
+    "...545..5443....",
+    "..54443.4432....",
+    "..5443..332.5...",
+    "...332..22.545..",
+    "....2......4432.",
+    "..5.......54432.",
+    ".545......4332..",
+    ".4432......22...",
+    "..32............",
+    "................",
+]
+
+CLAY_LUMP = [
+    "................",
+    "................",
+    "................",
+    "................",
+    "......3443......",
+    "....34555543....",
+    "...3455555543...",
+    "..345555544443..",
+    "..344555444433..",
+    "..233444443332..",
+    "..22333333322...",
+    "...122222221....",
+    ".....11111......",
+    "................",
+    "................",
+    "................",
+]
+
+BRICK = [
+    "................",
+    "................",
+    "................",
+    "................",
+    "..555555555554..",
+    ".54444444444443.",
+    ".54444444444432.",
+    ".54444444444432.",
+    ".54444444444432.",
+    ".54444444444432.",
+    ".53333333333332.",
+    "..222222222222..",
+    "................",
+    "................",
+    "................",
+    "................",
+]
+
+
+COMPOST = [
+    "................",
+    "................",
+    "................",
+    "................",
+    "................",
+    "................",
+    ".......4g.......",
+    ".....44554j.....",
+    "....3g555543....",
+    "...344555j443...",
+    "..233g44444332..",
+    ".2233344g43322j.",
+    ".11222233322211.",
+    "..111111111111..",
+    "................",
+    "................",
+]
+
+
+def noisy_face(base: str, seed: int, spread: int = 2) -> Image.Image:
+    """A 16x16 face of one material with per-pixel shade noise."""
+    r = ramp(base, hue_shift=0.02)
+    img = Image.new("RGBA", (16, 16))
+    px = img.load()
+    for y in range(16):
+        for x in range(16):
+            n = art._noise(x, y, seed) % (spread * 2 + 1)
+            px[x, y] = r[max(0, min(5, 3 - spread + n))]
+    return img
+
+
+def hand_quern() -> dict[str, Image.Image]:
+    top = noisy_face("#9a9a96", 201, 1)
+    art.paste_mask(top, [
+        "...333333...",
+        "..34444443..",
+        ".3444444443.",
+        ".3444kk4443.",
+        ".3444kk4443.",
+        ".3444444443.",
+        "..34444443..",
+        "...333333...",
+    ], 2, 4, primary=ramp("#a8a8a4"))
+    art.paste_mask(top, ["t", "t", "t", "d"], 12, 1)
+    side = noisy_face("#8c8c88", 202, 1)
+    p = side.load()
+    for x in range(16):
+        p[x, 7] = NAMED_RGBA["x"]
+        p[x, 8] = NAMED_RGBA["k"]
+    return {"top": top, "front": side, "side": side}
+
+
+def charcoal_pit() -> dict[str, Image.Image]:
+    top = noisy_face("#6b4a2e", 211, 2)
+    art.paste_mask(top, [
+        "..kkkk..",
+        ".kmoomk.",
+        "komyymok",
+        "koyyyyok",
+        "koyyyyok",
+        "komyymok",
+        ".kmoomk.",
+        "..kkkk..",
+    ], 4, 4)
+    side = noisy_face("#6b4a2e", 212, 2)
+    stone = ramp("#8a8a86")
+    sp = side.load()
+    for x in range(16):
+        for y in (12, 13, 14, 15):
+            sp[x, y] = stone[2 + (art._noise(x, y, 213) % 3)]
+    for x in (5, 6, 9, 10):
+        sp[x, 11] = NAMED_RGBA["o"]
+    return {"top": top, "front": side, "side": side}
+
+
+def clay_furnace() -> dict[str, Image.Image]:
+    brick = ramp("#b0582e")
+    mortar = NAMED_RGBA["z"]
+
+    def bricks(seed: int) -> Image.Image:
+        img = Image.new("RGBA", (16, 16))
+        px = img.load()
+        for y in range(16):
+            for x in range(16):
+                row = y // 4
+                offset = 4 if row % 2 else 0
+                if y % 4 == 3 or (x + offset) % 8 == 7:
+                    px[x, y] = mortar
+                else:
+                    px[x, y] = brick[2 + art._noise(x, y, seed) % 3]
+        return img
+
+    top = bricks(221)
+    side = bricks(222)
+    front = bricks(223)
+    art.paste_mask(front, [
+        "kkkkkkkk",
+        "kmmoommk",
+        "kmoyyomk",
+        "koyyyyok",
+        "kkkkkkkk",
+    ], 4, 8)
+    return {"top": top, "front": front, "side": side}
+
+
+def fiber_basket() -> dict[str, Image.Image]:
+    weave = ramp("#9aa04a")
+
+    def woven(seed: int) -> Image.Image:
+        img = Image.new("RGBA", (16, 16))
+        px = img.load()
+        for y in range(16):
+            for x in range(16):
+                over = ((x // 4) + (y // 2)) % 2 == 0
+                shade = 4 if over else 2
+                px[x, y] = weave[shade - (art._noise(x, y, seed) % 2)]
+        return img
+
+    top = woven(231)
+    art.panel(top, 3, 3, 12, 12)
+    side = woven(232)
+    return {"top": top, "front": side, "side": side}
+
+
+STONE_AGE: dict[str, Spec] = {
+    "flint_knife": item(lambda: render_mask(FLINT_KNIFE, primary=ramp("#4a4e56"), accent=ramp("#8a5a2f")),
+                        HANDHELD),
+    "stone_hammer": item(lambda: render_mask(STONE_HAMMER, primary=ramp("#8e8e8a"), accent=ramp("#8a5a2f")),
+                         HANDHELD),
+    "plant_fiber": item(lambda: render_mask(PLANT_FIBER, primary=ramp("#6fa83a"))),
+    "flax_seeds": item(lambda: render_mask(SEEDS, primary=ramp("#b89a4a"))),
+    "flax": item(lambda: render_mask(FLAX, primary=ramp("#7a9a3a"), accent=ramp("#5a7be0"))),
+    "herb_seeds": item(lambda: render_mask(SEEDS, primary=ramp("#5f6f2c"))),
+    "medicinal_herb": item(lambda: render_mask(HERB, primary=ramp("#3d8a45"))),
+    "flour": item(lambda: render_mask(POWDER, primary=ramp("#e8e2d0"))),
+    "bread_dough": item(lambda: render_mask(DOUGH, primary=ramp("#e2c98a"))),
+    "flour_bread": item(lambda: render_mask(LOAF, primary=ramp("#c8893a"), accent=ramp("#f0d8a0"))),
+    "herbal_tea": item(lambda: render_mask(TEA, primary=ramp("#6a9a2a"))),
+    "healing_salve": item(lambda: render_mask(SALVE, primary=ramp("#5aa04a"), accent=ramp("#a0603a"))),
+    "compost": item(lambda: render_mask(COMPOST, primary=ramp("#5a3e26"))),
+    "wood_ash": item(lambda: render_mask(POWDER, primary=ramp("#8c8c8c"))),
+    "lye_bucket": item(lambda: render_mask(BUCKET, primary=ramp("#b8b09a"))),
+    "potash": item(lambda: render_mask(CRYSTALS, primary=ramp("#e0e0d6"))),
+    "fire_clay": item(lambda: render_mask(CLAY_LUMP, primary=ramp("#c98a5a"))),
+    "fire_brick": item(lambda: render_mask(BRICK, primary=ramp("#b0582e"))),
+    "hand_quern": block(hand_quern),
+    "charcoal_pit": block(charcoal_pit),
+    "clay_furnace": block(clay_furnace),
+    "fiber_basket": block(fiber_basket),
+}
+
+
 def lookup(item_id: str) -> Spec | None:
     if item_id in TOOLS:
         return TOOLS[item_id]
     if item_id in BLOCKS:
         return BLOCKS[item_id]
+    if item_id in STONE_AGE:
+        return STONE_AGE[item_id]
     for metal in METAL_COLORS:
         prefix = metal + "_"
         if item_id.startswith(prefix):

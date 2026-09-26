@@ -31,6 +31,12 @@ public interface RecipeRegistry {
      */
     @NotNull Optional<SapientiaRecipe> match(@NotNull @Nullable ItemStack[] grid);
 
+    /** Registers a furnace recipe for a Sapientia item (vanilla furnaces or a Sapientia furnace). */
+    void registerSmelting(@NotNull SmeltingRecipe recipe);
+
+    /** Every registered furnace recipe. */
+    @NotNull Collection<SmeltingRecipe> smeltingRecipes();
+
     /**
      * Registers a recipe for the vanilla crafting table whose result is a
      * Sapientia item. Players find it in their recipe book.

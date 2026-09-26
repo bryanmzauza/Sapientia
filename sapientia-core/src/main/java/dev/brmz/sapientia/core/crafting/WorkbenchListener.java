@@ -17,7 +17,6 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -28,7 +27,6 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
@@ -158,11 +156,16 @@ public final class WorkbenchListener implements Listener {
             if (in == null || in.getType().isAir()) continue;
             SapientiaItem tool = items.resolve(in);
             if (tool != null && tool.benchToolUses() > 0) {
-                inv.setItem(slot, wear(player, in));
+                inv.setItem(slot, ItemRegistry.wear(player, in));
                 continue;
             }
+            Material remainder = containerLeft(in, result);
             in.setAmount(in.getAmount() - 1);
             inv.setItem(slot, in.getAmount() <= 0 ? null : in);
+            if (remainder != null) {
+                player.getInventory().addItem(new ItemStack(remainder)).values().forEach(overflow ->
+                        player.getWorld().dropItemNaturally(player.getLocation(), overflow));
+            }
         }
 
         player.getInventory().addItem(result).values().forEach(overflow ->
@@ -175,19 +178,16 @@ public final class WorkbenchListener implements Listener {
         schedulePreviewRefresh(inv);
     }
 
-    /** One use off a workbench tool; returns {@code null} when it breaks. */
-    private static @org.jetbrains.annotations.Nullable ItemStack wear(Player player, ItemStack tool) {
-        if (!(tool.getItemMeta() instanceof Damageable meta) || !meta.hasMaxDamage()) {
-            return tool; // an old stack without durability: refreshed on the next inventory update
-        }
-        int damage = meta.getDamage() + 1;
-        if (damage >= meta.getMaxDamage()) {
-            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1f, 1f);
-            return null;
-        }
-        meta.setDamage(damage);
-        tool.setItemMeta(meta);
-        return tool;
+    /**
+     * The empty container a vanilla ingredient leaves (a bucket from a water
+     * bucket, a bottle from a potion), or {@code null} when it leaves nothing or
+     * when the result keeps the container itself (a bucket of lye).
+     */
+    private static @org.jetbrains.annotations.Nullable Material containerLeft(ItemStack ingredient,
+                                                                               ItemStack result) {
+        Material left = ingredient.getType().getCraftingRemainingItem();
+        if (left == null || left.isAir()) return null;
+        return left == result.getType().getCraftingRemainingItem() ? null : left;
     }
 
     private void schedulePreviewRefresh(Inventory inv) {

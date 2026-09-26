@@ -137,6 +137,60 @@ item:
     name: "<gold>Sapientia Guide</gold>"
     lore: "<gray>Right-click to open the in-game guide.</gray>"
     desc: "Your field manual. Opens a chest UI listing every\nSapientia item, block and recipe you have unlocked."
+  flint_knife:
+    name: "<white>Flint Knife</white>"
+    desc: "Cut grass and ferns with it: 30% chance of plant\nfibre, 10% of a wild seed (flax in plains,\nmedicinal herb in forests). 64 uses."
+  stone_hammer:
+    name: "<white>Stone Hammer</white>"
+    desc: "Workbench tool. Put it above cobblestone to get\ngravel, above gravel to get sand; from era 2 it\ncrushes mineral fragments. 64 uses."
+  plant_fiber:
+    name: "<green>Plant Fibre</green>"
+    desc: "Cut from grass with a flint knife. 3 fibres make\na string; also baskets and the stone hammer."
+  flax_seeds:
+    name: "<yellow>Flax Seeds</yellow>"
+    desc: "Plant them on farmland. Found with a flint knife\nin plains, and returned by the harvest."
+  flax:
+    name: "<yellow>Flax</yellow>"
+    desc: "Harvested from grown flax. Its fibre becomes cloth\nin era 2."
+  herb_seeds:
+    name: "<green>Medicinal Herb Seeds</green>"
+    desc: "Plant them on farmland. Found with a flint knife\nin forests, and returned by the harvest."
+  medicinal_herb:
+    name: "<green>Medicinal Herb</green>"
+    desc: "Harvested from grown herbs. Makes herbal tea and\nhealing salve."
+  flour:
+    name: "<white>Flour</white>"
+    desc: "Wheat ground in the hand quern (3 clicks per flour).\nMakes bread dough."
+  bread_dough:
+    name: "<gold>Bread Dough</gold>"
+    desc: "Bake it in a vanilla furnace to get flour bread."
+  flour_bread:
+    name: "<gold>Flour Bread</gold>"
+    desc: "Fills one and a half times as much as vanilla bread."
+  herbal_tea:
+    name: "<green>Herbal Tea</green>"
+    desc: "Drink it for Regeneration I for 10 seconds."
+  healing_salve:
+    name: "<red>Healing Salve</red>"
+    desc: "Right-click to restore 3 hearts. 30 seconds between\nuses."
+  compost:
+    name: "<dark_green>Compost</dark_green>"
+    desc: "Right-click a crop: every growing crop in the 3x3\naround it grows one stage."
+  wood_ash:
+    name: "<gray>Wood Ash</gray>"
+    desc: "Left by the charcoal pit. Makes lye; fertiliser\nin era 2."
+  lye_bucket:
+    name: "<gray>Bucket of Lye</gray>"
+    desc: "Boil it down in a vanilla furnace to get potash;\nthe empty bucket stays in the furnace."
+  potash:
+    name: "<white>Potash</white>"
+    desc: "Fertiliser in era 2, soap and glass in era 7."
+  fire_clay:
+    name: "<gold>Fire Clay</gold>"
+    desc: "Fire it in a vanilla furnace to get a fire brick."
+  fire_brick:
+    name: "<gold>Fire Brick</gold>"
+    desc: "Lines every furnace up to era 8, starting with\nthe clay furnace."
   era_almanac:
     name: "<gold>Era Almanac</gold>"
     lore: "<gray>Right-click to see what each era brings.</gray>"
@@ -169,6 +223,18 @@ block:
   consumer:
     name: "<red>Sapientia Consumer</red>"
     desc: "Drains energy each tick. Demo sink used to verify\nthat your network is producing and delivering power."
+  hand_quern:
+    name: "<white>Hand Quern</white>"
+    desc: "Right-click it holding wheat: every third click\ngrinds one wheat into flour. Up to 16 per chunk."
+  charcoal_pit:
+    name: "<gold>Charcoal Pit</gold>"
+    desc: "Slow burn: 16 logs from a container above become\n24 charcoal and 4 wood ash in a container below,\nin 4 minutes. Lit while burning. Up to 8 per chunk."
+  clay_furnace:
+    name: "<gold>Clay Furnace</gold>"
+    desc: "Smelts crushed ores and alloy mixes of eras 2 to 4\n(20 s each). Burns only coal and charcoal; hoppers\nwork as on a blast furnace. Up to 16 per chunk."
+  fiber_basket:
+    name: "<green>Fibre Basket</green>"
+    desc: "A 9-slot container that keeps its contents when\nbroken. Hoppers can fill and empty it."
   workbench:
     name: "<gold>Sapientia Workbench</gold>"
     desc: "Sapientia 3x3 crafting grid. Right-click to open\nand craft bundled Sapientia recipes."
@@ -485,8 +551,12 @@ guide:
     title: "<gold>Guide</gold> <gray>·</gray> <white><name></white>"
     recipe:
       header: "<aqua><bold>Recipe</bold></aqua>"
-      none: "<gray>This item has no crafting recipe.\nObtain it from world drops, the\n/sapientia give command, or admins.</gray>"
+      none: "<gray>This item has no crafting recipe.\nIt comes from the world, a machine\nor a tool: see its description.</gray>"
     yields: "<gray>Yields <white><amount>x</white> per craft.</gray>"
+    smelting:
+      name: "<gold><bold>Furnace</bold></gold>"
+      vanilla: "<gray>Smelt it in a vanilla furnace.</gray>"
+      in: "<gray>Smelt it in the <white><furnace></white>.</gray>"
     vanilla:
       name: "<aqua><bold>Vanilla crafting table</bold></aqua>"
       lore: "<gray>Made on a normal crafting table,
@@ -1265,3 +1335,4 @@ mineral:
 
 workbench:
   tool: "<gray>Workbench tool: <white><uses></white> uses, not consumed</gray>"
+  hand-tool: "<gray>Tool: <white><uses></white> uses</gray>"

@@ -27,7 +27,8 @@ import org.jetbrains.annotations.Nullable;
  *       items backed by placeable vanilla blocks);</li>
  *   <li>Sapientia items never act as their vanilla base material in vanilla
  *       crafting, smelting, the crafter or the smithing table, so for
- *       example a copper ingot of the Sapientia cannot make iron tools.</li>
+ *       example a copper ingot of the Sapientia cannot make iron tools. Only
+ *       registered Sapientia furnace recipes smelt them.</li>
  * </ul>
  * Players with {@code sapientia.era.bypass} ignore the placement lock.
  */
@@ -36,12 +37,16 @@ public final class EraLockListener implements Listener {
     private final ProgressionService progression;
     private final ItemRegistry items;
     private final Messages messages;
+    private final java.util.function.Predicate<NamespacedKey> isSapientiaSmelting;
 
+    /** @param isSapientiaSmelting whether a recipe key is a Sapientia furnace recipe */
     public EraLockListener(@NotNull ProgressionService progression, @NotNull ItemRegistry items,
-                           @NotNull Messages messages) {
+                           @NotNull Messages messages,
+                           @NotNull java.util.function.Predicate<NamespacedKey> isSapientiaSmelting) {
         this.progression = progression;
         this.items = items;
         this.messages = messages;
+        this.isSapientiaSmelting = isSapientiaSmelting;
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -87,6 +92,8 @@ public final class EraLockListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onSmelt(@NotNull FurnaceSmeltEvent event) {
+        // Sapientia furnace recipes are checked by the furnace listener.
+        if (event.getRecipe() != null && isSapientiaSmelting.test(event.getRecipe().getKey())) return;
         if (sapientiaId(event.getSource()) != null) event.setCancelled(true);
     }
 

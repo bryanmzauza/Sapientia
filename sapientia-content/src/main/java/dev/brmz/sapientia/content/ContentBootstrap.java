@@ -58,6 +58,7 @@ import dev.brmz.sapientia.content.geo.SapientiaQuarryController;
 import dev.brmz.sapientia.content.items.SapientiaEraAlmanac;
 import dev.brmz.sapientia.content.items.SapientiaGuide;
 import dev.brmz.sapientia.content.items.SapientiaWrench;
+import dev.brmz.sapientia.content.stoneage.StoneAgeContent;
 import dev.brmz.sapientia.content.logistics.SapientiaComparatorSensor;
 import dev.brmz.sapientia.content.logistics.SapientiaConveyorBelt;
 import dev.brmz.sapientia.content.logistics.SapientiaFilterChamber;
@@ -136,6 +137,8 @@ public final class ContentBootstrap {
         api.registerBlock(new SapientiaWorkbench(plugin));
         // Era 0: the guide and the workbench are made on the vanilla crafting table.
         ArrivalRecipes.registerAll(plugin, api);
+        // Era 1: farming, flint tools, the charcoal pit and the clay furnace.
+        StoneAgeContent.registerAll(plugin, api);
         BundledRecipes.registerAll(plugin, api);
 
         // Metallurgy items (T-402 / T-403 / 1.4.0) — 78 metal items.

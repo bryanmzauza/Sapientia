@@ -15,6 +15,9 @@ public interface PlantService {
 
     void register(@NotNull SapientiaPlant plant);
 
+    /** Registers an item dropped by wild vegetation (see {@link WildDrop}). */
+    void registerWildDrop(@NotNull WildDrop drop);
+
     @NotNull Collection<SapientiaPlant> plants();
 
     @NotNull Optional<SapientiaPlant> plant(@NotNull NamespacedKey id);

@@ -1,6 +1,6 @@
 # Era 1 — Idade da Pedra
 
-**Inspiração:** Neolítico e a revolução agrícola · **Versão:** 2.1.x · **Status:** planejada
+**Inspiração:** Neolítico e a revolução agrícola · **Versão:** 2.1.x · **Status:** concluída (2.1.0)
 
 ## Resumo
 
@@ -33,20 +33,20 @@ Nenhuma rede. Fornos e carvoaria queimam combustível diretamente.
 | Pão de farinha | `flour_bread` | comida | Fornalha vanilla. | Sacia 1,5× o pão vanilla. |
 | Chá medicinal | `herbal_tea` | bebida | Bancada: 2 ervas medicinais + 1 frasco de água. | Regeneração I por 10 s. |
 | Pomada curativa | `healing_salve` | item | Bancada: 3 ervas medicinais + 1 bola de argila → 2. | Clique para recuperar 3 corações (cooldown de 30 s). |
-| Composto | `compost` | material | Composteira vanilla com plantas do Sapientia, ou Bancada: 4 folhas + 1 terra. | Aplicado numa planta, adianta 1 estágio num raio 3×3. |
+| Composto | `compost` | material | Bancada: 4 folhas (qualquer tipo) em cruz em volta de 1 terra. | Aplicado numa planta, adianta 1 estágio num raio 3×3. |
 
 ## Madeira e carvão
 
 | Item | Id | Tipo | Como é produzido | O que faz |
 |------|----|------|------------------|-----------|
-| Carvoaria | `charcoal_pit` | bloco (máquina) | Bancada: 4 terras, 4 pedregulhos, 1 fogueira. | Queima lenta: 16 toras → 24 carvões vegetais + 4 cinzas de madeira em 4 min. |
-| Cinza de madeira | `wood_ash` | material | Carvoaria (e fogueiras). | Lixívia; adubo de cinzas (era 2). |
+| Carvoaria | `charcoal_pit` | bloco (máquina) | Bancada: 4 terras, 4 pedregulhos, 1 fogueira. | Queima lenta: 16 toras de um baú acima → 24 carvões vegetais + 4 cinzas de madeira num baú abaixo, em 4 min. Acesa só enquanto queima (visual de fogueira). |
+| Cinza de madeira | `wood_ash` | material | Carvoaria. | Lixívia; adubo de cinzas (era 2). |
 
 ## Água e químicos
 
 | Item | Id | Tipo | Como é produzido | O que faz |
 |------|----|------|------------------|-----------|
-| Balde de lixívia | `lye_bucket` | fluido em balde | Bancada: 4 cinzas de madeira + 1 balde de água. | Fornalha vanilla → potassa. |
+| Balde de lixívia | `lye_bucket` | fluido em balde | Bancada: 4 cinzas de madeira + 1 balde de água. | Fornalha vanilla → potassa; o balde vazio fica na fornalha. |
 | Potassa | `potash` | material | Fornalha vanilla com lixívia. | Adubo (era 2), sabão e vidro (era 7). |
 
 ## Metalurgia e ferramentas
@@ -56,24 +56,43 @@ Nenhuma rede. Fornos e carvoaria queimam combustível diretamente.
 | Martelo de pedra | `stone_hammer` | ferramenta de bancada (64 usos) | Bancada: 2 pedregulhos (em cima), 1 graveto, 1 fibra vegetal. | Fragmento de mineral → minério triturado. Pedregulho → cascalho → areia. |
 | Argila refratária | `fire_clay` | material | Bancada: 4 bolas de argila + 4 cascalhos → 8. | Fornalha vanilla → tijolo refratário. |
 | Tijolo refratário | `fire_brick` | material | Fornalha vanilla. | Fornos até a era 8. |
-| Forno de argila | `clay_furnace` | bloco (máquina) | Bancada: 8 tijolos refratários em volta de 1 fornalha vanilla. | Funde minérios triturados e misturas de liga das eras 2 a 4. Item-porta. |
-| Cesto de fibra | `fiber_basket` | bloco | Bancada: 8 fibras vegetais em volta de 1 baú. | Baú de 9 espaços que mantém o conteúdo quando quebrado. |
+| Forno de argila | `clay_furnace` | bloco (máquina) | Bancada: 8 tijolos refratários em volta de 1 fornalha vanilla. | Funde minérios triturados e misturas de liga das eras 2 a 4. Fica sobre um alto-forno vanilla: a janela, o progresso e os funis são os do jogo, em Java e Bedrock. Item-porta. |
+| Cesto de fibra | `fiber_basket` | bloco | Bancada: 8 fibras vegetais em volta de 1 baú. | Baú de 9 espaços que mantém o conteúdo quando quebrado (sobre um liberador vanilla que nunca dispara; funis funcionam). |
 
 ## Máquinas
 
 | Máquina | Entrada → saída | Tempo | Combustível | Automação | Limite por chunk |
 |---------|-----------------|-------|-------------|-----------|------------------|
 | Forno de argila | minério triturado ou mistura → lingote (1:1, sem subprodutos) | 20 s | carvão vegetal, carvão (madeira não serve) | funis | 16 |
-| Carvoaria | 16 toras → 24 carvões vegetais + 4 cinzas | 4 min | a própria madeira | funis | 8 |
+| Carvoaria | 16 toras → 24 carvões vegetais + 4 cinzas | 4 min | a própria madeira | baú acima e abaixo (funis) | 8 |
 | Mó manual | trigo ou arroz → farinha | 3 cliques | — | nenhuma (manual) | 16 |
 
 ## Tarefas
 
-- [ ] E1.1 Faca de sílex, fibra vegetal e drop de sementes silvestres por bioma.
-- [ ] E1.2 Plantas do Sapientia sobre blocos de planta vanilla: linho e erva medicinal.
-- [ ] E1.3 Mó manual, farinha, massa e pão; chá medicinal e pomada curativa; composto.
-- [ ] E1.4 Carvoaria, cinza, lixívia e potassa.
-- [ ] E1.5 Martelo de pedra como ferramenta de bancada.
-- [ ] E1.6 Argila e tijolo refratários; forno de argila com interface Java e Bedrock.
-- [ ] E1.7 Cesto de fibra.
-- [ ] E1.8 Texturas.
+- [x] E1.1 Faca de sílex, fibra vegetal e drop de sementes silvestres por bioma.
+- [x] E1.2 Plantas do Sapientia sobre blocos de planta vanilla: linho e erva medicinal.
+- [x] E1.3 Mó manual, farinha, massa e pão; chá medicinal e pomada curativa; composto.
+- [x] E1.4 Carvoaria, cinza, lixívia e potassa.
+- [x] E1.5 Martelo de pedra como ferramenta de bancada.
+- [x] E1.6 Argila e tijolo refratários; forno de argila com interface Java e Bedrock.
+- [x] E1.7 Cesto de fibra.
+- [x] E1.8 Texturas.
+
+## Receitas da Bancada (posição exata na grade)
+
+| Resultado | Grade (linhas de cima para baixo; `.` = vazio) |
+|-----------|------------------------------------------------|
+| Faca de sílex | `.S.` / `.G.` / `...` (S = sílex, G = graveto) |
+| Martelo de pedra | `PFP` / `.G.` / `...` (P = pedregulho, F = fibra) |
+| Barbante | `FFF` / `...` / `...` |
+| Mó manual | `.G.` / `.L.` / `.L.` (L = pedra lisa) |
+| Massa de pão (3) | `FFF` / `.A.` / `...` (F = farinha, A = balde de água) |
+| Chá medicinal | `...` / `EVE` / `...` (E = erva, V = frasco de água) |
+| Pomada curativa (2) | `EEE` / `.B.` / `...` (B = bola de argila) |
+| Composto | `.O.` / `OTO` / `.O.` (O = folhas, T = terra) |
+| Carvoaria | `TPT` / `PCP` / `TPT` (C = fogueira) |
+| Balde de lixívia | `.Z.` / `ZAZ` / `.Z.` (Z = cinza de madeira) |
+| Cascalho / areia | martelo no canto de cima, pedregulho ou cascalho logo abaixo |
+| Argila refratária (8) | `BCB` / `C.C` / `BCB` (B = bola de argila, C = cascalho) |
+| Forno de argila | 8 tijolos refratários em volta de 1 fornalha |
+| Cesto de fibra | 8 fibras em volta de 1 baú |

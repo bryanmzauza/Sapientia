@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import dev.brmz.sapientia.api.crafting.RecipeIngredient;
 import dev.brmz.sapientia.api.crafting.RecipeRegistry;
 import dev.brmz.sapientia.api.crafting.SapientiaRecipe;
+import dev.brmz.sapientia.api.crafting.SmeltingRecipe;
 import dev.brmz.sapientia.api.crafting.VanillaRecipe;
 import dev.brmz.sapientia.api.overrides.ContentOverrides;
 import dev.brmz.sapientia.api.overrides.RecipeOverride;
@@ -19,11 +20,14 @@ import dev.brmz.sapientia.core.item.ItemRegistry;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.BlastingRecipe;
+import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
+import org.bukkit.inventory.SmokingRecipe;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,6 +46,8 @@ public final class SapientiaRecipeRegistry implements RecipeRegistry {
     private volatile int revision;
     private final Map<NamespacedKey, VanillaRecipe> vanillaRecipes = new LinkedHashMap<>();
     private final List<NamespacedKey> installedVanilla = new ArrayList<>();
+    private final Map<NamespacedKey, SmeltingRecipe> smeltingRecipes = new LinkedHashMap<>();
+    private final List<NamespacedKey> installedSmelting = new ArrayList<>();
 
     public SapientiaRecipeRegistry(@NotNull ItemRegistry itemRegistry) {
         this.itemRegistry = itemRegistry;
@@ -97,6 +103,75 @@ public final class SapientiaRecipeRegistry implements RecipeRegistry {
         if (vanillaRecipes.putIfAbsent(recipe.id(), recipe) != null) {
             throw new IllegalStateException("Duplicate vanilla recipe id: " + recipe.id());
         }
+    }
+
+    @Override
+    public void registerSmelting(@NotNull SmeltingRecipe recipe) {
+        if (smeltingRecipes.putIfAbsent(recipe.id(), recipe) != null) {
+            throw new IllegalStateException("Duplicate smelting recipe id: " + recipe.id());
+        }
+    }
+
+    @Override
+    public @NotNull Collection<SmeltingRecipe> smeltingRecipes() {
+        return Collections.unmodifiableCollection(new ArrayList<>(smeltingRecipes.values()));
+    }
+
+    /** The furnace recipe with this key, or {@code null} when it is not a Sapientia one. */
+    public @Nullable SmeltingRecipe smeltingRecipe(@NotNull NamespacedKey key) {
+        return smeltingRecipes.get(key);
+    }
+
+    /** The furnace recipe that makes {@code item}, if any. */
+    public @Nullable SmeltingRecipe smeltingRecipeFor(@NotNull NamespacedKey item) {
+        for (SmeltingRecipe recipe : smeltingRecipes.values()) {
+            if (recipe.result().equals(item)) return recipe;
+        }
+        return null;
+    }
+
+    /**
+     * Adds the furnace recipes to the server: furnace recipes for vanilla
+     * furnaces, and the recipe type of the block's vanilla furnace for recipes
+     * of a Sapientia furnace. Inputs match the exact Sapientia stack.
+     *
+     * @param baseOf base material of a Sapientia block, or {@code null} if unknown
+     */
+    public void installSmelting(@NotNull Logger logger,
+                                @NotNull java.util.function.Function<NamespacedKey, org.bukkit.Material> baseOf) {
+        for (SmeltingRecipe recipe : smeltingRecipes.values()) {
+            ItemStack input = itemRegistry.createStack(recipe.input().toString(), 1);
+            ItemStack result = itemRegistry.createStack(recipe.result().toString(), recipe.amount());
+            org.bukkit.Material base = recipe.furnace() == null ? org.bukkit.Material.FURNACE : baseOf.apply(recipe.furnace());
+            if (input == null || result == null || base == null) {
+                logger.warning("Smelting recipe " + recipe.id() + " refers to an unknown item or furnace.");
+                continue;
+            }
+            RecipeChoice choice = RecipeChoice.exactChoice(input);
+            Recipe bukkit = switch (base) {
+                case BLAST_FURNACE -> new BlastingRecipe(recipe.id(), result, choice, recipe.experience(), recipe.cookTicks());
+                case SMOKER -> new SmokingRecipe(recipe.id(), result, choice, recipe.experience(), recipe.cookTicks());
+                case FURNACE -> new FurnaceRecipe(recipe.id(), result, choice, recipe.experience(), recipe.cookTicks());
+                default -> null;
+            };
+            if (bukkit == null) {
+                logger.warning("Smelting recipe " + recipe.id() + ": " + recipe.furnace() + " is not a furnace block.");
+                continue;
+            }
+            Bukkit.removeRecipe(recipe.id());
+            if (Bukkit.addRecipe(bukkit)) {
+                installedSmelting.add(recipe.id());
+            }
+        }
+        logger.info("Added " + installedSmelting.size() + " Sapientia furnace recipe(s).");
+    }
+
+    /** Removes the furnace recipes added by {@link #installSmelting}. */
+    public void uninstallSmelting() {
+        for (NamespacedKey key : installedSmelting) {
+            Bukkit.removeRecipe(key);
+        }
+        installedSmelting.clear();
     }
 
     @Override

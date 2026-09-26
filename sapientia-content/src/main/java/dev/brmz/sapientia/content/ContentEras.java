@@ -22,6 +22,12 @@ public final class ContentEras {
 
     static {
         put(Era.ARRIVAL, "guide", "era_almanac", "workbench");
+        put(Era.STONE_AGE, "flint_knife", "stone_hammer", "plant_fiber", "flax_seeds", "flax", "herb_seeds",
+                "medicinal_herb", "flour", "bread_dough", "flour_bread", "herbal_tea", "healing_salve", "compost",
+                "wood_ash", "lye_bucket", "potash", "fire_clay", "fire_brick", "hand_quern", "charcoal_pit",
+                "clay_furnace", "fiber_basket",
+                // workbench recipes with a vanilla result
+                "recipe_fiber_to_string", "recipe_cobblestone_to_gravel", "recipe_gravel_to_sand");
         put(Era.COPPER_AGE, "pedestal");
         put(Era.INDUSTRIAL_REVOLUTION, "boiler", "condenser", "fluid_pipe", "fluid_pump", "fluid_tank", "fluid_drain");
         put(Era.ELECTRICITY, "generator", "cable", "capacitor", "consumer", "console", "wrench", "machine_casing",
